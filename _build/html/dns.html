@@ -1,0 +1,698 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Domain Name Service (DNS) &mdash; Ubuntu Server Guide - 14.04 LTS</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '14.04',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Ubuntu Server Guide - 14.04 LTS" href="index.html" />
+    <link rel="next" title="Security" href="security.html" />
+    <link rel="prev" title="Network Authentication" href="network-auth.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="security.html" title="Security"
+             accesskey="N">next</a></li>
+        <li class="right" >
+          <a href="network-auth.html" title="Network Authentication"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Ubuntu Server Guide - 14.04 LTS</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="domain-name-service-dns">
+<h1>Domain Name Service (DNS)<a class="headerlink" href="#domain-name-service-dns" title="Permalink to this headline">¶</a></h1>
+<p>Domain Name Service (DNS) is an Internet service that maps IP addresses
+and fully qualified domain names (FQDN) to one another. In this way, DNS
+alleviates the need to remember IP addresses. Computers that run DNS are
+called <em>name servers</em>. Ubuntu ships with BIND (Berkley Internet Naming
+Daemon), the most common program used for maintaining a name server on
+Linux.</p>
+</div>
+<div class="section" id="installation">
+<h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h1>
+<p>At a terminal prompt, enter the following command to install dns:</p>
+<p>A very useful package for testing and troubleshooting DNS issues is the
+dnsutils package. Very often these tools will be installed already, but
+to check and/or install dnsutils enter the following:</p>
+</div>
+<div class="section" id="configuration">
+<h1>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h1>
+<p>There are many ways to configure BIND9. Some of the most common
+configurations are a caching nameserver, primary master, and as a
+secondary master.</p>
+<ul class="simple">
+<li>When configured as a caching nameserver BIND9 will find the answer to
+name queries and remember the answer when the domain is queried
+again.</li>
+<li>As a primary master server BIND9 reads the data for a zone from a
+file on it&#8217;s host and is authoritative for that zone.</li>
+<li>In a secondary master configuration BIND9 gets the zone data from
+another nameserver authoritative for the zone.</li>
+</ul>
+<div class="section" id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<p>The DNS configuration files are stored in the <tt class="docutils literal"><span class="pre">/etc/bind</span></tt> directory.
+The primary configuration file is <tt class="docutils literal"><span class="pre">/etc/bind/named.conf</span></tt>.</p>
+<p>The <em>include</em> line specifies the filename which contains the DNS
+options. The <em>directory</em> line in the <tt class="docutils literal"><span class="pre">/etc/bind/named.conf.options</span></tt>
+file tells DNS where to look for files. All files BIND uses will be
+relative to this directory.</p>
+<p>The file named <tt class="docutils literal"><span class="pre">/etc/bind/db.root</span></tt> describes the root nameservers in
+the world. The servers change over time, so the <tt class="docutils literal"><span class="pre">/etc/bind/db.root</span></tt>
+file must be maintained now and then. This is usually done as updates to
+the bind9 package. The <em>zone</em> section defines a master server, and it is
+stored in a file mentioned in the <em>file</em> option.</p>
+<p>It is possible to configure the same server to be a caching name server,
+primary master, and secondary master. A server can be the Start of
+Authority (SOA) for one zone, while providing secondary service for
+another zone. All the while providing caching services for hosts on the
+local LAN.</p>
+</div>
+<div class="section" id="caching-nameserver">
+<h2>Caching Nameserver<a class="headerlink" href="#caching-nameserver" title="Permalink to this headline">¶</a></h2>
+<p>The default configuration is setup to act as a caching server. All that
+is required is simply adding the IP Addresses of your ISP&#8217;s DNS servers.
+Simply uncomment and edit the following in
+<tt class="docutils literal"><span class="pre">/etc/bind/named.conf.options</span></tt>:</p>
+<div class="highlight-python"><pre>forwarders {
+                1.2.3.4;
+                5.6.7.8;
+           };
+
+**Note**
+
+Replace *1.2.3.4* and *5.6.7.8* with the IP Adresses of actual
+nameservers.</pre>
+</div>
+<p>Now restart the DNS server, to enable the new configuration. From a
+terminal prompt:</p>
+<p>See ? for information on testing a caching DNS server.</p>
+</div>
+<div class="section" id="primary-master">
+<h2>Primary Master<a class="headerlink" href="#primary-master" title="Permalink to this headline">¶</a></h2>
+<p>In this section BIND9 will be configured as the Primary Master for the
+domain <em>example.com</em>. Simply replace <em>example.com</em> with your FQDN (Fully
+Qualified Domain Name).</p>
+<div class="section" id="forward-zone-file">
+<h3>Forward Zone File<a class="headerlink" href="#forward-zone-file" title="Permalink to this headline">¶</a></h3>
+<p>To add a DNS zone to BIND9, turning BIND9 into a Primary Master server,
+the first step is to edit <tt class="docutils literal"><span class="pre">/etc/bind/named.conf.local</span></tt>:</p>
+<div class="highlight-python"><pre>zone "example.com" {
+    type master;
+        file "/etc/bind/db.example.com";
+};</pre>
+</div>
+<p>(Note, if bind will be receiving automatic updates to the file as with
+DDNS, then use <tt class="docutils literal"><span class="pre">/var/lib/bind/db.example.com</span></tt> rather than
+<tt class="docutils literal"><span class="pre">/etc/bind/db.example.com</span></tt> both here and in the copy command below.)</p>
+<p>Now use an existing zone file as a template to create the
+<tt class="docutils literal"><span class="pre">/etc/bind/db.example.com</span></tt> file:</p>
+<p>Edit the new zone file <tt class="docutils literal"><span class="pre">/etc/bind/db.example.com</span></tt> change <em>localhost.</em>
+to the FQDN of your server, leaving the additional &#8221;.&#8221; at the end.
+Change <em>127.0.0.1</em> to the nameserver&#8217;s IP Address and <em>root.localhost</em>
+to a valid email address, but with a &#8221;.&#8221; instead of the usual &#8220;&#64;&#8221;
+symbol, again leaving the &#8221;.&#8221; at the end. Change the comment to indicate
+the domain that this file is for.</p>
+<p>Create an <em>A record</em> for the base domain, <em>example.com</em>. Also, create an
+<em>A record</em> for <em>ns.example.com</em>, the name server in this example:</p>
+<div class="highlight-python"><pre>;
+; BIND data file for example.com
+;
+$TTL    604800
+@       IN      SOA     example.com. root.example.com. (
+                              2         ; Serial
+                         604800         ; Refresh
+                          86400         ; Retry
+                        2419200         ; Expire
+                         604800 )       ; Negative Cache TTL
+        IN      A       192.168.1.10
+;
+@       IN      NS      ns.example.com.
+@       IN      A       192.168.1.10
+@       IN      AAAA    ::1
+ns      IN      A       192.168.1.10</pre>
+</div>
+<p>You must increment the <em>Serial Number</em> every time you make changes to
+the zone file. If you make multiple changes before restarting BIND9,
+simply increment the Serial once.</p>
+<p>Now, you can add DNS records to the bottom of the zone file. See ? for
+details.</p>
+<blockquote>
+<div><p><strong>Note</strong></p>
+<p>Many admins like to use the last date edited as the serial of a
+zone, such as <em>2012010100</em> which is yyyymmddss (where <em>ss</em> is the
+Serial Number)</p>
+</div></blockquote>
+<p>Once you have made changes to the zone file BIND9 needs to be restarted
+for the changes to take effect:</p>
+</div>
+<div class="section" id="reverse-zone-file">
+<h3>Reverse Zone File<a class="headerlink" href="#reverse-zone-file" title="Permalink to this headline">¶</a></h3>
+<p>Now that the zone is setup and resolving names to IP Adresses a <em>Reverse
+zone</em> is also required. A Reverse zone allows DNS to resolve an address
+to a name.</p>
+<p>Edit /etc/bind/named.conf.local and add the following:</p>
+<div class="highlight-python"><pre>zone "1.168.192.in-addr.arpa" {
+        type master;
+        file "/etc/bind/db.192";
+};
+
+**Note**
+
+Replace *1.168.192* with the first three octets of whatever network
+you are using. Also, name the zone file ``/etc/bind/db.192``
+appropriately. It should match the first octet of your network.</pre>
+</div>
+<p>Now create the <tt class="docutils literal"><span class="pre">/etc/bind/db.192</span></tt> file:</p>
+<p>Next edit <tt class="docutils literal"><span class="pre">/etc/bind/db.192</span></tt> changing the basically the same options
+as <tt class="docutils literal"><span class="pre">/etc/bind/db.example.com</span></tt>:</p>
+<div class="highlight-python"><pre>;
+; BIND reverse data file for local 192.168.1.XXX net
+;
+$TTL    604800
+@       IN      SOA     ns.example.com. root.example.com. (
+                              2         ; Serial
+                         604800         ; Refresh
+                          86400         ; Retry
+                        2419200         ; Expire
+                         604800 )       ; Negative Cache TTL
+;
+@       IN      NS      ns.
+10      IN      PTR     ns.example.com.</pre>
+</div>
+<p>The <em>Serial Number</em> in the Reverse zone needs to be incremented on each
+change as well. For each <em>A record</em> you configure in
+<tt class="docutils literal"><span class="pre">/etc/bind/db.example.com</span></tt>, that is for a different address, you need
+to create a <em>PTR record</em> in <tt class="docutils literal"><span class="pre">/etc/bind/db.192</span></tt>.</p>
+<p>After creating the reverse zone file restart BIND9:</p>
+</div>
+</div>
+<div class="section" id="secondary-master">
+<h2>Secondary Master<a class="headerlink" href="#secondary-master" title="Permalink to this headline">¶</a></h2>
+<p>Once a <em>Primary Master</em> has been configured a <em>Secondary Master</em> is
+needed in order to maintain the availability of the domain should the
+Primary become unavailable.</p>
+<p>First, on the Primary Master server, the zone transfer needs to be
+allowed. Add the <em>allow-transfer</em> option to the example Forward and
+Reverse zone definitions in <tt class="docutils literal"><span class="pre">/etc/bind/named.conf.local</span></tt>:</p>
+<div class="highlight-python"><pre>zone "example.com" {
+        type master;
+    file "/etc/bind/db.example.com";
+        allow-transfer { 192.168.1.11; };
+};
+
+zone "1.168.192.in-addr.arpa" {
+        type master;
+        file "/etc/bind/db.192";
+    allow-transfer { 192.168.1.11; };
+};
+
+**Note**
+
+Replace *192.168.1.11* with the IP Address of your Secondary
+nameserver.</pre>
+</div>
+<p>Restart BIND9 on the Primary Master:</p>
+<p>Next, on the Secondary Master, install the bind9 package the same way as
+on the Primary. Then edit the <tt class="docutils literal"><span class="pre">/etc/bind/named.conf.local</span></tt> and add the
+following declarations for the Forward and Reverse zones:</p>
+<div class="highlight-python"><pre>zone "example.com" {
+    type slave;
+        file "db.example.com";
+        masters { 192.168.1.10; };
+};
+
+zone "1.168.192.in-addr.arpa" {
+    type slave;
+        file "db.192";
+        masters { 192.168.1.10; };
+};
+
+**Note**
+
+Replace *192.168.1.10* with the IP Address of your Primary
+nameserver.</pre>
+</div>
+<p>Restart BIND9 on the Secondary Master:</p>
+<p>In <tt class="docutils literal"><span class="pre">/var/log/syslog</span></tt> you should see something similar to (some lines
+have been split to fit the format of this document):</p>
+<div class="highlight-python"><pre>client 192.168.1.10#39448: received notify for zone '1.168.192.in-addr.arpa'
+zone 1.168.192.in-addr.arpa/IN: Transfer started.
+transfer of '100.18.172.in-addr.arpa/IN' from 192.168.1.10#53:
+ connected using 192.168.1.11#37531
+zone 1.168.192.in-addr.arpa/IN: transferred serial 5
+transfer of '100.18.172.in-addr.arpa/IN' from 192.168.1.10#53:
+ Transfer completed: 1 messages,
+6 records, 212 bytes, 0.002 secs (106000 bytes/sec)
+zone 1.168.192.in-addr.arpa/IN: sending notifies (serial 5)
+
+client 192.168.1.10#20329: received notify for zone 'example.com'
+zone example.com/IN: Transfer started.
+transfer of 'example.com/IN' from 192.168.1.10#53: connected using 192.168.1.11#38577
+zone example.com/IN: transferred serial 5
+transfer of 'example.com/IN' from 192.168.1.10#53: Transfer completed: 1 messages,
+8 records, 225 bytes, 0.002 secs (112500 bytes/sec)
+
+**Note**
+
+Note: A zone is only transferred if the *Serial Number* on the
+Primary is larger than the one on the Secondary. If you want to have
+your Primary Master DNS notifying Secondary DNS Servers of zone
+changes, you can add *also-notify { ipaddress; };* in to
+``/etc/bind/named.conf.local`` as shown in the example below:</pre>
+</div>
+<div class="highlight-python"><pre>zone "example.com" {
+    type master;
+    file "/etc/bind/db.example.com";
+    allow-transfer { 192.168.1.11; };
+    also-notify { 192.168.1.11; };
+    };
+
+zone "1.168.192.in-addr.arpa" {
+    type master;
+    file "/etc/bind/db.192";
+    allow-transfer { 192.168.1.11; };
+    also-notify { 192.168.1.11; };
+    };
+
+
+**Note**
+
+The default directory for non-authoritative zone files is
+``/var/cache/bind/``. This directory is also configured in AppArmor
+to allow the named daemon to write to it. For more information on
+AppArmor see ?.</pre>
+</div>
+</div>
+</div>
+<div class="section" id="troubleshooting">
+<h1>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permalink to this headline">¶</a></h1>
+<p>This section covers ways to help determine the cause when problems
+happen with DNS and BIND9.</p>
+<div class="section" id="testing">
+<h2>Testing<a class="headerlink" href="#testing" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="resolv-conf">
+<h3>resolv.conf<a class="headerlink" href="#resolv-conf" title="Permalink to this headline">¶</a></h3>
+<p>The first step in testing BIND9 is to add the nameserver&#8217;s IP Address to
+a hosts resolver. The Primary nameserver should be configured as well as
+another host to double check things. Refer to ? for details on adding
+nameserver addresses to your network clients, and afterwards check that
+the file <tt class="docutils literal"><span class="pre">/etc/resolv.conf</span></tt> contains (for this example):</p>
+<div class="highlight-python"><pre>nameserver  192.168.1.10
+nameserver  192.168.1.11</pre>
+</div>
+<p>Nameservers that listen at 127.* are responsible for adding their own
+IP addresses to resolv.conf (using resolvconf). This is done via the
+file <tt class="docutils literal"><span class="pre">/etc/default/bind9</span></tt> by changing the line RESOLVCONF=no to
+RESOLVCONF=yes.</p>
+<blockquote>
+<div><p><strong>Note</strong></p>
+<p>You should also add the IP Address of the Secondary nameserver in
+case the Primary becomes unavailable.</p>
+</div></blockquote>
+</div>
+<div class="section" id="dig">
+<h3>dig<a class="headerlink" href="#dig" title="Permalink to this headline">¶</a></h3>
+<p>If you installed the dnsutils package you can test your setup using the
+DNS lookup utility dig:</p>
+<ul>
+<li><p class="first">After installing BIND9 use dig against the loopback interface to make
+sure it is listening on port 53. From a terminal prompt:</p>
+<p>You should see lines similar to the following in the command output:</p>
+<div class="highlight-python"><pre>;; Query time: 1 msec
+;; SERVER: 192.168.1.10#53(192.168.1.10)</pre>
+</div>
+</li>
+<li><p class="first">If you have configured BIND9 as a <em>Caching</em> nameserver &#8220;dig&#8221; an
+outside domain to check the query time:</p>
+<p>Note the query time toward the end of the command output:</p>
+<div class="highlight-python"><pre>;; Query time: 49 msec</pre>
+</div>
+<p>After a second dig there should be improvement:</p>
+<div class="highlight-python"><pre>;; Query time: 1 msec</pre>
+</div>
+</li>
+</ul>
+</div>
+<div class="section" id="ping">
+<h3>ping<a class="headerlink" href="#ping" title="Permalink to this headline">¶</a></h3>
+<p>Now to demonstrate how applications make use of DNS to resolve a host
+name use the ping utility to send an ICMP echo request. From a terminal
+prompt enter:</p>
+<p>This tests if the nameserver can resolve the name <em>ns.example.com</em> to an
+IP Address. The command output should resemble:</p>
+<div class="highlight-python"><pre>PING ns.example.com (192.168.1.10) 56(84) bytes of data.
+64 bytes from 192.168.1.10: icmp_seq=1 ttl=64 time=0.800 ms
+64 bytes from 192.168.1.10: icmp_seq=2 ttl=64 time=0.813 ms</pre>
+</div>
+</div>
+<div class="section" id="named-checkzone">
+<h3>named-checkzone<a class="headerlink" href="#named-checkzone" title="Permalink to this headline">¶</a></h3>
+<p>A great way to test your zone files is by using the named-checkzone
+utility installed with the bind9 package. This utility allows you to
+make sure the configuration is correct before restarting BIND9 and
+making the changes live.</p>
+<ul>
+<li><p class="first">To test our example Forward zone file enter the following from a
+command prompt:</p>
+<p>If everything is configured correctly you should see output similar
+to:</p>
+<div class="highlight-python"><pre>zone example.com/IN: loaded serial 6
+OK</pre>
+</div>
+</li>
+<li><p class="first">Similarly, to test the Reverse zone file enter the following:</p>
+<p>The output should be similar to:</p>
+<div class="highlight-python"><pre>   zone 1.168.192.in-addr.arpa/IN: loaded serial 3
+   OK
+
+**Note**
+
+The *Serial Number* of your zone file will probably be different.</pre>
+</div>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="logging">
+<h2>Logging<a class="headerlink" href="#logging" title="Permalink to this headline">¶</a></h2>
+<p>BIND9 has a wide variety of logging configuration options available.
+There are two main options. The <em>channel</em> option configures where logs
+go, and the <em>category</em> option determines what information to log.</p>
+<p>If no logging option is configured the default option is:</p>
+<div class="highlight-python"><pre>logging {
+     category default { default_syslog; default_debug; };
+     category unmatched { null; };
+};</pre>
+</div>
+<p>This section covers configuring BIND9 to send <em>debug</em> messages related
+to DNS queries to a separate file.</p>
+<ul>
+<li><p class="first">First, we need to configure a channel to specify which file to send
+the messages to. Edit <tt class="docutils literal"><span class="pre">/etc/bind/named.conf.local</span></tt> and add the
+following:</p>
+<div class="highlight-python"><pre>logging {
+    channel query.log {
+        file "/var/log/query.log";
+        severity debug 3;
+    };
+};</pre>
+</div>
+</li>
+<li><p class="first">Next, configure a category to send all DNS queries to the query file:</p>
+<div class="highlight-python"><pre>   logging {
+       channel query.log {
+           file "/var/log/query.log";
+           severity debug 3;
+       };
+
+   };
+
+**Note**
+
+Note: the *debug* option can be set from 1 to 3. If a level isn't
+specified level 1 is the default.</pre>
+</div>
+</li>
+<li><p class="first">Since the <em>named daemon</em> runs as the <em>bind</em> user the
+<tt class="docutils literal"><span class="pre">/var/log/query.log</span></tt> file must be created and the ownership
+changed:</p>
+</li>
+<li><p class="first">Before named daemon can write to the new log file the AppArmor
+profile must be updated. First, edit
+<tt class="docutils literal"><span class="pre">/etc/apparmor.d/usr.sbin.named</span></tt> and add:</p>
+<div class="highlight-python"><pre>/var/log/query.log w,</pre>
+</div>
+<p>Next, reload the profile:</p>
+<p>For more information on AppArmor see ?</p>
+</li>
+<li><p class="first">Now restart BIND9 for the changes to take effect:</p>
+</li>
+</ul>
+<p>You should see the file <tt class="docutils literal"><span class="pre">/var/log/query.log</span></tt> fill with query
+information. This is a simple example of the BIND9 logging options. For
+coverage of advanced options see ?.</p>
+</div>
+</div>
+<div class="section" id="references">
+<h1>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="common-record-types">
+<h2>Common Record Types<a class="headerlink" href="#common-record-types" title="Permalink to this headline">¶</a></h2>
+<p>This section covers some of the most common DNS record types.</p>
+<ul>
+<li><p class="first"><em>A</em> record: This record maps an IP Address to a hostname.</p>
+<div class="highlight-python"><pre>www      IN    A      192.168.1.12</pre>
+</div>
+</li>
+<li><p class="first"><em>CNAME</em> record: Used to create an alias to an existing A record. You
+cannot create a CNAME record pointing to another CNAME record.</p>
+<div class="highlight-python"><pre>web     IN    CNAME  www</pre>
+</div>
+</li>
+<li><p class="first"><em>MX</em> record: Used to define where email should be sent to. Must point
+to an A record, not a CNAME.</p>
+<div class="highlight-python"><pre>        IN    MX  1   mail.example.com.
+mail    IN    A       192.168.1.13</pre>
+</div>
+</li>
+<li><p class="first"><em>NS</em> record: Used to define which servers serve copies of a zone. It
+must point to an A record, not a CNAME. This is where Primary and
+Secondary servers are defined.</p>
+<div class="highlight-python"><pre>        IN    NS     ns.example.com.
+        IN    NS     ns2.example.com.
+ns      IN    A      192.168.1.10
+ns2     IN    A      192.168.1.11</pre>
+</div>
+</li>
+</ul>
+</div>
+<div class="section" id="more-information">
+<h2>More Information<a class="headerlink" href="#more-information" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>The <a class="reference external" href="https://help.ubuntu.com/community/BIND9ServerHowto">BIND9 Server
+HOWTO</a> in the
+Ubuntu Wiki has a lot of useful information.</li>
+<li>The <a class="reference external" href="http://www.tldp.org/HOWTO/DNS-HOWTO.html">DNS HOWTO</a> at The
+Linux Documentation Project also has lots of information about
+configuring BIND9.</li>
+<li><a class="reference external" href="http://www.bind9.net/">Bind9.net</a> has links to a large collection
+of DNS and BIND9 resources.</li>
+<li><a class="reference external" href="http://shop.oreilly.com/product/9780596100575.do">DNS and BIND</a>
+is a popular book now in it&#8217;s fifth edition. There is now also a <a class="reference external" href="http://shop.oreilly.com/product/0636920020158.do">DNS
+and BIND on
+IPv6</a> book.</li>
+<li>A great place to ask for BIND9 assistance, and get involved with the
+Ubuntu Server community, is the <em>#ubuntu-server</em> IRC channel on
+<a class="reference external" href="http://freenode.net">freenode</a>.</li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/ubuntu_black-orange_hex_su-medium_cropped.png" alt="Logo"/>
+            </a></p>
+<h3><a href="index.html">Table Of Contents</a></h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="introduction.html#support">Support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html#preparing-to-install">Preparing to Install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html#installing-from-cd">Installing from CD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html#upgrading">Upgrading</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html#advanced-installation">Advanced Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html#kernel-crash-dump">Kernel Crash Dump</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html">Package Management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html#introduction">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html#dpkg">dpkg</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html#apt-get">Apt-Get</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html#aptitude">Aptitude</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html#automatic-updates">Automatic Updates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html#configuration">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html#references">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-config.html">Networking</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-config.html#network-configuration">Network Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-config.html#tcp-ip">TCP/IP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-config.html#dynamic-host-configuration-protocol-dhcp">Dynamic Host Configuration Protocol (DHCP)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-config.html#time-synchronisation-with-ntp">Time Synchronisation with NTP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multipath.html">DMM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multipath.html#device-mapper-multipathing">Device Mapper Multipathing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multipath.html#multipath-devices">Multipath Devices</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multipath.html#setting-up-dmm-overview">Setting up DMM Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multipath.html#the-dmm-configuration-file">The DMM Configuration File</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multipath.html#dmm-administration-and-troubleshooting">DMM Administration and Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="remote-administration.html">Remote Administration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="remote-administration.html#openssh-server">OpenSSH Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="remote-administration.html#puppet">Puppet</a></li>
+<li class="toctree-l1"><a class="reference internal" href="remote-administration.html#zentyal">Zentyal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-auth.html">Network Authentication</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-auth.html#openldap-server">OpenLDAP Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-auth.html#samba-and-ldap">Samba and LDAP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-auth.html#kerberos">Kerberos</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-auth.html#kerberos-and-ldap">Kerberos and LDAP</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">Domain Name Service (DNS)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#installation">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#configuration">Configuration</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="#troubleshooting">Troubleshooting</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="#references">References</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="security.html">Security</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html#user-management">User Management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html#console-security">Console Security</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html#firewall">Firewall</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html#apparmor">AppArmor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html#certificates">Certificates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html#ecryptfs">eCryptfs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="monitoring.html">Monitoring</a></li>
+<li class="toctree-l1"><a class="reference internal" href="monitoring.html#overview">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="monitoring.html#nagios">Nagios</a></li>
+<li class="toctree-l1"><a class="reference internal" href="monitoring.html#munin">Munin</a></li>
+<li class="toctree-l1"><a class="reference internal" href="web-servers.html">Web Servers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="web-servers.html#httpd-apache2-web-server">HTTPD - Apache2 Web Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="web-servers.html#php5-scripting-language">PHP5 - Scripting Language</a></li>
+<li class="toctree-l1"><a class="reference internal" href="web-servers.html#squid-proxy-server">Squid - Proxy Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="web-servers.html#ruby-on-rails">Ruby on Rails</a></li>
+<li class="toctree-l1"><a class="reference internal" href="web-servers.html#apache-tomcat">Apache Tomcat</a></li>
+<li class="toctree-l1"><a class="reference internal" href="databases.html">Databases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="databases.html#mysql">MySQL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="databases.html#postgresql">PostgreSQL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lamp-applications.html">LAMP Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lamp-applications.html#overview">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lamp-applications.html#moin-moin">Moin Moin</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lamp-applications.html#mediawiki">MediaWiki</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lamp-applications.html#phpmyadmin">phpMyAdmin</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lamp-applications.html#wordpress">WordPress</a></li>
+<li class="toctree-l1"><a class="reference internal" href="file-server.html">File Servers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="file-server.html#ftp-server">FTP Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="file-server.html#network-file-system-nfs">Network File System (NFS)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="file-server.html#iscsi-initiator">iSCSI Initiator</a></li>
+<li class="toctree-l1"><a class="reference internal" href="file-server.html#cups-print-server">CUPS - Print Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mail.html">Email Services</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mail.html#postfix">Postfix</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mail.html#exim4">Exim4</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mail.html#dovecot-server">Dovecot Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mail.html#mailman">Mailman</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mail.html#mail-filtering">Mail Filtering</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chat.html">Chat Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chat.html#overview">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chat.html#irc-server">IRC Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chat.html#jabber-instant-messaging-server">Jabber Instant Messaging Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vcs.html">Version Control System</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vcs.html#bazaar">Bazaar</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vcs.html#git">Git</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vcs.html#subversion">Subversion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vcs.html#references">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samba.html">Samba</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samba.html#introduction">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samba.html#file-server">File Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samba.html#print-server">Print Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samba.html#securing-file-and-print-server">Securing File and Print Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samba.html#as-a-domain-controller">As a Domain Controller</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samba.html#active-directory-integration">Active Directory Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backups.html">Backups</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backups.html#shell-scripts">Shell Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backups.html#archive-rotation">Archive Rotation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backups.html#bacula">Bacula</a></li>
+<li class="toctree-l1"><a class="reference internal" href="virtualization.html">Virtualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="virtualization.html#libvirt">libvirt</a></li>
+<li class="toctree-l1"><a class="reference internal" href="virtualization.html#cloud-images-and-vmbuilder">Cloud images and vmbuilder</a></li>
+<li class="toctree-l1"><a class="reference internal" href="virtualization.html#ubuntu-cloud">Ubuntu Cloud</a></li>
+<li class="toctree-l1"><a class="reference internal" href="virtualization.html#lxc">LXC</a></li>
+<li class="toctree-l1"><a class="reference internal" href="clustering.html">Clustering</a></li>
+<li class="toctree-l1"><a class="reference internal" href="clustering.html#drbd">DRBD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vpn.html">VPN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vpn.html#openvpn">OpenVPN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="other-apps.html">Other Useful Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="other-apps.html#pam-motd">pam_motd</a></li>
+<li class="toctree-l1"><a class="reference internal" href="other-apps.html#etckeeper">etckeeper</a></li>
+<li class="toctree-l1"><a class="reference internal" href="other-apps.html#byobu">Byobu</a></li>
+<li class="toctree-l1"><a class="reference internal" href="other-apps.html#references">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reporting-bugs.html">Appendix</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reporting-bugs.html#reporting-bugs-in-ubuntu-server-edition">Reporting Bugs in Ubuntu Server Edition</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="network-auth.html"
+                        title="previous chapter">Network Authentication</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="security.html"
+                        title="next chapter">Security</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/dns.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="security.html" title="Security"
+             >next</a></li>
+        <li class="right" >
+          <a href="network-auth.html" title="Network Authentication"
+             >previous</a> |</li>
+        <li><a href="index.html">Ubuntu Server Guide - 14.04 LTS</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Ubuntu Documentation Contributors.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

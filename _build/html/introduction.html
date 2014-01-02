@@ -1,0 +1,253 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Introduction &mdash; Ubuntu Server Guide - 14.04 LTS</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '14.04',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Ubuntu Server Guide - 14.04 LTS" href="index.html" />
+    <link rel="next" title="Installation" href="installation.html" />
+    <link rel="prev" title="Ubuntu Server Guide 14.04" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="installation.html" title="Installation"
+             accesskey="N">next</a></li>
+        <li class="right" >
+          <a href="index.html" title="Ubuntu Server Guide 14.04"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Ubuntu Server Guide - 14.04 LTS</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="introduction">
+<h1>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h1>
+<p>Welcome to the <em>Ubuntu Server Guide</em>!</p>
+<p>Here you can find information on how to install and configure various
+server applications. It is a step-by-step, task-oriented guide for
+configuring and customizing your system.</p>
+<p>This guide assumes you have a basic understanding of your Ubuntu system.
+Some installation details are covered in ?, but if you need detailed
+instructions installing Ubuntu please refer to the <a class="reference external" href="https://help.ubuntu.com/&amp;distro-rev-short;/installation-guide/">Ubuntu Installation
+Guide</a>.</p>
+<p>A HTML version of the manual is available online at <a class="reference external" href="&amp;ubuntu-documentation;">the Ubuntu
+Documentation website</a>.</p>
+</div>
+<div class="section" id="support">
+<h1>Support<a class="headerlink" href="#support" title="Permalink to this headline">¶</a></h1>
+<p>There are a couple of different ways that Ubuntu Server Edition is
+supported, commercial support and community support. The main commercial
+support (and development funding) is available from Canonical Ltd. They
+supply reasonably priced support contracts on a per desktop or per
+server basis. For more information see the <a class="reference external" href="http://www.canonical.com/services/support">Canonical
+Services</a> page.</p>
+<p>Community support is also provided by dedicated individuals, and
+companies, that wish to make Ubuntu the best distribution possible.
+Support is provided through multiple mailing lists, IRC channels,
+forums, blogs, wikis, etc. The large amount of information available can
+be overwhelming, but a good search engine query can usually provide an
+answer to your questions. See the <a class="reference external" href="http://www.ubuntu.com/support">Ubuntu
+Support</a> page for more information.</p>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/ubuntu_black-orange_hex_su-medium_cropped.png" alt="Logo"/>
+            </a></p>
+<h3><a href="index.html">Table Of Contents</a></h3>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#support">Support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html#preparing-to-install">Preparing to Install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html#installing-from-cd">Installing from CD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html#upgrading">Upgrading</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html#advanced-installation">Advanced Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html#kernel-crash-dump">Kernel Crash Dump</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html">Package Management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html#introduction">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html#dpkg">dpkg</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html#apt-get">Apt-Get</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html#aptitude">Aptitude</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html#automatic-updates">Automatic Updates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html#configuration">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html#references">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-config.html">Networking</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-config.html#network-configuration">Network Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-config.html#tcp-ip">TCP/IP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-config.html#dynamic-host-configuration-protocol-dhcp">Dynamic Host Configuration Protocol (DHCP)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-config.html#time-synchronisation-with-ntp">Time Synchronisation with NTP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multipath.html">DMM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multipath.html#device-mapper-multipathing">Device Mapper Multipathing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multipath.html#multipath-devices">Multipath Devices</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multipath.html#setting-up-dmm-overview">Setting up DMM Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multipath.html#the-dmm-configuration-file">The DMM Configuration File</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multipath.html#dmm-administration-and-troubleshooting">DMM Administration and Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="remote-administration.html">Remote Administration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="remote-administration.html#openssh-server">OpenSSH Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="remote-administration.html#puppet">Puppet</a></li>
+<li class="toctree-l1"><a class="reference internal" href="remote-administration.html#zentyal">Zentyal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-auth.html">Network Authentication</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-auth.html#openldap-server">OpenLDAP Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-auth.html#samba-and-ldap">Samba and LDAP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-auth.html#kerberos">Kerberos</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-auth.html#kerberos-and-ldap">Kerberos and LDAP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dns.html">Domain Name Service (DNS)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dns.html#installation">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dns.html#configuration">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dns.html#troubleshooting">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dns.html#references">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html">Security</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html#user-management">User Management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html#console-security">Console Security</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html#firewall">Firewall</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html#apparmor">AppArmor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html#certificates">Certificates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html#ecryptfs">eCryptfs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="monitoring.html">Monitoring</a></li>
+<li class="toctree-l1"><a class="reference internal" href="monitoring.html#overview">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="monitoring.html#nagios">Nagios</a></li>
+<li class="toctree-l1"><a class="reference internal" href="monitoring.html#munin">Munin</a></li>
+<li class="toctree-l1"><a class="reference internal" href="web-servers.html">Web Servers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="web-servers.html#httpd-apache2-web-server">HTTPD - Apache2 Web Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="web-servers.html#php5-scripting-language">PHP5 - Scripting Language</a></li>
+<li class="toctree-l1"><a class="reference internal" href="web-servers.html#squid-proxy-server">Squid - Proxy Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="web-servers.html#ruby-on-rails">Ruby on Rails</a></li>
+<li class="toctree-l1"><a class="reference internal" href="web-servers.html#apache-tomcat">Apache Tomcat</a></li>
+<li class="toctree-l1"><a class="reference internal" href="databases.html">Databases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="databases.html#mysql">MySQL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="databases.html#postgresql">PostgreSQL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lamp-applications.html">LAMP Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lamp-applications.html#overview">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lamp-applications.html#moin-moin">Moin Moin</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lamp-applications.html#mediawiki">MediaWiki</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lamp-applications.html#phpmyadmin">phpMyAdmin</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lamp-applications.html#wordpress">WordPress</a></li>
+<li class="toctree-l1"><a class="reference internal" href="file-server.html">File Servers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="file-server.html#ftp-server">FTP Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="file-server.html#network-file-system-nfs">Network File System (NFS)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="file-server.html#iscsi-initiator">iSCSI Initiator</a></li>
+<li class="toctree-l1"><a class="reference internal" href="file-server.html#cups-print-server">CUPS - Print Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mail.html">Email Services</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mail.html#postfix">Postfix</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mail.html#exim4">Exim4</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mail.html#dovecot-server">Dovecot Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mail.html#mailman">Mailman</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mail.html#mail-filtering">Mail Filtering</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chat.html">Chat Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chat.html#overview">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chat.html#irc-server">IRC Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chat.html#jabber-instant-messaging-server">Jabber Instant Messaging Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vcs.html">Version Control System</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vcs.html#bazaar">Bazaar</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vcs.html#git">Git</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vcs.html#subversion">Subversion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vcs.html#references">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samba.html">Samba</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samba.html#introduction">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samba.html#file-server">File Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samba.html#print-server">Print Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samba.html#securing-file-and-print-server">Securing File and Print Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samba.html#as-a-domain-controller">As a Domain Controller</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samba.html#active-directory-integration">Active Directory Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backups.html">Backups</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backups.html#shell-scripts">Shell Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backups.html#archive-rotation">Archive Rotation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backups.html#bacula">Bacula</a></li>
+<li class="toctree-l1"><a class="reference internal" href="virtualization.html">Virtualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="virtualization.html#libvirt">libvirt</a></li>
+<li class="toctree-l1"><a class="reference internal" href="virtualization.html#cloud-images-and-vmbuilder">Cloud images and vmbuilder</a></li>
+<li class="toctree-l1"><a class="reference internal" href="virtualization.html#ubuntu-cloud">Ubuntu Cloud</a></li>
+<li class="toctree-l1"><a class="reference internal" href="virtualization.html#lxc">LXC</a></li>
+<li class="toctree-l1"><a class="reference internal" href="clustering.html">Clustering</a></li>
+<li class="toctree-l1"><a class="reference internal" href="clustering.html#drbd">DRBD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vpn.html">VPN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vpn.html#openvpn">OpenVPN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="other-apps.html">Other Useful Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="other-apps.html#pam-motd">pam_motd</a></li>
+<li class="toctree-l1"><a class="reference internal" href="other-apps.html#etckeeper">etckeeper</a></li>
+<li class="toctree-l1"><a class="reference internal" href="other-apps.html#byobu">Byobu</a></li>
+<li class="toctree-l1"><a class="reference internal" href="other-apps.html#references">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reporting-bugs.html">Appendix</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reporting-bugs.html#reporting-bugs-in-ubuntu-server-edition">Reporting Bugs in Ubuntu Server Edition</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">Ubuntu Server Guide 14.04</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="installation.html"
+                        title="next chapter">Installation</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/introduction.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="installation.html" title="Installation"
+             >next</a></li>
+        <li class="right" >
+          <a href="index.html" title="Ubuntu Server Guide 14.04"
+             >previous</a> |</li>
+        <li><a href="index.html">Ubuntu Server Guide - 14.04 LTS</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Ubuntu Documentation Contributors.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

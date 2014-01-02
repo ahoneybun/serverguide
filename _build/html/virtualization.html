@@ -1,0 +1,2241 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Virtualization &mdash; Ubuntu Server Guide - 14.04 LTS</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '14.04',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Ubuntu Server Guide - 14.04 LTS" href="index.html" />
+    <link rel="next" title="Clustering" href="clustering.html" />
+    <link rel="prev" title="Backups" href="backups.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="clustering.html" title="Clustering"
+             accesskey="N">next</a></li>
+        <li class="right" >
+          <a href="backups.html" title="Backups"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Ubuntu Server Guide - 14.04 LTS</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="virtualization">
+<h1>Virtualization<a class="headerlink" href="#virtualization" title="Permalink to this headline">¶</a></h1>
+<p>Virtualization is being adopted in many different environments and
+situations. If you are a developer, virtualization can provide you with
+a contained environment where you can safely do almost any sort of
+development safe from messing up your main working environment. If you
+are a systems administrator, you can use virtualization to more easily
+separate your services and move them around based on demand.</p>
+<p>The default virtualization technology supported in Ubuntu is KVM. KVM
+requires virtualization extensions built into Intel and AMD hardware.
+Xen is also supported on Ubuntu. Xen can take advantage of
+virtualization extensions, when available, but can also be used on
+hardware without virtualization extensions. Qemu is another popular
+solution for hardware without virtualization extensions.</p>
+</div>
+<div class="section" id="libvirt">
+<h1>libvirt<a class="headerlink" href="#libvirt" title="Permalink to this headline">¶</a></h1>
+<p>The libvirt library is used to interface with different virtualization
+technologies. Before getting started with libvirt it is best to make
+sure your hardware supports the necessary virtualization extensions for
+KVM. Enter the following from a terminal prompt:</p>
+<p>A message will be printed informing you if your CPU <em>does</em> or <em>does not</em>
+support hardware virtualization.</p>
+<blockquote>
+<div><p><strong>Note</strong></p>
+<p>On many computers with processors supporting hardware assisted
+virtualization, it is necessary to activate an option in the BIOS to
+enable it.</p>
+</div></blockquote>
+<div class="section" id="virtual-networking">
+<h2>Virtual Networking<a class="headerlink" href="#virtual-networking" title="Permalink to this headline">¶</a></h2>
+<p>There are a few different ways to allow a virtual machine access to the
+external network. The default virtual network configuration includes
+<em>bridging</em> and <em>iptables</em> rules implementing <em>usermode</em> networking,
+which uses the SLIRP protocol. Traffic is NATed through the host
+interface to the outside network.</p>
+<p>To enable external hosts to directly access services on virtual machines
+a different type of <em>bridge</em> than the default needs to be configured.
+This allows the virtual interfaces to connect to the outside network
+through the physical interface, making them appear as normal hosts to
+the rest of the network. For information on setting up a bridge see ?.</p>
+</div>
+<div class="section" id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
+<p>To install the necessary packages, from a terminal prompt enter:</p>
+<p>After installing libvirt-bin, the user used to manage virtual machines
+will need to be added to the <em>libvirtd</em> group. Doing so will grant the
+user access to the advanced networking options.</p>
+<p>In a terminal enter:</p>
+<div class="highlight-python"><pre>**Note**
+
+If the user chosen is the current user, you will need to log out and
+back in for the new group membership to take effect.</pre>
+</div>
+<p>You are now ready to install a <em>Guest</em> operating system. Installing a
+virtual machine follows the same process as installing the operating
+system directly on the hardware. You either need a way to automate the
+installation, or a keyboard and monitor will need to be attached to the
+physical machine.</p>
+<p>In the case of virtual machines a Graphical User Interface (GUI) is
+analogous to using a physical keyboard and mouse. Instead of installing
+a GUI the virt-viewer application can be used to connect to a virtual
+machine&#8217;s console using VNC. See ? for more information.</p>
+<p>There are several ways to automate the Ubuntu installation process, for
+example using preseeds, kickstart, etc. Refer to the <a class="reference external" href="https://help.ubuntu.com/&amp;distro-rev-short;/installation-guide/">Ubuntu
+Installation
+Guide</a>
+for details.</p>
+<p>Yet another way to install an Ubuntu virtual machine is to use
+ubuntu-vm-builder. ubuntu-vm-builder allows you to setup advanced
+partitions, execute custom post-install scripts, etc. For details see ?</p>
+<p>Libvirt can also be configured work with Xen. For details, see the Xen
+Ubuntu community page referenced below.</p>
+</div>
+<div class="section" id="virt-install">
+<h2>virt-install<a class="headerlink" href="#virt-install" title="Permalink to this headline">¶</a></h2>
+<p>virt-install is part of the virtinst package. To install it, from a
+terminal prompt enter:</p>
+<p>There are several options available when using virt-install. For
+example:</p>
+<div class="highlight-python"><pre>-  *-n web\_devel:* the name of the new virtual machine will be</pre>
+</div>
+<blockquote>
+<div><em>web_devel</em> in this example.</div></blockquote>
+<ul class="simple">
+<li><em>-r 256:</em> specifies the amount of memory the virtual machine will use
+in megabytes.</li>
+<li><em>&#8211;disk path=/var/lib/libvirt/images/web_devel.img,size=4:</em>
+indicates the path to the virtual disk which can be a file,
+partition, or logical volume. In this example a file named
+<tt class="docutils literal"><span class="pre">web_devel.img</span></tt> in the /var/lib/libvirt/images/ directory, with a
+size of 4 gigabytes, and using <em>virtio</em> for the disk bus.</li>
+<li><em>-c ubuntu-DISTRO-REV-SHORT-server-i386.iso:</em> file to be used as a
+virtual CDROM. The file can be either an ISO file or the path to the
+host&#8217;s CDROM device.</li>
+<li><em>&#8211;network</em> provides details related to the VM&#8217;s network interface.
+Here the <em>default</em> network is used, and the interface model is
+configured for <em>virtio</em>.</li>
+<li><em>&#8211;graphics vnc,listen=0.0.0.0:</em> exports the guest&#8217;s virtual console
+using VNC and on all host interfaces. Typically servers have no GUI,
+so another GUI based computer on the Local Area Network (LAN) can
+connect via VNC to complete the installation.</li>
+<li><em>&#8211;noautoconsole:</em> will not automatically connect to the virtual
+machine&#8217;s console.</li>
+<li><em>-v:</em> creates a fully virtualized guest.</li>
+</ul>
+<p>After launching virt-install you can connect to the virtual machine&#8217;s
+console either locally using a GUI (if your server has a GUI), or via a
+remote VNC client from a GUI based computer.</p>
+</div>
+<div class="section" id="virt-clone">
+<h2>virt-clone<a class="headerlink" href="#virt-clone" title="Permalink to this headline">¶</a></h2>
+<p>The virt-clone application can be used to copy one virtual machine to
+another. For example:</p>
+<div class="highlight-python"><pre>-  *-o:* original virtual machine.</pre>
+</div>
+<ul class="simple">
+<li><em>-n:</em> name of the new virtual machine.</li>
+<li><em>-f:</em> path to the file, logical volume, or partition to be used by
+the new virtual machine.</li>
+<li><em>&#8211;connect:</em> specifies which hypervisor to connect to.</li>
+</ul>
+<p>Also, use <em>-d</em> or <em>&#8211;debug</em> option to help troubleshoot problems with
+virt-clone.</p>
+<blockquote>
+<div><p><strong>Note</strong></p>
+<p>Replace <em>web_devel</em> and <em>database_devel</em> with appropriate virtual
+machine names.</p>
+</div></blockquote>
+</div>
+<div class="section" id="virtual-machine-management">
+<h2>Virtual Machine Management<a class="headerlink" href="#virtual-machine-management" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="virsh">
+<h3>virsh<a class="headerlink" href="#virsh" title="Permalink to this headline">¶</a></h3>
+<p>There are several utilities available to manage virtual machines and
+libvirt. The virsh utility can be used from the command line. Some
+examples:</p>
+<ul>
+<li><p class="first">To list running virtual machines:</p>
+</li>
+<li><p class="first">To start a virtual machine:</p>
+</li>
+<li><p class="first">Similarly, to start a virtual machine at boot:</p>
+</li>
+<li><p class="first">Reboot a virtual machine with:</p>
+</li>
+<li><p class="first">The <em>state</em> of virtual machines can be saved to a file in order to be
+restored later. The following will save the virtual machine state
+into a file named according to the date:</p>
+<p>Once saved the virtual machine will no longer be running.</p>
+</li>
+<li><p class="first">A saved virtual machine can be restored using:</p>
+</li>
+<li><p class="first">To shutdown a virtual machine do:</p>
+</li>
+<li><p class="first">A CDROM device can be mounted in a virtual machine by entering:</p>
+<div class="highlight-python"><pre>**Note**
+
+In the above examples replace *web\_devel* with the appropriate
+virtual machine name, and ``web_devel-022708.state`` with a
+descriptive file name.</pre>
+</div>
+</li>
+</ul>
+</div>
+<div class="section" id="virtual-machine-manager">
+<h3>Virtual Machine Manager<a class="headerlink" href="#virtual-machine-manager" title="Permalink to this headline">¶</a></h3>
+<p>The virt-manager package contains a graphical utility to manage local
+and remote virtual machines. To install virt-manager enter:</p>
+<p>Since virt-manager requires a Graphical User Interface (GUI) environment
+it is recommended to be installed on a workstation or test machine
+instead of a production server. To connect to the local libvirt service
+enter:</p>
+<p>You can connect to the libvirt service running on another host by
+entering the following in a terminal prompt:</p>
+<div class="highlight-python"><pre>**Note**
+
+The above example assumes that SSH connectivity between the
+management system and virtnode1.mydomain.com has already been
+configured, and uses SSH keys for authentication. SSH *keys* are
+needed because libvirt sends the password prompt to another process.
+For details on configuring SSH see ?</pre>
+</div>
+</div>
+</div>
+<div class="section" id="virtual-machine-viewer">
+<h2>Virtual Machine Viewer<a class="headerlink" href="#virtual-machine-viewer" title="Permalink to this headline">¶</a></h2>
+<p>The virt-viewer application allows you to connect to a virtual machine&#8217;s
+console. virt-viewer does require a Graphical User Interface (GUI) to
+interface with the virtual machine.</p>
+<p>To install virt-viewer from a terminal enter:</p>
+<p>Once a virtual machine is installed and running you can connect to the
+virtual machine&#8217;s console by using:</p>
+<p>Similar to virt-manager, virt-viewer can connect to a remote host using
+<em>SSH</em> with key authentication, as well:</p>
+<p>Be sure to replace <em>web_devel</em> with the appropriate virtual machine
+name.</p>
+<p>If configured to use a <em>bridged</em> network interface you can also setup
+SSH access to the virtual machine. See ? and ? for more details.</p>
+</div>
+<div class="section" id="resources">
+<h2>Resources<a class="headerlink" href="#resources" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>See the <a class="reference external" href="http://www.linux-kvm.org/">KVM</a> home page for more
+details.</li>
+<li>For more information on libvirt see the <a class="reference external" href="http://libvirt.org/">libvirt home
+page</a></li>
+<li>The <a class="reference external" href="http://virt-manager.et.redhat.com/">Virtual Machine Manager</a>
+site has more information on virt-manager development.</li>
+<li>Also, stop by the <em>#ubuntu-virt</em> IRC channel on
+<a class="reference external" href="http://freenode.net/">freenode</a> to discuss virtualization
+technology in Ubuntu.</li>
+<li>Another good resource is the <a class="reference external" href="https://help.ubuntu.com/community/KVM">Ubuntu Wiki
+KVM</a> page.</li>
+<li>For information on Xen, including using Xen with libvirt, please see
+the <a class="reference external" href="https://help.ubuntu.com/community/Xen">Ubuntu Wiki Xen</a> page.</li>
+</ul>
+</div>
+</div>
+<div class="section" id="cloud-images-and-vmbuilder">
+<h1>Cloud images and vmbuilder<a class="headerlink" href="#cloud-images-and-vmbuilder" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p>With Ubuntu being on of the most used operating systems on most of the
+cloud platforms, the availability of stable and secure cloud images has
+become very important. Starting with 12.04 the utilization of cloud
+images outside of a cloud infrastructure has been improved. It is now
+possible to use those images to create a virtual machine without the
+need of a complete installation.</p>
+</div>
+<div class="section" id="creating-virtual-machines-using-cloud-images">
+<h2>Creating virtual machines using cloud images<a class="headerlink" href="#creating-virtual-machines-using-cloud-images" title="Permalink to this headline">¶</a></h2>
+<p>Cloud images for the supported versions of Ubuntu are available at the
+following URL :</p>
+<ul class="simple">
+<li><a class="reference external" href="http://cloud-images.ubuntu.com/">http://cloud-images.ubuntu.com/</a></li>
+</ul>
+<p>When used in conjunction with a tool called cloud-localds which is part
+of the cloud-utils package starting with Ubuntu 12.10 those images can
+be used to create a ready to use virtual machine. The following
+instructions should give you access to a working virtual machine.</p>
+<div class="section" id="required-packages">
+<h3>Required packages<a class="headerlink" href="#required-packages" title="Permalink to this headline">¶</a></h3>
+<p>The following packages will be required in order to use cloud images as
+virtual machines :</p>
+<ul class="simple">
+<li>kvm</li>
+<li>cloud-utils</li>
+<li>genisoimage</li>
+</ul>
+</div>
+<div class="section" id="get-the-ubuntu-cloud-image">
+<h3>Get the Ubuntu Cloud Image<a class="headerlink" href="#get-the-ubuntu-cloud-image" title="Permalink to this headline">¶</a></h3>
+<p>The Ubuntu Cloud Image can be downloaded from the Internet by various
+means. This example shows how to easily download the 12.04 Precise image
+using <strong>wget</strong> :</p>
+<div class="highlight-python"><pre>wget -O my_new_vm.img.dist http://cloud-images.ubuntu.com/server/releases\
+/12.04/release/ubuntu-12.04-server-cloudimg-amd64-disk1.img</pre>
+</div>
+</div>
+<div class="section" id="create-the-user-data-file">
+<h3>Create the user-data file<a class="headerlink" href="#create-the-user-data-file" title="Permalink to this headline">¶</a></h3>
+<p>The user-data file contains configuration elements that will be provided
+to the cloud image and applied at the first boot of the virtual machine
+using cloud-init. The first three elements, <strong>password</strong>, <strong>chpasswd</strong>
+and <strong>ssh_pwauth</strong> are mandatory. You should add an ssh key that you
+have created beforehand using ssh-keygen otherwise you will not be able
+to connect remotely to your virtual machine.</p>
+<p>Use the following command to create the my-user-data file that will
+contain your user specific data :</p>
+<div class="highlight-python"><pre>$ cat &gt; my-user-data &lt;&lt;EOF
+#cloud-config
+password: passw0rd
+chpasswd: { expire: False }
+ssh_pwauth: True
+ssh_authorized_keys:
+ - ssh-rsa {insert your own ssh public key here}
+EOF</pre>
+</div>
+</div>
+<div class="section" id="convert-the-cloud-image-to-qemu-format">
+<h3>Convert the cloud-image to Qemu format<a class="headerlink" href="#convert-the-cloud-image-to-qemu-format" title="Permalink to this headline">¶</a></h3>
+<p>The qemu-img command is not strictly necessary:</p>
+<ul class="simple">
+<li>The <em>convert</em> command option converts the compressed qcow2 disk image
+as downloaded to an uncompressed version. If you don&#8217;t do this the
+image will still boot, but reads will undergo decompression.
+Executing the following conversion command will improve the
+performance of your virtual machines.</li>
+</ul>
+<p>Use the following command to prepare your file to be used as a virtual
+machine disk:</p>
+<div class="highlight-python"><pre>$ qemu-img convert -O qcow2 my_new_vm.img.dist my_new_vm.img</pre>
+</div>
+</div>
+<div class="section" id="create-the-disk-with-nocloud-data-on-it">
+<h3>create the disk with NoCloud data on it<a class="headerlink" href="#create-the-disk-with-nocloud-data-on-it" title="Permalink to this headline">¶</a></h3>
+<p>This action will create a second disk image that will be provided to the
+virtual machine as a second disk. The cloud-init initialization process
+will fetch this data and configure the virtual machine appropriately</p>
+<div class="highlight-python"><pre>$ cloud-localds my-seed.img my-user-data</pre>
+</div>
+</div>
+<div class="section" id="create-the-xml-domain-definition-file">
+<h3>Create the XML domain definition file<a class="headerlink" href="#create-the-xml-domain-definition-file" title="Permalink to this headline">¶</a></h3>
+<p>You will need to tailor the following XML domain definition file to your
+need in order to create the libvirt domain. If the files that you have
+generated are in /home/ubuntu, the template can be used as is.</p>
+<p>Use the following command to create the template file :</p>
+<div class="highlight-python"><pre>$ cat &gt; my_new_vm.xml &lt;&lt;EOF
+&lt;domain type='kvm'&gt;
+  &lt;name&gt;my_new_vm&lt;/name&gt;
+  &lt;memory unit='MiB'&gt;1024&lt;/memory&gt;
+  &lt;currentMemory unit='MiB'&gt;1024&lt;/currentMemory&gt;
+  &lt;vcpu placement='static'&gt;1&lt;/vcpu&gt;
+  &lt;os&gt;
+    &lt;type arch='x86_64' machine='pc-1.2'&gt;hvm&lt;/type&gt;
+    &lt;boot dev='hd'/&gt;
+    &lt;bootmenu enable='no'/&gt;
+  &lt;/os&gt;
+  &lt;features&gt;
+    &lt;acpi/&gt;
+    &lt;apic/&gt;
+    &lt;pae/&gt;
+  &lt;/features&gt;
+  &lt;clock offset='utc'/&gt;
+  &lt;on_poweroff&gt;destroy&lt;/on_poweroff&gt;
+  &lt;on_reboot&gt;restart&lt;/on_reboot&gt;
+  &lt;on_crash&gt;restart&lt;/on_crash&gt;
+  &lt;devices&gt;
+    &lt;emulator&gt;/usr/bin/kvm&lt;/emulator&gt;
+    &lt;disk type='file' device='disk'&gt;
+      &lt;driver name='qemu' type='qcow2'/&gt;
+      &lt;source file='/home/ubuntu/my_new_vm.img'/&gt;
+      &lt;target dev='vda' bus='virtio'/&gt;
+      &lt;address type='pci' domain='0x0000' bus='0x00' slot='0x05' function='0x0'/&gt;
+    &lt;/disk&gt;
+    &lt;disk type='file' device='disk'&gt;
+      &lt;driver name='qemu' type='raw'/&gt;
+      &lt;source file='/home/ubuntu/my-seed.img'/&gt;
+      &lt;target dev='hda' bus='ide'/&gt;
+      &lt;address type='drive' controller='0' bus='0' target='0' unit='0'/&gt;
+    &lt;/disk&gt;
+    &lt;interface type='network'&gt;
+      &lt;source network='default'/&gt;
+      &lt;model type='virtio'/&gt;
+      &lt;address type='pci' domain='0x0000' bus='0x00' slot='0x03' function='0x0'/&gt;
+    &lt;/interface&gt;
+    &lt;serial type='pty'&gt;
+      &lt;target port='0'/&gt;
+    &lt;/serial&gt;
+    &lt;console type='pty'&gt;
+      &lt;target type='serial' port='0'/&gt;
+    &lt;/console&gt;
+    &lt;graphics type='vnc' port='-1' autoport='yes'/&gt;
+  &lt;/devices&gt;
+&lt;/domain&gt;
+EOF</pre>
+</div>
+</div>
+<div class="section" id="create-the-vm-using-libvirt">
+<h3>Create the VM using libvirt<a class="headerlink" href="#create-the-vm-using-libvirt" title="Permalink to this headline">¶</a></h3>
+<p>The last few commands remaining are standard libvirt commands used to
+define and start your virtual machine :</p>
+<div class="highlight-python"><pre>$ virsh define my_new_vm.xml
+$ virsh start my_new_vm
+$ virsh console my_new_vm</pre>
+</div>
+<p>If everything goes as planned, you should see the boot sequence appear
+in your console session. After the normal boot sequence you will see
+something similar to the following :</p>
+<div class="highlight-python"><pre>cloud-init start-local running: Wed, 10 Apr 2013 12:30:25 +0000. up 1.67 seconds
+no instance data found in start-local
+ci-info: lo    : 1 127.0.0.1       255.0.0.0       .
+ci-info: eth0  : 1  255.255.255.0   52:54:00:c2:fd:e1
+ci-info: route-0: 0.0.0.0         192.168.122.1   0.0.0.0         eth0   UG
+ci-info: route-1: 192.168.122.0   0.0.0.0         255.255.255.0   eth0   U
+: Wed, 10 Apr 2013 12:30:30 +0000. up 6.30 seconds
+found data source: DataSourceNoCloud [seed=/dev/sda]</pre>
+</div>
+<p>This section can be particularly useful to identify the IP address of
+the virtual machine that you have just started. The cloud-init sequence
+will continue, creating the SSH information. It should indicates proper
+completion by the following line :</p>
+<div class="highlight-python"><pre>cloud-init boot finished at Wed, 10 Apr 2013 12:30:35 +0000. Up 10.93 seconds</pre>
+</div>
+<p>Your new virtual machine is now available. You can exit out of the virsh
+console command using &lt;Ctrl&gt;]</p>
+<p>You can now connect to your virtual machine using the ssh key that you
+have created previously :</p>
+<div class="highlight-python"><pre>$ ssh -i $HOME/.ssh/id_rsa ubuntu@192.168.122.113</pre>
+</div>
+</div>
+</div>
+<div class="section" id="vmbuilder">
+<h2>Vmbuilder<a class="headerlink" href="#vmbuilder" title="Permalink to this headline">¶</a></h2>
+<p>Vmbuilder is now maintained by the community as it is no longer used to
+generate the cloud images. It can still be used as described and it
+should let you create functioning virtual machines</p>
+<div class="section" id="what-is-vmbuilder">
+<h3>What is vmbuilder<a class="headerlink" href="#what-is-vmbuilder" title="Permalink to this headline">¶</a></h3>
+<p>Vmbuilder will fetch the various package and build a virtual machine
+tailored for your needs in about a minute. vmbuilder is a script that
+automates the process of creating a ready to use Linux based VM. The
+currently supported hypervisors are KVM and Xen.</p>
+<p>You can pass command line options to add extra packages, remove
+packages, choose which version of Ubuntu, which mirror etc. On recent
+hardware with plenty of RAM, tmpdir in <tt class="docutils literal"><span class="pre">/dev/shm</span></tt> or using a tmpfs,
+and a local mirror, you can bootstrap a VM in less than a minute.</p>
+<p>First introduced as a shell script in Ubuntu 8.04 LTS, ubuntu-vm-builder
+started with little emphasis as a hack to help developers test their new
+code in a virtual machine without having to restart from scratch each
+time. As a few Ubuntu administrators started to notice this script, a
+few of them went on improving it and adapting it for so many use case
+that Soren Hansen (the author of the script and Ubuntu virtualization
+specialist, not the golf player) decided to rewrite it from scratch for
+Intrepid as a python script with a few new design goals:</p>
+<ul class="simple">
+<li>Develop it so that it can be reused by other distributions.</li>
+<li>Use a plugin mechanisms for all virtualization interactions so that
+others can easily add logic for other virtualization environments.</li>
+<li>Provide an easy to maintain web interface as an option to the command
+line interface.</li>
+</ul>
+<p>But the general principles and commands remain the same.</p>
+</div>
+<div class="section" id="initial-setup">
+<h3>Initial Setup<a class="headerlink" href="#initial-setup" title="Permalink to this headline">¶</a></h3>
+<p>It is assumed that you have installed and configured libvirt and KVM
+locally on the machine you are using. For details on how to perform
+this, please refer to:</p>
+<ul class="simple">
+<li>?</li>
+<li>The <a class="reference external" href="https://help.ubuntu.com/community/KVM">KVM</a> Wiki page.</li>
+</ul>
+<p>We also assume that you know how to use a text based text editor such as
+nano or vi. If you have not used any of them before, you can get an
+overview of the various text editors available by reading the
+<a class="reference external" href="https://help.ubuntu.com/community/PowerUsersTextEditors">PowerUsersTextEditors</a>
+page. This tutorial has been done on KVM, but the general principle
+should remain on other virtualization technologies.</p>
+</div>
+<div class="section" id="install-vmbuilder">
+<h3>Install vmbuilder<a class="headerlink" href="#install-vmbuilder" title="Permalink to this headline">¶</a></h3>
+<p>The name of the package that we need to install is python-vm-builder. In
+a terminal prompt enter:</p>
+<div class="highlight-python"><pre>**Note**
+
+If you are running Hardy, you can still perform most of this using
+the older version of the package named ubuntu-vm-builder, there are
+only a few changes to the syntax of the tool.</pre>
+</div>
+</div>
+<div class="section" id="defining-your-virtual-machine">
+<h3>Defining Your Virtual Machine<a class="headerlink" href="#defining-your-virtual-machine" title="Permalink to this headline">¶</a></h3>
+<p>Defining a virtual machine with Ubuntu&#8217;s vmbuilder is quite simple, but
+here are a few thing to consider:</p>
+<ul class="simple">
+<li>If you plan on shipping a virtual appliance, do not assume that the
+end-user will know how to extend disk size to fit their need, so
+either plan for a large virtual disk to allow for your appliance to
+grow, or explain fairly well in your documentation how to allocate
+more space. It might actually be a good idea to store data on some
+separate external storage.</li>
+<li>Given that RAM is much easier to allocate in a VM, RAM size should be
+set to whatever you think is a safe minimum for your appliance.</li>
+</ul>
+<p>The vmbuilder command has 2 main parameters: the <em>virtualization
+technology (hypervisor)</em> and the targeted <em>distribution</em>. Optional
+parameters are quite numerous and can be found using the following
+command:</p>
+</div>
+<div class="section" id="base-parameters">
+<h3>Base Parameters<a class="headerlink" href="#base-parameters" title="Permalink to this headline">¶</a></h3>
+<p>As this example is based on KVM and Ubuntu DISTRO-REV (DISTRO-VERSION),
+and we are likely to rebuild the same virtual machine multiple time,
+we&#8217;ll invoke vmbuilder with the following first parameters:</p>
+<p>The <em>&#8211;suite</em> defines the Ubuntu release, the <em>&#8211;flavour</em> specifies that
+we want to use the virtual kernel (that&#8217;s the one used to build a JeOS
+image), the <em>&#8211;arch</em> tells that we want to use a 32 bit machine, the
+<em>-o</em> tells vmbuilder to overwrite the previous version of the VM and the
+<em>&#8211;libvirt</em> tells to inform the local virtualization environment to add
+the resulting VM to the list of available machines.</p>
+<p>Notes:</p>
+<ul class="simple">
+<li>Because of the nature of operations performed by vmbuilder, it needs
+to have root privilege, hence the use of sudo.</li>
+<li>If your virtual machine needs to use more than 3Gb of ram, you should
+build a 64 bit machine (&#8211;arch amd64).</li>
+<li>Until Ubuntu 8.10, the virtual kernel was only built for 32 bit
+architecture, so if you want to define an amd64 machine on Hardy, you
+should use <em>&#8211;flavour</em> server instead.</li>
+</ul>
+</div>
+<div class="section" id="installation-parameters">
+<h3>Installation Parameters<a class="headerlink" href="#installation-parameters" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="assigning-a-fixed-ip-address">
+<h4>Assigning a fixed IP address<a class="headerlink" href="#assigning-a-fixed-ip-address" title="Permalink to this headline">¶</a></h4>
+<p>As a virtual appliance that may be deployed on various very different
+networks, it is very difficult to know what the actual network will look
+like. In order to simplify configuration, it is a good idea to take an
+approach similar to what network hardware vendors usually do, namely
+assigning an initial fixed IP address to the appliance in a private
+class network that you will provide in your documentation. An address in
+the range 192.168.0.0/255 is usually a good choice.</p>
+<p>To do this we&#8217;ll use the following parameters:</p>
+<ul class="simple">
+<li><em>&#8211;ip ADDRESS</em>: IP address in dotted form (defaults to dhcp if not
+specified)</li>
+<li><em>&#8211;hostname NAME</em>: Set NAME as the hostname of the guest.</li>
+<li><em>&#8211;mask VALUE</em>: IP mask in dotted form (default: 255.255.255.0)</li>
+<li><em>&#8211;net VALUE</em>: IP net address (default: X.X.X.0)</li>
+<li><em>&#8211;bcast VALUE</em>: IP broadcast (default: X.X.X.255)</li>
+<li><em>&#8211;gw ADDRESS</em>: Gateway address (default: X.X.X.1)</li>
+<li><em>&#8211;dns ADDRESS</em>: Name server address (default: X.X.X.1)</li>
+</ul>
+<p>We assume for now that default values are good enough, so the resulting
+invocation becomes:</p>
+<div class="section" id="bridging">
+<h5>Bridging<a class="headerlink" href="#bridging" title="Permalink to this headline">¶</a></h5>
+<p>Because our appliance will be likely to need to be accessed by remote
+hosts, we need to configure libvirt so that the appliance uses bridge
+networking. To do this add the <em>&#8211;bridge</em> option to the command:</p>
+<div class="highlight-python"><pre>**Note**
+
+You will need to have previously setup a bridge interface, see ? for
+more information. Also, if the interface name is different change
+*br0* to the actual bridge interface.</pre>
+</div>
+</div>
+</div>
+<div class="section" id="partitioning">
+<h4>Partitioning<a class="headerlink" href="#partitioning" title="Permalink to this headline">¶</a></h4>
+<p>Partitioning of the virtual appliance will have to take into
+consideration what you are planning to do with is. Because most
+appliances want to have a separate storage for data, having a separate
+<tt class="docutils literal"><span class="pre">/var</span></tt> would make sense.</p>
+<p>In order to do this vmbuilder provides us with <em>&#8211;part</em>:</p>
+<div class="highlight-python"><pre>--part PATH
+  Allows you to specify a partition table in a partition file, located at PATH. Each
+  line of the partition file should specify (root first):
+      mountpoint size
+  where  size  is  in megabytes. You can have up to 4 virtual disks, a new disk starts
+  on a line with '---'.  ie :
+      root 1000
+      /opt 1000
+      swap 256
+      ---
+      /var 2000
+      /log 1500</pre>
+</div>
+<p>In our case we will define a text file name <tt class="docutils literal"><span class="pre">vmbuilder.partition</span></tt>
+which will contain the following:</p>
+<div class="highlight-python"><pre>root 8000
+swap 4000
+---
+/var 20000
+
+**Note**
+
+Note that as we are using virtual disk images, the actual sizes that
+we put here are maximum sizes for these volumes.</pre>
+</div>
+<p>Our command line now looks like:</p>
+<div class="highlight-python"><pre>**Note**
+
+Using a "\\" in a command will allow long command strings to wrap to
+the next line.</pre>
+</div>
+</div>
+<div class="section" id="user-and-password">
+<h4>User and Password<a class="headerlink" href="#user-and-password" title="Permalink to this headline">¶</a></h4>
+<p>Again setting up a virtual appliance, you will need to provide a default
+user and password that is generic so that you can include it in your
+documentation. We will see later on in this tutorial how we will provide
+some security by defining a script that will be run the first time a
+user actually logs in the appliance, that will, among other things, ask
+him to change his password. In this example I will use <em>&#8216;user&#8217;</em> as my
+user name, and <em>&#8216;default&#8217;</em> as the password.</p>
+<p>To do this we use the following optional parameters:</p>
+<ul class="simple">
+<li><em>&#8211;user USERNAME:</em> Sets the name of the user to be added. Default:
+ubuntu.</li>
+<li><em>&#8211;name FULLNAME:</em> Sets the full name of the user to be added.
+Default: Ubuntu.</li>
+<li><em>&#8211;pass PASSWORD:</em> Sets the password for the user. Default: ubuntu.</li>
+</ul>
+<p>Our resulting command line becomes:</p>
+</div>
+</div>
+<div class="section" id="installing-required-packages">
+<h3>Installing Required Packages<a class="headerlink" href="#installing-required-packages" title="Permalink to this headline">¶</a></h3>
+<p>In this example we will be installing a package (Limesurvey) that
+accesses a MySQL database and has a web interface. We will therefore
+require our OS to provide us with:</p>
+<ul class="simple">
+<li>Apache</li>
+<li>PHP</li>
+<li>MySQL</li>
+<li>OpenSSH Server</li>
+<li>Limesurvey (as an example application that we have packaged)</li>
+</ul>
+<p>This is done using vmbuilder by specifying the &#8211;addpkg option multiple
+times:</p>
+<div class="highlight-python"><pre>--addpkg PKG
+  Install PKG into the guest (can be specfied multiple times)</pre>
+</div>
+<p>However, due to the way vmbuilder operates, packages that have to ask
+questions to the user during the post install phase are not supported
+and should instead be installed while interactivity can occur. This is
+the case of Limesurvey, which we will have to install later, once the
+user logs in.</p>
+<p>Other packages that ask simple debconf question, such as mysql-server
+asking to set a password, the package can be installed immediately, but
+we will have to reconfigure it the first time the user logs in.</p>
+<p>If some packages that we need to install are not in main, we need to
+enable the additional repositories using &#8211;comp and &#8211;ppa:</p>
+<div class="highlight-python"><pre>--components COMP1,COMP2,...,COMPN
+           A comma separated list of distro components to include (e.g. main,universe).
+           This defaults to "main"
+--ppa=PPA  Add ppa belonging to PPA to the vm's sources.list.</pre>
+</div>
+<p>Limesurvey not being part of the archive at the moment, we&#8217;ll specify
+it&#8217;s PPA (personal package archive) address so that it is added to the
+VM <tt class="docutils literal"><span class="pre">/etc/apt/source.list</span></tt>, so we add the following options to the
+command line:</p>
+<div class="section" id="speed-considerations">
+<h4>Speed Considerations<a class="headerlink" href="#speed-considerations" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="package-caching">
+<h5>Package Caching<a class="headerlink" href="#package-caching" title="Permalink to this headline">¶</a></h5>
+<p>When vmbuilder creates builds your system, it has to go fetch each one
+of the packages that composes it over the network to one of the official
+repositories, which, depending on your internet connection speed and the
+load of the mirror, can have a big impact on the actual build time. In
+order to reduce this, it is recommended to either have a local
+repository (which can be created using apt-mirror) or using a caching
+proxy such as apt-proxy. The later option being much simpler to
+implement and requiring less disk space, it is the one we will pick in
+this tutorial. To install it, simply type:</p>
+<p>Once this is complete, your (empty) proxy is ready for use on
+<a class="reference external" href="http://mirroraddress:9999">http://mirroraddress:9999</a> and will find ubuntu repository under /ubuntu.
+For vmbuilder to use it, we&#8217;ll have to use the <em>&#8211;mirror</em> option:</p>
+<div class="highlight-python"><pre>--mirror=URL  Use Ubuntu mirror at URL instead of the default, which
+              is http://archive.ubuntu.com/ubuntu for official
+              arches and http://ports.ubuntu.com/ubuntu-ports
+              otherwise</pre>
+</div>
+<p>So we add to the command line:</p>
+<div class="highlight-python"><pre>**Note**
+
+The mirror address specified here will also be used in the
+``/etc/apt/sources.list`` of the newly created guest, so it is
+useful to specify here an address that can be resolved by the guest
+or to plan on reseting this address later on.</pre>
+</div>
+</div>
+</div>
+<div class="section" id="install-a-local-mirror">
+<h4>Install a Local Mirror<a class="headerlink" href="#install-a-local-mirror" title="Permalink to this headline">¶</a></h4>
+<p>If we are in a larger environment, it may make sense to setup a local
+mirror of the Ubuntu repositories. The package apt-mirror provides you
+with a script that will handle the mirroring for you. You should plan on
+having about 20 gigabyte of free space per supported release and
+architecture.</p>
+<p>By default, apt-mirror uses the configuration file in
+<tt class="docutils literal"><span class="pre">/etc/apt/mirror.list</span></tt>. As it is set up, it will replicate only the
+architecture of the local machine. If you would like to support other
+architectures on your mirror, simply duplicate the lines starting with
+&#8220;deb&#8221;, replacing the deb keyword by /deb-{arch} where arch can be i386,
+amd64, etc... For example, on an amd64 machine, to have the i386
+archives as well, you will have (some lines have been split to fit the
+format of this document):</p>
+<div class="highlight-python"><pre>deb  http://archive.ubuntu.com/ubuntu DISTRO-SHORT-CODENAME main restricted universe multiverse
+/deb-i386  http://archive.ubuntu.com/ubuntu DISTRO-SHORT-CODENAME main restricted universe multiverse
+
+deb  http://archive.ubuntu.com/ubuntu DISTRO-SHORT-CODENAME-updates main restricted universe multiverse
+/deb-i386  http://archive.ubuntu.com/ubuntu DISTRO-SHORT-CODENAME-updates main
+ restricted universe multiverse
+
+deb http://archive.ubuntu.com/ubuntu/ DISTRO-SHORT-CODENAME-backports main restricted universe multiverse
+/deb-i386  http://archive.ubuntu.com/ubuntu DISTRO-SHORT-CODENAME-backports main
+ restricted universe multiverse
+
+deb http://security.ubuntu.com/ubuntu DISTRO-SHORT-CODENAME-security main restricted universe multiverse
+/deb-i386  http://security.ubuntu.com/ubuntu DISTRO-SHORT-CODENAME-security main
+ restricted universe multiverse
+
+deb http://archive.ubuntu.com/ubuntu DISTRO-SHORT-CODENAME main/debian-installer
+ restricted/debian-installer universe/debian-installer multiverse/debian-installer
+/deb-i386 http://archive.ubuntu.com/ubuntu DISTRO-SHORT-CODENAME main/debian-installer
+ restricted/debian-installer universe/debian-installer multiverse/debian-installer</pre>
+</div>
+<p>Notice that the source packages are not mirrored as they are seldom used
+compared to the binaries and they do take a lot more space, but they can
+be easily added to the list.</p>
+<p>Once the mirror has finished replicating (and this can be quite long),
+you need to configure Apache so that your mirror files (in
+<tt class="docutils literal"><span class="pre">/var/spool/apt-mirror</span></tt> if you did not change the default), are
+published by your Apache server. For more information on Apache see ?.</p>
+</div>
+</div>
+<div class="section" id="package-the-application">
+<h3>Package the Application<a class="headerlink" href="#package-the-application" title="Permalink to this headline">¶</a></h3>
+<p>Two option are available to us:</p>
+<ul class="simple">
+<li>The recommended method to do so is to make a <em>Debian</em> package. Since
+this is outside of the scope of this tutorial, we will not perform
+this here and invite the reader to read the documentation on how to
+do this in the <a class="reference external" href="https://wiki.ubuntu.com/PackagingGuide">Ubuntu Packaging
+Guide</a>. In this case it is
+also a good idea to setup a repository for your package so that
+updates can be conveniently pulled from it. See the <a class="reference external" href="http://www.debian-administration.org/articles/286">Debian
+Administration</a>
+article for a tutorial on this.</li>
+<li>Manually install the application under <tt class="docutils literal"><span class="pre">/opt</span></tt> as recommended by the
+<a class="reference external" href="http://www.pathname.com/fhs/">FHS guidelines</a>.</li>
+</ul>
+<p>In our case we&#8217;ll use Limesurvey as example web application for which we
+wish to provide a virtual appliance. As noted before, we&#8217;ve made a
+version of the package available in a PPA (Personal Package Archive).</p>
+<div class="section" id="useful-additions">
+<h4>Useful Additions<a class="headerlink" href="#useful-additions" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="configuring-automatic-updates">
+<h5>Configuring Automatic Updates<a class="headerlink" href="#configuring-automatic-updates" title="Permalink to this headline">¶</a></h5>
+<p>To have your system be configured to update itself on a regular basis,
+we will just install unattended-upgrades, so we add the following option
+to our command line:</p>
+<p>As we have put our application package in a PPA, the process will update
+not only the system, but also the application each time we update the
+version in the PPA.</p>
+</div>
+<div class="section" id="acpi-event-handling">
+<h5>ACPI Event Handling<a class="headerlink" href="#acpi-event-handling" title="Permalink to this headline">¶</a></h5>
+<p>For your virtual machine to be able to handle restart and shutdown
+events it is being sent, it is a good idea to install the acpid package
+as well. To do this we just add the following option:</p>
+</div>
+</div>
+</div>
+<div class="section" id="final-command">
+<h3>Final Command<a class="headerlink" href="#final-command" title="Permalink to this headline">¶</a></h3>
+<p>Here is the command with all the options discussed above:</p>
+</div>
+</div>
+<div class="section" id="id1">
+<h2>Resources<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<p>If you are interested in learning more, have questions or suggestions,
+please contact the Ubuntu Server Team at:</p>
+<ul class="simple">
+<li>IRC: #ubuntu-server on freenode</li>
+<li>Mailing list: <a class="reference external" href="https://lists.ubuntu.com/mailman/listinfo/ubuntu-server">ubuntu-server at
+lists.ubuntu.com</a></li>
+<li>Also, see the <a class="reference external" href="https://help.ubuntu.com/community/JeOSVMBuilder">JeOSVMBuilder Ubuntu
+Wiki</a> page.</li>
+</ul>
+</div>
+</div>
+<div class="section" id="ubuntu-cloud">
+<h1>Ubuntu Cloud<a class="headerlink" href="#ubuntu-cloud" title="Permalink to this headline">¶</a></h1>
+<p>Cloud computing is a computing model that allows vast pools of resources
+to be allocated on-demand. These resources such as storage, computing
+power, network and software are abstracted and delivered as a service
+over the Internet anywhere, anytime. These services are billed per time
+consumed similar to the ones used by public services such as
+electricity, water and telephony. Ubuntu Cloud Infrastructure uses
+OpenStack open source software to help build highly scalable, cloud
+computing for both public and private clouds.</p>
+<div class="section" id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<p>This tutorial covers the OpenStack installation from the Ubuntu 12.10
+Server Edition CD, and assumes a basic network topology, with a single
+system serving as the &#8220;all-in-one cloud infrastructure&#8221;.Due to the
+tutorial&#8217;s simplicity, the instructions as-is are not intended to set up
+production servers although it allows you to have a POC (proof of
+concept) of the Ubuntu Cloud using OpenStack.</p>
+</div>
+<div class="section" id="prerequisites">
+<h2>Prerequisites<a class="headerlink" href="#prerequisites" title="Permalink to this headline">¶</a></h2>
+<p>To deploy a minimal Ubuntu Cloud infrastructure, you&#8217;ll need at least:</p>
+<ul>
+<li><p class="first">One dedicated system.</p>
+</li>
+<li><p class="first">Two network address ranges (private network and public network).</p>
+</li>
+<li><p class="first">Make sure the host in question supports VT ( Virtualization
+Technology ) since we will be using KVM as the virtualization
+technology. Other hypervisors are also supported such as QEMU, UML,
+Vmware ESX/ESXi and XEN. LXC (Linux Containers) is also supported
+through libvirt.</p>
+<p>Check if your system supports kvm issuing <tt class="docutils literal"><span class="pre">sudo</span> <span class="pre">kvm-ok</span></tt> in a linux
+terminal.</p>
+</li>
+</ul>
+<p>The <tt class="docutils literal"><span class="pre">&quot;Minimum</span> <span class="pre">Topology&quot;</span></tt> recommended for production use is using three
+nodes - One master server running nova services (except compute) and two
+servers running nova-compute. This setup is not redundant and the master
+server is a SPoF (Single Point of Failure).</p>
+</div>
+<div class="section" id="preconfiguring-the-network">
+<h2>Preconfiguring the network<a class="headerlink" href="#preconfiguring-the-network" title="Permalink to this headline">¶</a></h2>
+<p>Before we start installing OpenStack we need to make sure we have
+bridging support installed, a MySQL database, and a central time server
+(ntp). This will assure that we have instantiated machines and hosts in
+sync.</p>
+<p>In this example the &#8220;private network&#8221; will be in the 10.0.0.0/24 range
+on eth1. All the internal communication between instances will happen
+there while the &#8220;public network&#8221; will be in the 10.153.107.0/29 range on
+eth0.</p>
+<div class="section" id="install-bridging-support">
+<h3>Install bridging support<a class="headerlink" href="#install-bridging-support" title="Permalink to this headline">¶</a></h3>
+</div>
+<div class="section" id="install-and-configure-ntp">
+<h3>Install and configure NTP<a class="headerlink" href="#install-and-configure-ntp" title="Permalink to this headline">¶</a></h3>
+<p>Add these two lines at the end of the <tt class="docutils literal"><span class="pre">/etc/ntp.conf</span></tt> file.</p>
+<div class="highlight-python"><pre>server 127.127.1.0
+fudge 127.127.1.0 stratum 10</pre>
+</div>
+<p>Restart ntp service</p>
+</div>
+<div class="section" id="install-and-configure-mysql">
+<h3>Install and configure MySQL<a class="headerlink" href="#install-and-configure-mysql" title="Permalink to this headline">¶</a></h3>
+<p>Create a database and mysql user for OpenStack</p>
+<p>The line continuation character &#8220;\&#8221; implies that you must include the
+subsequent line as part of the current command.</p>
+</div>
+</div>
+<div class="section" id="install-openstack-compute-nova">
+<h2>Install OpenStack Compute (Nova)<a class="headerlink" href="#install-openstack-compute-nova" title="Permalink to this headline">¶</a></h2>
+<p><tt class="docutils literal"><span class="pre">OpenStack</span> <span class="pre">Compute</span> <span class="pre">(Nova)</span></tt> is a cloud computing fabric controller (the
+main part of an IaaS system). It is written in Python, using the
+Eventlet and Twisted frameworks, and relies on the standard AMQP
+messaging protocol, and SQLAlchemy for data store access.</p>
+<p>Install OpenStack Nova components</p>
+<p>Restart libvirt-bin just to make sure libvirtd is aware of ebtables.</p>
+<p>Install RabbitMQ - Advanced Message Queuing Protocol (AMQP)</p>
+<p>Edit <tt class="docutils literal"><span class="pre">/etc/nova/nova.conf</span></tt> and add the following:</p>
+<div class="highlight-python"><pre># Nova config FlatDHCPManager
+--sql_connection=mysql://novauser:novapassword@localhost/nova
+--flat_injected=true
+--network_manager=nova.network.manager.FlatDHCPManager
+--fixed_range=10.0.0.0/24
+--floating_range=10.153.107.72/29
+--flat_network_dhcp_start=10.0.0.2
+--flat_network_bridge=br100
+--flat_interface=eth1
+--public_interface=eth0</pre>
+</div>
+<p>Restart OpenStack services</p>
+<div class="highlight-python"><pre>::</pre>
+</div>
+<p>Migrate Nova database from sqlite db to MySQL db. It may take a while.</p>
+<p>Define a specific private network where all your Instances will run.
+This will be used in the network of fixed Ips set inside <a href="#id2"><span class="problematic" id="id3">``</span></a>nova.conf <a href="#id4"><span class="problematic" id="id5">``</span></a>.</p>
+<p>Define a specific public network and allocate 6 (usable) Floating Public
+IP addresses for use with the instances starting from 10.153.107.72.</p>
+<p>Create a user (user1), a project (project1), download credentials and
+source its configuration file.</p>
+<p>Verify the OpenStack Compute installation by typing:</p>
+<p>If nova services don&#8217;t show up correctly restart OpenStack services as
+described previously. For more information please refer to the
+troubleshooting section on this guide.</p>
+</div>
+<div class="section" id="install-imaging-service-glance">
+<h2>Install Imaging Service (Glance)<a class="headerlink" href="#install-imaging-service-glance" title="Permalink to this headline">¶</a></h2>
+<p>Nova uses Glance service to manage Operating System images that it needs
+for bringing up instances. Glance can use several types of storage
+backends such as filestore, s3 etc. Glance has two components -
+<em>glance-api and glance-registry</em>. These can be controlled using the
+concerned upstart service jobs. For this specific case we will be using
+mysql as a storage backend.</p>
+<p>Install Glance</p>
+<p>Create a database and user for glance</p>
+<p>Edit the file /etc/glance/glance-registry.conf and edit the line which
+contains the option &#8220;sql_connection =&#8221; to this:</p>
+<div class="highlight-python"><pre>sql_connection = mysql://glanceuser:glancepassword@localhost/glance</pre>
+</div>
+<p>Remove the sqlite database</p>
+<p>Restart glance-registry after making changes to
+/etc/glance/glance-registry.conf. The MySQL database will be
+automatically populated.</p>
+<p>If you find issues take a look at the log file in
+/var/log/glance/api.log and /var/log/glance/registry.log.</p>
+</div>
+<div class="section" id="running-instances">
+<h2>Running Instances<a class="headerlink" href="#running-instances" title="Permalink to this headline">¶</a></h2>
+<p>Before you can instantiate images, you first need to setup user
+credentials. Once this first step is achieved you also need to upload
+images that you want to run in the cloud. Once you have these images
+uploaded to the cloud you will be able to run and connect to them. Here
+are the steps you should follow to get OpenStack Nova running instances:</p>
+<p>Download, register and publish an Ubuntu cloud image</p>
+<p>Create a key pair and start an instance</p>
+<p>Allow icmp (ping) and ssh access to instances</p>
+<p>Run an instance</p>
+<p>Assign public address to the instance.</p>
+<p>You must enter above the instance_id (ami) and public_ip_address
+shown above by euca-describe-instances and euca-allocate-address
+commands.</p>
+<p>Now you should be able to SSH to the instance</p>
+<p>To terminate instances</p>
+</div>
+<div class="section" id="install-the-storage-infrastructure-swift">
+<h2>Install the Storage Infrastructure (Swift)<a class="headerlink" href="#install-the-storage-infrastructure-swift" title="Permalink to this headline">¶</a></h2>
+<p>Swift is a highly available, distributed, eventually consistent
+object/blob store. It is used by the OpenStack Infrastructure to provide
+S3 like cloud storage services. It is also S3 api compatible with
+amazon.</p>
+<p>Organizations use Swift to store lots of data efficiently, safely, and
+cheaply where applications use an special api to interface between the
+applications and objects stored in Swift.</p>
+<p>Although you can install Swift on a single server, a multiple-server
+installation is required for production environments. If you want to
+install OpenStack Object Storage (Swift) on a single node for
+development or testing purposes, use the Swift All In One instructions
+on Ubuntu.</p>
+<p>For more information see:
+<a class="reference external" href="http://swift.openstack.org/development_saio.html">http://swift.openstack.org/development_saio.html</a> .</p>
+</div>
+<div class="section" id="support-and-troubleshooting">
+<h2>Support and Troubleshooting<a class="headerlink" href="#support-and-troubleshooting" title="Permalink to this headline">¶</a></h2>
+<p>Community Support</p>
+<ul class="simple">
+<li><a class="reference external" href="https://launchpad.net/~openstack">OpenStack Mailing list</a></li>
+<li><a class="reference external" href="http://wiki.openstack.org">The OpenStack Wiki search</a></li>
+<li><a class="reference external" href="https://bugs.launchpad.net/nova">Launchpad bugs area</a></li>
+<li>Join the IRC channel #openstack on freenode.</li>
+</ul>
+</div>
+<div class="section" id="id6">
+<h2>Resources<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><a class="reference external" href="http://en.wikipedia.org/wiki/Cloud_computing#Service_Models">Cloud Computing - Service
+models</a></li>
+<li><a class="reference external" href="http://www.openstack.org/software/openstack-compute/">OpenStack
+Compute</a></li>
+<li><a class="reference external" href="http://docs.openstack.org/diablo/openstack-compute/starter/content/GlanceMS-d2s21.html">OpenStack Image
+Service</a></li>
+<li><a class="reference external" href="http://docs.openstack.org/trunk/openstack-object-storage/admin/content/index.html">OpenStack Object Storage Administration
+Guide</a></li>
+<li><a class="reference external" href="http://docs.openstack.org/trunk/openstack-object-storage/admin/content/installing-openstack-object-storage-on-ubuntu.html">Installing OpenStack Object Storage on
+Ubuntu</a></li>
+<li><a class="reference external" href="http://cloudglossary.com/">http://cloudglossary.com/</a></li>
+</ul>
+</div>
+<div class="section" id="glossary">
+<h2>Glossary<a class="headerlink" href="#glossary" title="Permalink to this headline">¶</a></h2>
+<p>The Ubuntu Cloud documentation uses terminology that might be unfamiliar
+to some readers. This page is intended to provide a glossary of such
+terms and acronyms.</p>
+<ul class="simple">
+<li><em>Cloud</em> - A federated set of physical machines that offer computing
+resources through virtual machines, provisioned and recollected
+dynamically.</li>
+<li><em>IaaS</em> - Infrastructure as a Service &#8211; Cloud infrastructure
+services, whereby a virtualized environment is delivered as a service
+over the Internet by the provider. The infrastructure can include
+servers, network equipment, and software.</li>
+<li><em>EBS</em> - Elastic Block Storage.</li>
+<li><em>EC2</em> - Elastic Compute Cloud. Amazon&#8217;s pay-by-the-hour,
+pay-by-the-gigabyte public cloud computing offering.</li>
+<li><em>Node</em> - A node is a physical machine that&#8217;s capable of running
+virtual machines, running a node controller. Within Ubuntu, this
+generally means that the CPU has VT extensions, and can run the KVM
+hypervisor.</li>
+<li><em>S3</em> - Simple Storage Service. Amazon&#8217;s pay-by-the-gigabyte
+persistent storage solution for EC2.</li>
+<li><em>Ubuntu Cloud</em> - Ubuntu Cloud. Ubuntu&#8217;s cloud computing solution,
+based on OpenStack.</li>
+<li><em>VM</em> - Virtual Machine.</li>
+<li><em>VT</em> - Virtualization Technology. An optional feature of some modern
+CPUs, allowing for accelerated virtual machine hosting.</li>
+</ul>
+</div>
+</div>
+<div class="section" id="lxc">
+<h1>LXC<a class="headerlink" href="#lxc" title="Permalink to this headline">¶</a></h1>
+<p>Containers are a lightweight virtualization technology. They are more
+akin to an enhanced chroot than to full virtualization like Qemu or
+VMware, both because they do not emulate hardware and because containers
+share the same operating system as the host. Therefore containers are
+better compared to Solaris zones or BSD jails. Linux-vserver and OpenVZ
+are two pre-existing, independently developed implementations of
+containers-like functionality for Linux. In fact, containers came about
+as a result of the work to upstream the vserver and OpenVZ
+functionality. Some vserver and OpenVZ functionality is still missing in
+containers, however containers can <em>boot</em> many Linux distributions and
+have the advantage that they can be used with an un-modified upstream
+kernel.</p>
+<p>There are two user-space implementations of containers, each exploiting
+the same kernel features. Libvirt allows the use of containers through
+the LXC driver by connecting to &#8216;lxc:///&#8217;. This can be very convenient
+as it supports the same usage as its other drivers. The other
+implementation, called simply &#8216;LXC&#8217;, is not compatible with libvirt, but
+is more flexible with more userspace tools. It is possible to switch
+between the two, though there are peculiarities which can cause
+confusion.</p>
+<p>In this document we will mainly describe the lxc package. Toward the
+end, we will describe how to use the libvirt LXC driver.</p>
+<p>In this document, a container name will be shown as CN, C1, or C2.</p>
+<div class="section" id="id7">
+<h2>Installation<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h2>
+<p>The lxc package can be installed using</p>
+<p>This will pull in the required and recommended dependencies, including
+cgroup-lite, lvm2, and debootstrap. To use libvirt-lxc, install
+libvirt-bin. LXC and libvirt-lxc can be installed and used at the same
+time.</p>
+</div>
+<div class="section" id="host-setup">
+<h2>Host Setup<a class="headerlink" href="#host-setup" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="basic-layout-of-lxc-files">
+<h3>Basic layout of LXC files<a class="headerlink" href="#basic-layout-of-lxc-files" title="Permalink to this headline">¶</a></h3>
+<p>Following is a description of the files and directories which are
+installed and used by LXC.</p>
+<ul>
+<li><p class="first">There are two upstart jobs:</p>
+<ul>
+<li><p class="first"><tt class="docutils literal"><span class="pre">/etc/init/lxc-net.conf:</span></tt> is an optional job which only runs if
+``</p>
+<blockquote>
+<div><p>/etc/default/lxc`` specifies USE_LXC_BRIDGE</p>
+</div></blockquote>
+<p>(true by default). It sets up a NATed bridge for containers to
+use.</p>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">/etc/init/lxc.conf:</span></tt> runs if LXC_AUTO (true by default) is set
+to true in <tt class="docutils literal"><span class="pre">/etc/default/lxc</span></tt>. It looks for entries under
+<tt class="docutils literal"><span class="pre">/etc/lxc/auto/</span></tt> which are symbolic links to configuration files
+for the containers which should be started at boot.</p>
+</li>
+</ul>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">/etc/lxc/lxc.conf:</span></tt> There is a default container creation
+configuration file, <tt class="docutils literal"><span class="pre">/etc/lxc/lxc.conf</span></tt>, which directs containers
+to use the LXC bridge created by the lxc-net upstart job. If no
+configuration file is specified when creating a container, then this
+one will be used.</p>
+</li>
+<li><p class="first">Examples of other container creation configuration files are found
+under <tt class="docutils literal"><span class="pre">/usr/share/doc/lxc/examples</span></tt>. These show how to create
+containers without a private network, or using macvlan, vlan, or
+other network layouts.</p>
+</li>
+<li><p class="first">The various container administration tools are found under
+<tt class="docutils literal"><span class="pre">/usr/bin</span></tt>.</p>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">/usr/lib/lxc/lxc-init</span></tt> is a very minimal and lightweight init
+binary which is used by lxc-execute. Rather than `booting&#8217; a full
+container, it manually mounts a few filesystems, especially
+<tt class="docutils literal"><span class="pre">/proc</span></tt>, and executes its arguments. You are not likely to need to
+manually refer to this file.</p>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">/usr/share/lxc/templates/</span></tt> contains the `templates&#8217; which can be
+used to create new containers of various distributions and flavors.
+Not all templates are currently supported.</p>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">/etc/apparmor.d/lxc/lxc-default</span></tt> contains the default Apparmor MAC
+policy which works to protect the host from containers. Please see
+the ? for more information.</p>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">/etc/apparmor.d/usr.bin.lxc-start</span></tt> contains a profile to protect
+the host from <tt class="docutils literal"><span class="pre">lxc-start</span></tt> while it is setting up the container.</p>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">/etc/apparmor.d/lxc-containers</span></tt> causes all the profiles defined
+under <tt class="docutils literal"><span class="pre">/etc/apparmor.d/lxc</span></tt> to be loaded at boot.</p>
+</li>
+<li><p class="first">There are various man pages for the LXC administration tools as well
+as the <tt class="docutils literal"><span class="pre">lxc.conf</span></tt> container configuration file.</p>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">/var/lib/lxc</span></tt> is where containers and their configuration
+information are stored.</p>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">/var/cache/lxc</span></tt> is where caches of distribution data are stored to
+speed up multiple container creations.</p>
+</li>
+</ul>
+</div>
+<div class="section" id="lxcbr0">
+<h3>lxcbr0<a class="headerlink" href="#lxcbr0" title="Permalink to this headline">¶</a></h3>
+<p>When USE_LXC_BRIDGE is set to true in /etc/default/lxc (as it is by
+default), a bridge called lxcbr0 is created at startup. This bridge is
+given the private address 10.0.3.1, and containers using this bridge
+will have a 10.0.3.0/24 address. A dnsmasq instance is run listening on
+that bridge, so if another dnsmasq has bound all interfaces before the
+lxc-net upstart job runs, lxc-net will fail to start and lxcbr0 will not
+exist.</p>
+<p>If you have another bridge - libvirt&#8217;s default virbr0, or a br0 bridge
+for your default NIC - you can use that bridge in place of lxcbr0 for
+your containers.</p>
+</div>
+<div class="section" id="using-a-separate-filesystem-for-the-container-store">
+<h3>Using a separate filesystem for the container store<a class="headerlink" href="#using-a-separate-filesystem-for-the-container-store" title="Permalink to this headline">¶</a></h3>
+<p>LXC stores container information and (with the default backing store)
+root filesystems under <tt class="docutils literal"><span class="pre">/var/lib/lxc</span></tt>. Container creation templates
+also tend to store cached distribution information under
+<tt class="docutils literal"><span class="pre">/var/cache/lxc</span></tt>.</p>
+<p>If you wish to use another filesystem than <tt class="docutils literal"><span class="pre">/var</span></tt>, you can mount a
+filesystem which has more space into those locations. If you have a disk
+dedicated for this, you can simply mount it at <tt class="docutils literal"><span class="pre">/var/lib/lxc</span></tt>. If
+you&#8217;d like to use another location, like <tt class="docutils literal"><span class="pre">/srv</span></tt>, you can bind mount it
+or use a symbolic link. For instance, if <tt class="docutils literal"><span class="pre">/srv</span></tt> is a large mounted
+filesystem, create and symlink two directories:</p>
+<p>or, using bind mounts:</p>
+</div>
+<div class="section" id="containers-backed-by-lvm">
+<h3>Containers backed by lvm<a class="headerlink" href="#containers-backed-by-lvm" title="Permalink to this headline">¶</a></h3>
+<p>It is possible to use LVM partitions as the backing stores for
+containers. Advantages of this include flexibility in storage management
+and fast container cloning. The tools default to using a VG (volume
+group) named <em>lxc</em>, but another VG can be used through command line
+options. When a LV is used as a container backing store, the container&#8217;s
+configuration file is still <tt class="docutils literal"><span class="pre">/var/lib/lxc/CN/config</span></tt>, but the root fs
+entry in that file (<em>lxc.rootfs</em>) will point to the lV block device
+name, i.e. <tt class="docutils literal"><span class="pre">/dev/lxc/CN</span></tt>.</p>
+<p>Containers with directory tree and LVM backing stores can co-exist.</p>
+</div>
+<div class="section" id="btrfs">
+<h3>Btrfs<a class="headerlink" href="#btrfs" title="Permalink to this headline">¶</a></h3>
+<p>If your host has a btrfs <tt class="docutils literal"><span class="pre">/var</span></tt>, the LXC administration tools will
+detect this and automatically exploit it by cloning containers using
+btrfs snapshots.</p>
+</div>
+<div class="section" id="apparmor">
+<h3>Apparmor<a class="headerlink" href="#apparmor" title="Permalink to this headline">¶</a></h3>
+<p>LXC ships with an Apparmor profile intended to protect the host from
+accidental misuses of privilege inside the container. For instance, the
+container will not be able to write to <tt class="docutils literal"><span class="pre">/proc/sysrq-trigger</span></tt> or to
+most <tt class="docutils literal"><span class="pre">/sys</span></tt> files.</p>
+<p>The <tt class="docutils literal"><span class="pre">usr.bin.lxc-start</span></tt> profile is entered by running <tt class="docutils literal"><span class="pre">lxc-start</span></tt>.
+This profile mainly prevents <tt class="docutils literal"><span class="pre">lxc-start</span></tt> from mounting new filesystems
+outside of the container&#8217;s root filesystem. Before executing the
+container&#8217;s <tt class="docutils literal"><span class="pre">init</span></tt>, <tt class="docutils literal"><span class="pre">LXC</span></tt> requests a switch to the container&#8217;s
+profile. By default, this profile is the <tt class="docutils literal"><span class="pre">lxc-container-default</span></tt>
+policy which is defined in <tt class="docutils literal"><span class="pre">/etc/apparmor.d/lxc/lxc-default</span></tt>. This
+profile prevents the container from accessing many dangerous paths, and
+from mounting most filesystems.</p>
+<p>If you find that <tt class="docutils literal"><span class="pre">lxc-start</span></tt> is failing due to a legitimate access
+which is being denied by its Apparmor policy, you can disable the
+lxc-start profile by doing:</p>
+<div class="highlight-python"><pre>sudo apparmor_parser -R /etc/apparmor.d/usr.bin.lxc-start
+sudo ln -s /etc/apparmor.d/usr.bin.lxc-start /etc/apparmor.d/disabled/</pre>
+</div>
+<p>This will make <tt class="docutils literal"><span class="pre">lxc-start</span></tt> run unconfined, but continue to confine the
+container itself. If you also wish to disable confinement of the
+container, then in addition to disabling the <tt class="docutils literal"><span class="pre">usr.bin.lxc-start</span></tt>
+profile, you must add:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">lxc</span><span class="o">.</span><span class="n">aa_profile</span> <span class="o">=</span> <span class="n">unconfined</span>
+</pre></div>
+</div>
+<p>to the container&#8217;s configuration file. If you wish to run a container in
+a custom profile, you can create a new profile under
+<tt class="docutils literal"><span class="pre">/etc/apparmor.d/lxc/</span></tt>. Its name must start with <tt class="docutils literal"><span class="pre">lxc-</span></tt> in order for
+<tt class="docutils literal"><span class="pre">lxc-start</span></tt> to be allowed to transition to that profile. The
+<tt class="docutils literal"><span class="pre">lxc-default</span></tt> profile includes the re-usable abstractions file
+<tt class="docutils literal"><span class="pre">/etc/apparmor.d/abstractions/lxc/container-base</span></tt>. An easy way to
+start a new profile therefore is to do the same, then add extra
+permissions at the bottom of your policy.</p>
+<p>After creating the policy, load it using:</p>
+<div class="highlight-python"><pre>sudo apparmor_parser -r /etc/apparmor.d/lxc-containers</pre>
+</div>
+<p>The profile will automatically be loaded after a reboot, because it is
+sourced by the file <tt class="docutils literal"><span class="pre">/etc/apparmor.d/lxc-containers</span></tt>. Finally, to make
+container <tt class="docutils literal"><span class="pre">CN</span></tt> use this new <tt class="docutils literal"><span class="pre">lxc-CN-profile</span></tt>, add the following line
+to its configuration file:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">lxc</span><span class="o">.</span><span class="n">aa_profile</span> <span class="o">=</span> <span class="n">lxc</span><span class="o">-</span><span class="n">CN</span><span class="o">-</span><span class="n">profile</span>
+</pre></div>
+</div>
+<p><tt class="docutils literal"><span class="pre">lxc-execute</span></tt> does not enter an Apparmor profile, but the container it
+spawns will be confined.</p>
+</div>
+<div class="section" id="control-groups">
+<h3>Control Groups<a class="headerlink" href="#control-groups" title="Permalink to this headline">¶</a></h3>
+<p>Control groups (cgroups) are a kernel feature providing hierarchical
+task grouping and per-cgroup resource accounting and limits. They are
+used in containers to limit block and character device access and to
+freeze (suspend) containers. They can be further used to limit memory
+use and block i/o, guarantee minimum cpu shares, and to lock containers
+to specific cpus. By default, LXC depends on the cgroup-lite package to
+be installed, which provides the proper cgroup initialization at boot.
+The cgroup-lite package mounts each cgroup subsystem separately under
+<tt class="docutils literal"><span class="pre">/sys/fs/cgroup/SS</span></tt>, where SS is the subsystem name. For instance the
+freezer subsystem is mounted under <tt class="docutils literal"><span class="pre">/sys/fs/cgroup/freezer</span></tt>. LXC
+cgroup are kept under <tt class="docutils literal"><span class="pre">/sys/fs/cgroup/SS/INIT/lxc</span></tt>, where INIT is the
+init task&#8217;s cgroup. This is <tt class="docutils literal"><span class="pre">/</span></tt> by default, so in the end the freezer
+cgroup for container CN would be <tt class="docutils literal"><span class="pre">/sys/fs/cgroup/freezer/lxc/CN</span></tt>.</p>
+</div>
+<div class="section" id="privilege">
+<h3>Privilege<a class="headerlink" href="#privilege" title="Permalink to this headline">¶</a></h3>
+<p>The container administration tools must be run with root user privilege.
+A utility called <tt class="docutils literal"><span class="pre">lxc-setup</span></tt> was written with the intention of
+providing the tools with the needed file capabilities to allow non-root
+users to run the tools with sufficient privilege. However, as root in a
+container cannot yet be reliably contained, this is not worthwhile. It
+is therefore recommended to not use <tt class="docutils literal"><span class="pre">lxc-setup</span></tt>, and to provide the
+LXC administrators the needed sudo privilege.</p>
+<p>The user namespace, which is expected to be available in the next Long
+Term Support (LTS) release, will allow containment of the container root
+user, as well as reduce the amount of privilege required for creating
+and administering containers.</p>
+</div>
+<div class="section" id="lxc-upstart-jobs">
+<h3>LXC Upstart Jobs<a class="headerlink" href="#lxc-upstart-jobs" title="Permalink to this headline">¶</a></h3>
+<p>As listed above, the lxc package includes two upstart jobs. The first,
+<tt class="docutils literal"><span class="pre">lxc-net</span></tt>, is always started when the other, <tt class="docutils literal"><span class="pre">lxc</span></tt>, is about to
+begin, and stops when it stops. If the USE_LXC_BRIDGE variable is set
+to false in <tt class="docutils literal"><span class="pre">/etc/defaults/lxc</span></tt>, then it will immediately exit. If it
+is true, and an error occurs bringing up the LXC bridge, then the
+<tt class="docutils literal"><span class="pre">lxc</span></tt> job will not start. <tt class="docutils literal"><span class="pre">lxc-net</span></tt> will bring down the LXC bridge
+when stopped, unless a container is running which is using that bridge.</p>
+<p>The <tt class="docutils literal"><span class="pre">lxc</span></tt> job starts on runlevel 2-5. If the LXC_AUTO variable is set
+to true, then it will look under <tt class="docutils literal"><span class="pre">/etc/lxc</span></tt> for containers which
+should be started automatically. When the <tt class="docutils literal"><span class="pre">lxc</span></tt> job is stopped, either
+manually or by entering runlevel 0, 1, or 6, it will stop those
+containers.</p>
+<p>To register a container to start automatically, create a symbolic link
+<tt class="docutils literal"><span class="pre">/etc/lxc/auto/name.conf</span></tt> pointing to the container&#8217;s config file. For
+instance, the configuration file for a container <tt class="docutils literal"><span class="pre">CN</span></tt> is
+<tt class="docutils literal"><span class="pre">/var/lib/lxc/CN/config</span></tt>. To make that container auto-start, use the
+command:</p>
+</div>
+</div>
+<div class="section" id="container-administration">
+<h2>Container Administration<a class="headerlink" href="#container-administration" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="creating-containers">
+<h3>Creating Containers<a class="headerlink" href="#creating-containers" title="Permalink to this headline">¶</a></h3>
+<p>The easiest way to create containers is using <tt class="docutils literal"><span class="pre">lxc-create</span></tt>. This
+script uses distribution-specific templates under
+<tt class="docutils literal"><span class="pre">/usr/share/lxc/templates/</span></tt> to set up container-friendly chroots under
+<tt class="docutils literal"><span class="pre">/var/lib/lxc/CN/rootfs</span></tt>, and initialize the configuration in
+<tt class="docutils literal"><span class="pre">/var/lib/lxc/CN/fstab</span></tt> and <tt class="docutils literal"><span class="pre">/var/lib/lxc/CN/config</span></tt>, where CN is
+the container name</p>
+<p>The simplest container creation command would look like:</p>
+<p>This tells lxc-create to use the ubuntu template (-t ubuntu) and to call
+the container CN (-n CN). Since no configuration file was specified
+(which would have been done with `-f file&#8217;), it will use the default
+configuration file under <tt class="docutils literal"><span class="pre">/etc/lxc/lxc.conf</span></tt>. This gives the container
+a single veth network interface attached to the lxcbr0 bridge.</p>
+<p>The container creation templates can also accept arguments. These can be
+listed after &#8211;. For instance</p>
+<p>passes the arguments &#8216;-r oneiric1&#8217; to the ubuntu template.</p>
+<div class="section" id="help">
+<h4>Help<a class="headerlink" href="#help" title="Permalink to this headline">¶</a></h4>
+<dl class="docutils">
+<dt>Help on the lxc-create command can be seen by using``</dt>
+<dd>lxc-create -h``. However, the templates also take their own</dd>
+</dl>
+<p>options. If you do</p>
+<p>then the general <tt class="docutils literal"><span class="pre">lxc-create</span></tt> help will be followed by help output
+specific to the ubuntu template. If no template is specified, then only
+help for <tt class="docutils literal"><span class="pre">lxc-create</span></tt> itself will be shown.</p>
+</div>
+<div class="section" id="ubuntu-template">
+<h4>Ubuntu template<a class="headerlink" href="#ubuntu-template" title="Permalink to this headline">¶</a></h4>
+<p>The ubuntu template can be used to create Ubuntu system containers with
+any release at least as new as 10.04 LTS. It uses debootstrap to create
+a cached container filesystem which gets copied into place each time a
+container is created. The cached image is saved and only re-generated
+when you create a container using the <em>-F</em> (flush) option to the
+template, i.e.:</p>
+<p>The Ubuntu release installed by the template will be the same as that on
+the host, unless otherwise specified with the <em>-r</em> option, i.e.</p>
+<p>If you want to create a 32-bit container on a 64-bit host, pass <em>-a
+i386</em> to the container. If you have the qemu-user-static package
+installed, then you can create a container using any architecture
+supported by qemu-user-static.</p>
+<p>The container will have a user named <em>ubuntu</em> whose password is <em>ubuntu</em>
+and who is a member of the <em>sudo</em> group. If you wish to inject a public
+ssh key for the <em>ubuntu</em> user, you can do so with <em>-S sshkey.pub</em>.</p>
+<p>You can also <em>bind</em> user jdoe from the host into the container using the
+<em>-b jdoe</em> option. This will copy jdoe&#8217;s password and shadow entries into
+the container, make sure his default group and shell are available, add
+him to the sudo group, and bind-mount his home directory into the
+container when the container is started.</p>
+<p>When a container is created, the <tt class="docutils literal"><span class="pre">release-updates</span></tt> archive is added to
+the container&#8217;s <tt class="docutils literal"><span class="pre">sources.list</span></tt>, and its package archive will be
+updated. If the container release is older than 12.04 LTS, then the
+lxcguest package will be automatically installed. Alternatively, if the
+<em>&#8211;trim</em> option is specified, then the lxcguest package will not be
+installed, and many services will be removed from the container. This
+will result in a faster-booting, but less upgrade-able container.</p>
+</div>
+<div class="section" id="ubuntu-cloud-template">
+<h4>Ubuntu-cloud template<a class="headerlink" href="#ubuntu-cloud-template" title="Permalink to this headline">¶</a></h4>
+<p>The ubuntu-cloud template creates Ubuntu containers by downloading and
+extracting the published Ubuntu cloud images. It accepts some of the
+same options as the ubuntu template, namely <em>-r release</em>, <em>-S
+sshkey.pub</em>, <em>-a arch</em>, and <em>-F</em> to flush the cached image. It also
+accepts a few extra options. The <em>-C</em> option will create a <em>cloud</em>
+container, configured for use with a metadata service. The <em>-u</em> option
+accepts a cloud-init user-data file to configure the container on start.
+If <em>-L</em> is passed, then no locales will be installed. The <em>-T</em> option
+can be used to choose a tarball location to extract in place of the
+published cloud image tarball. Finally the <em>-i</em> option sets a host id
+for cloud-init, which by default is set to a random string.</p>
+</div>
+<div class="section" id="other-templates">
+<h4>Other templates<a class="headerlink" href="#other-templates" title="Permalink to this headline">¶</a></h4>
+<p>The ubuntu and ubuntu-cloud templates are well supported. Other
+templates are available however. The debian template creates a Debian
+based container, using debootstrap much as the ubuntu template does. By
+default it installs a <em>debian squeeze</em> image. An alternate release can
+be chosen by setting the SUITE environment variable, i.e.:</p>
+<p>To purge the container image cache, call the template directly and pass
+it the <em>&#8211;clean</em> option.</p>
+<p>A fedora template exists, which creates containers based on fedora
+releases &lt;= 14. Fedora release 15 and higher are based on systemd, which
+the template is not yet able to convert into a container-bootable setup.
+Before the fedora template is able to run, you&#8217;ll need to make sure that
+<tt class="docutils literal"><span class="pre">yum</span></tt> and <tt class="docutils literal"><span class="pre">curl</span></tt> are installed. A fedora 12 container can be created
+with</p>
+<p>A OpenSuSE template exists, but it requires the <tt class="docutils literal"><span class="pre">zypper</span></tt> program,
+which is not yet packaged. The OpenSuSE template is therefore not
+supported.</p>
+<p>Two more templates exist mainly for experimental purposes. The busybox
+template creates a very small system container based entirely on
+busybox. The sshd template creates an application container running sshd
+in a private network namespace. The host&#8217;s library and binary
+directories are bind-mounted into the container, though not its
+<tt class="docutils literal"><span class="pre">/home</span></tt> or <tt class="docutils literal"><span class="pre">/root</span></tt>. To create, start, and ssh into an ssh container,
+you might:</p>
+</div>
+<div class="section" id="backing-stores">
+<h4>Backing Stores<a class="headerlink" href="#backing-stores" title="Permalink to this headline">¶</a></h4>
+<p>By default, <tt class="docutils literal"><span class="pre">lxc-create</span></tt> places the container&#8217;s root filesystem as a
+directory tree at <tt class="docutils literal"><span class="pre">/var/lib/lxc/CN/rootfs</span></tt>. Another option is to use
+LVM logical volumes. If a volume group named <em>lxc</em> exists, you can
+create an lvm-backed container called CN using:</p>
+<p>If you want to use a volume group named schroots, with a 5G xfs
+filesystem, then you would use</p>
+</div>
+</div>
+<div class="section" id="cloning">
+<h3>Cloning<a class="headerlink" href="#cloning" title="Permalink to this headline">¶</a></h3>
+<p>For rapid provisioning, you may wish to customize a canonical container
+according to your needs and then make multiple copies of it. This can be
+done with the <tt class="docutils literal"><span class="pre">lxc-clone</span></tt> program. Given an existing container called
+C1, a new container called C2 can be created using:</p>
+<p>If <tt class="docutils literal"><span class="pre">/var/lib/lxc</span></tt> is a btrfs filesystem, then <tt class="docutils literal"><span class="pre">lxc-clone</span></tt> will
+create C2&#8217;s filesystem as a snapshot of C1&#8217;s. If the container&#8217;s root
+filesystem is lvm backed, then you can specify the <em>-s</em> option to create
+the new rootfs as a lvm snapshot of the original as follows:</p>
+<p>Both lvm and btrfs snapshots will provide fast cloning with very small
+initial disk usage.</p>
+</div>
+<div class="section" id="starting-and-stopping">
+<h3>Starting and stopping<a class="headerlink" href="#starting-and-stopping" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><p><strong>Note</strong></p>
+<p>The default login/password combination for the newly created
+container is ubuntu/ubuntu.</p>
+</div></blockquote>
+<p>To start a container, use <tt class="docutils literal"><span class="pre">lxc-start</span> <span class="pre">-n</span> <span class="pre">CN</span></tt>. By default <tt class="docutils literal"><span class="pre">lxc-start</span></tt>
+will execute <tt class="docutils literal"><span class="pre">/sbin/init</span></tt> in the container. You can provide a
+different program to execute, plus arguments, as further arguments to
+<tt class="docutils literal"><span class="pre">lxc-start</span></tt>:</p>
+<p>If you do not specify the <em>-d</em> (daemon) option, then you will see a
+console (on the container&#8217;s <tt class="docutils literal"><span class="pre">/dev/console</span></tt>, see ? for more
+information) on the terminal. If you specify the <em>-d</em> option, you will
+not see that console, and lxc-start will immediately exit success - even
+if a later part of container startup has failed. You can use
+<tt class="docutils literal"><span class="pre">lxc-wait</span></tt> or <tt class="docutils literal"><span class="pre">lxc-monitor</span></tt> (see ?) to check on the success or
+failure of the container startup.</p>
+<p>To obtain LXC debugging information, use <em>-o filename -l debuglevel</em>,
+for instance:</p>
+<p>Finally, you can specify configuration parameters inline using <em>-s</em>.
+However, it is generally recommended to place them in the container&#8217;s
+configuration file instead. Likewise, an entirely alternate config file
+can be specified with the <em>-f</em> option, but this is not generally
+recommended.</p>
+<p>While <tt class="docutils literal"><span class="pre">lxc-start</span></tt> runs the container&#8217;s <tt class="docutils literal"><span class="pre">/sbin/init</span></tt>, <tt class="docutils literal"><span class="pre">lxc-execute</span></tt>
+uses a minimal init program called <tt class="docutils literal"><span class="pre">lxc-init</span></tt>, which attempts to mount
+<tt class="docutils literal"><span class="pre">/proc</span></tt>, <tt class="docutils literal"><span class="pre">/dev/mqueue</span></tt>, and <tt class="docutils literal"><span class="pre">/dev/shm</span></tt>, executes the programs
+specified on the command line, and waits for those to finish executing.
+<tt class="docutils literal"><span class="pre">lxc-start</span></tt> is intended to be used for <em>system containers</em>, while
+<tt class="docutils literal"><span class="pre">lxc-execute</span></tt> is intended for <em>application containers</em> (see <a class="reference external" href="https://www.ibm.com/developerworks/linux/library/l-lxc-containers/">this
+article</a>
+for more).</p>
+<p>You can stop a container several ways. You can use <tt class="docutils literal"><span class="pre">shutdown</span></tt>,
+<tt class="docutils literal"><span class="pre">poweroff</span></tt> and <tt class="docutils literal"><span class="pre">reboot</span></tt> while logged into the container. To cleanly
+shut down a container externally (i.e. from the host), you can issue the
+<tt class="docutils literal"><span class="pre">sudo</span> <span class="pre">lxc-shutdown</span> <span class="pre">-n</span> <span class="pre">CN</span></tt> command. This takes an optional timeout
+value. If not specified, the command issues a SIGPWR signal to the
+container and immediately returns. If the option is used, as in
+<tt class="docutils literal"><span class="pre">sudo</span> <span class="pre">lxc-shutdown</span> <span class="pre">-n</span> <span class="pre">CN</span> <span class="pre">-t</span> <span class="pre">10</span></tt>, then the command will wait the
+specified number of seconds for the container to cleanly shut down.
+Then, if the container is still running, it will kill it (and any
+running applications). You can also immediately kill the container
+(without any chance for applications to cleanly shut down) using
+<tt class="docutils literal"><span class="pre">sudo</span> <span class="pre">lxc-stop</span> <span class="pre">-n</span> <span class="pre">CN</span></tt>. Finally, <tt class="docutils literal"><span class="pre">lxc-kill</span></tt> can be used more
+generally to send any signal number to the container&#8217;s init.</p>
+<p>While the container is shutting down, you can expect to see some
+(harmless) error messages, as follows:</p>
+<div class="highlight-python"><pre>$ sudo poweroff
+[sudo] password for ubuntu: =
+
+$ =
+
+Broadcast message from ubuntu@cn1
+        (/dev/lxc/console) at 18:17 ...
+
+The system is going down for power off NOW!
+ * Asking all remaining processes to terminate...
+   ...done.
+ * All processes ended within 1 seconds....
+   ...done.
+ * Deconfiguring network interfaces...
+   ...done.
+ * Deactivating swap...
+   ...fail!
+umount: /run/lock: not mounted
+umount: /dev/shm: not mounted
+mount: / is busy
+ * Will now halt</pre>
+</div>
+<dl class="docutils">
+<dt>A container can be frozen with <a href="#id8"><span class="problematic" id="id9">``</span></a>sudo lxc-freeze -n</dt>
+<dd>CN``. This will block all its processes until the container is</dd>
+<dt>later unfrozen using <a href="#id10"><span class="problematic" id="id11">``</span></a>sudo lxc-unfreeze -n</dt>
+<dd>CN``.</dd>
+</dl>
+</div>
+<div class="section" id="lifecycle-management-hooks">
+<h3>Lifecycle management hooks<a class="headerlink" href="#lifecycle-management-hooks" title="Permalink to this headline">¶</a></h3>
+<p>Beginning with Ubuntu 12.10, it is possible to define hooks to be
+executed at specific points in a container&#8217;s lifetime:</p>
+<ul class="simple">
+<li>Pre-start hooks are run in the host&#8217;s namespace before the container
+ttys, consoles, or mounts are up. If any mounts are done in this
+hook, they should be cleaned up in the post-stop hook.</li>
+<li>Pre-mount hooks are run in the container&#8217;s namespaces, but before the
+root filesystem has been mounted. Mounts done in this hook will be
+automatically cleaned up when the container shuts down.</li>
+<li>Mount hooks are run after the container filesystems have been
+mounted, but before the container has called <tt class="docutils literal"><span class="pre">pivot_root</span></tt> to change
+its root filesystem.</li>
+<li>Start hooks are run immediately before executing the container&#8217;s
+init. Since these are executed after pivoting into the container&#8217;s
+filesystem, the command to be executed must be copied into the
+container&#8217;s filesystem.</li>
+<li>Post-stop hooks are executed after the container has been shut down.</li>
+</ul>
+<p>If any hook returns an error, the container&#8217;s run will be aborted. Any
+<em>post-stop</em> hook will still be executed. Any output generated by the
+script will be logged at the debug priority.</p>
+<p>See ? for the configuration file format with which to specify hooks.
+Some sample hooks are shipped with the lxc package to serve as an
+example of how to write and use such hooks.</p>
+</div>
+<div class="section" id="monitoring-container-status">
+<h3>Monitoring container status<a class="headerlink" href="#monitoring-container-status" title="Permalink to this headline">¶</a></h3>
+<p>Two commands are available to monitor container state changes.
+<tt class="docutils literal"><span class="pre">lxc-monitor</span></tt> monitors one or more containers for any state changes.
+It takes a container name as usual with the <em>-n</em> option, but in this
+case the container name can be a posix regular expression to allow
+monitoring desirable sets of containers. <tt class="docutils literal"><span class="pre">lxc-monitor</span></tt> continues
+running as it prints container changes. <tt class="docutils literal"><span class="pre">lxc-wait</span></tt> waits for a
+specific state change and then exits. For instance,</p>
+<p>would print all state changes to any containers matching the listed
+regular expression, whereas</p>
+<p>will wait until container cont1 enters state STOPPED or state FROZEN and
+then exit.</p>
+</div>
+<div class="section" id="consoles">
+<h3>Consoles<a class="headerlink" href="#consoles" title="Permalink to this headline">¶</a></h3>
+<p>Containers have a configurable number of consoles. One always exists on
+the container&#8217;s <tt class="docutils literal"><span class="pre">/dev/console</span></tt>. This is shown on the terminal from
+which you ran <tt class="docutils literal"><span class="pre">lxc-start</span></tt>, unless the <em>-d</em> option is specified. The
+output on <tt class="docutils literal"><span class="pre">/dev/console</span></tt> can be redirected to a file using the <em>-c
+console-file</em> option to <tt class="docutils literal"><span class="pre">lxc-start</span></tt>. The number of extra consoles is
+specified by the <tt class="docutils literal"><span class="pre">lxc.tty</span></tt> variable, and is usually set to 4. Those
+consoles are shown on <tt class="docutils literal"><span class="pre">/dev/ttyN</span></tt> (for 1 &lt;= N &lt;= 4). To log into
+console 3 from the host, use</p>
+<p>or if the <em>-t N</em> option is not specified, an unused console will be
+automatically chosen. To exit the console, use the escape sequence
+Ctrl-a q. Note that the escape sequence does not work in the console
+resulting from <tt class="docutils literal"><span class="pre">lxc-start</span></tt> without the <em>-d</em> option.</p>
+<p>Each container console is actually a Unix98 pty in the host&#8217;s (not the
+guest&#8217;s) pty mount, bind-mounted over the guest&#8217;s <tt class="docutils literal"><span class="pre">/dev/ttyN</span></tt> and
+<tt class="docutils literal"><span class="pre">/dev/console</span></tt>. Therefore, if the guest unmounts those or otherwise
+tries to access the actual character device <tt class="docutils literal"><span class="pre">4:N</span></tt>, it will not be
+serving getty to the LXC consoles. (With the default settings, the
+container will not be able to access that character device and getty
+will therefore fail.) This can easily happen when a boot script blindly
+mounts a new <tt class="docutils literal"><span class="pre">/dev</span></tt>.</p>
+</div>
+<div class="section" id="container-inspection">
+<h3>Container Inspection<a class="headerlink" href="#container-inspection" title="Permalink to this headline">¶</a></h3>
+<p>Several commands are available to gather information on existing
+containers. <tt class="docutils literal"><span class="pre">lxc-ls</span></tt> will report all existing containers in its first
+line of output, and all running containers in the second line.
+<tt class="docutils literal"><span class="pre">lxc-list</span></tt> provides the same information in a more verbose format,
+listing running containers first and stopped containers next. <tt class="docutils literal"><span class="pre">lxc-ps</span></tt>
+will provide lists of processes in containers. To provide <tt class="docutils literal"><span class="pre">ps</span></tt>
+arguments to <tt class="docutils literal"><span class="pre">lxc-ps</span></tt>, prepend them with <tt class="docutils literal"><span class="pre">--</span></tt>. For instance, for
+listing of all processes in container plain,</p>
+<div class="highlight-python"><pre>``lxc-info`` provides the state of a container and the pid of its init</pre>
+</div>
+<p>process. <tt class="docutils literal"><span class="pre">lxc-cgroup</span></tt> can be used to query or set the values of a
+container&#8217;s control group limits and information. This can be more
+convenient than interacting with the <tt class="docutils literal"><span class="pre">cgroup</span></tt> filesystem. For
+instance, to query the list of devices which a running container is
+allowed to access, you could use</p>
+<p>or to add mknod, read, and write access to <tt class="docutils literal"><span class="pre">/dev/sda</span></tt>,</p>
+<p>and, to limit it to 300M of RAM,</p>
+<div class="highlight-python"><pre>``lxc-netstat`` executes ``netstat`` in the running container, giving</pre>
+</div>
+<p>you a glimpse of its network state.</p>
+<p><tt class="docutils literal"><span class="pre">lxc-backup</span></tt> will create backups of the root filesystems of all
+existing containers (except lvm-based ones), using <tt class="docutils literal"><span class="pre">rsync</span></tt> to back the
+contents up under <tt class="docutils literal"><span class="pre">/var/lib/lxc/CN/rootfs.backup.1</span></tt>. These backups can
+be restored using <tt class="docutils literal"><span class="pre">lxc-restore.</span></tt> However, <tt class="docutils literal"><span class="pre">lxc-backup</span></tt> and
+<tt class="docutils literal"><span class="pre">lxc-restore</span></tt> are fragile with respect to customizations and therefore
+their use is not recommended.</p>
+</div>
+<div class="section" id="destroying-containers">
+<h3>Destroying containers<a class="headerlink" href="#destroying-containers" title="Permalink to this headline">¶</a></h3>
+<p>Use <tt class="docutils literal"><span class="pre">lxc-destroy</span></tt> to destroy an existing container.</p>
+<p>If the container is running, <tt class="docutils literal"><span class="pre">lxc-destroy</span></tt> will exit with a message
+informing you that you can force stopping and destroying the container
+with</p>
+</div>
+<div class="section" id="advanced-namespace-usage">
+<h3>Advanced namespace usage<a class="headerlink" href="#advanced-namespace-usage" title="Permalink to this headline">¶</a></h3>
+<p>One of the Linux kernel features used by LXC to create containers is
+private namespaces. Namespaces allow a set of tasks to have private
+mappings of names to resources for things like pathnames and process
+IDs. (See ? for a link to more information). Unlike control groups and
+other mount features which are also used to create containers,
+namespaces cannot be manipulated using a filesystem interface.
+Therefore, LXC ships with the <tt class="docutils literal"><span class="pre">lxc-unshare</span></tt> program, which is mainly
+for testing. It provides the ability to create new tasks in private
+namespaces. For instance,</p>
+<p>creates a bash shell with private pid and mount namespaces. In this
+shell, you can do</p>
+<div class="highlight-python"><pre>root@ubuntu:~# mount -t proc proc /proc
+root@ubuntu:~# ps -ef
+UID        PID  PPID  C STIME TTY          TIME CMD
+root         1     0  6 10:20 pts/9    00:00:00 /bin/bash
+root       110     1  0 10:20 pts/9    00:00:00 ps -ef</pre>
+</div>
+<p>so that <tt class="docutils literal"><span class="pre">ps</span></tt> shows only the tasks in your new namespace.</p>
+</div>
+<div class="section" id="ephemeral-containers">
+<h3>Ephemeral containers<a class="headerlink" href="#ephemeral-containers" title="Permalink to this headline">¶</a></h3>
+<p>Ephemeral containers are one-time containers. Given an existing
+container CN, you can run a command in an ephemeral container created
+based on CN, with the host&#8217;s jdoe user bound into the container, using:</p>
+<p>When the job is finished, the container will be discarded.</p>
+</div>
+<div class="section" id="container-commands">
+<h3>Container Commands<a class="headerlink" href="#container-commands" title="Permalink to this headline">¶</a></h3>
+<p>Following is a table of all container commands:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="29%" />
+<col width="71%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Command</th>
+<th class="head">Synopsis</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>lxc-attach</td>
+<td>(NOT SUPPORTED) Run a command in a running
+container</td>
+</tr>
+<tr class="row-odd"><td>lxc-backup</td>
+<td>Back up the root filesystems for all lvm-backed
+containers</td>
+</tr>
+<tr class="row-even"><td>lxc-cgroup</td>
+<td>View and set container control group settings</td>
+</tr>
+<tr class="row-odd"><td>lxc-checkconfig</td>
+<td>Verify host support for containers</td>
+</tr>
+<tr class="row-even"><td>lxc-checkpoint</td>
+<td>(NOT SUPPORTED) Checkpoint a running container</td>
+</tr>
+<tr class="row-odd"><td>lxc-clone</td>
+<td>Clone a new container from an existing one</td>
+</tr>
+<tr class="row-even"><td>lxc-console</td>
+<td>Open a console in a running container</td>
+</tr>
+<tr class="row-odd"><td>lxc-create</td>
+<td>Create a new container</td>
+</tr>
+<tr class="row-even"><td>lxc-destroy</td>
+<td>Destroy an existing container</td>
+</tr>
+<tr class="row-odd"><td>lxc-execute</td>
+<td>Run a command in a (not running) application
+container</td>
+</tr>
+<tr class="row-even"><td>lxc-freeze</td>
+<td>Freeze a running container</td>
+</tr>
+<tr class="row-odd"><td>lxc-info</td>
+<td>Print information on the state of a container</td>
+</tr>
+<tr class="row-even"><td>lxc-kill</td>
+<td>Send a signal to a container&#8217;s init</td>
+</tr>
+<tr class="row-odd"><td>lxc-list</td>
+<td>List all containers</td>
+</tr>
+<tr class="row-even"><td>lxc-ls</td>
+<td>List all containers with shorter output than
+lxc-list</td>
+</tr>
+<tr class="row-odd"><td>lxc-monitor</td>
+<td>Monitor state changes of one or more containers</td>
+</tr>
+<tr class="row-even"><td>lxc-netstat</td>
+<td>Execute netstat in a running container</td>
+</tr>
+<tr class="row-odd"><td>lxc-ps</td>
+<td>View process info in a running container</td>
+</tr>
+<tr class="row-even"><td>lxc-restart</td>
+<td>(NOT SUPPORTED) Restart a checkpointed container</td>
+</tr>
+<tr class="row-odd"><td>lxc-restore</td>
+<td>Restore containers from backups made by lxc-backup</td>
+</tr>
+<tr class="row-even"><td>lxc-setcap</td>
+<td>(NOT RECOMMENDED) Set file capabilities on LXC
+tools</td>
+</tr>
+<tr class="row-odd"><td>lxc-setuid</td>
+<td>(NOT RECOMMENDED) Set or remove setuid bits on LXC
+tools</td>
+</tr>
+<tr class="row-even"><td>lxc-shutdown</td>
+<td>Safely shut down a container</td>
+</tr>
+<tr class="row-odd"><td>lxc-start</td>
+<td>Start a stopped container</td>
+</tr>
+<tr class="row-even"><td>lxc-start-ephemeral</td>
+<td>Start an ephemeral (one-time) container</td>
+</tr>
+<tr class="row-odd"><td>lxc-stop</td>
+<td>Immediately stop a running container</td>
+</tr>
+<tr class="row-even"><td>lxc-unfreeze</td>
+<td>Unfreeze a frozen container</td>
+</tr>
+<tr class="row-odd"><td>lxc-unshare</td>
+<td>Testing tool to manually unshare namespaces</td>
+</tr>
+<tr class="row-even"><td>lxc-version</td>
+<td>Print the version of the LXC tools</td>
+</tr>
+<tr class="row-odd"><td>lxc-wait</td>
+<td>Wait for a container to reach a particular state</td>
+</tr>
+</tbody>
+</table>
+<p>Table: Container commands</p>
+</div>
+</div>
+<div class="section" id="configuration-file">
+<h2>Configuration File<a class="headerlink" href="#configuration-file" title="Permalink to this headline">¶</a></h2>
+<p>LXC containers are very flexible. The Ubuntu lxc package sets defaults
+to make creation of Ubuntu system containers as simple as possible. If
+you need more flexibility, this chapter will show how to fine-tune your
+containers as you need.</p>
+<p>Detailed information is available in the <tt class="docutils literal"><span class="pre">lxc.conf(5)</span></tt> man page. Note
+that the default configurations created by the ubuntu templates are
+reasonable for a system container and usually do not need customization.</p>
+<div class="section" id="choosing-configuration-files-and-options">
+<h3>Choosing configuration files and options<a class="headerlink" href="#choosing-configuration-files-and-options" title="Permalink to this headline">¶</a></h3>
+<p>The container setup is controlled by the LXC configuration options.
+Options can be specified at several points:</p>
+<ul class="simple">
+<li>During container creation, a configuration file can be specified.
+However, creation templates often insert their own configuration
+options, so we usually specify only network configuration options at
+this point. For other configuration, it is usually better to edit the
+configuration file after container creation.</li>
+<li>The file <tt class="docutils literal"><span class="pre">/var/lib/lxc/CN/config</span></tt> is used at container startup by
+default.</li>
+<li><tt class="docutils literal"><span class="pre">lxc-start</span></tt> accepts an alternate configuration file with the <em>-f
+filename</em> option.</li>
+<li>Specific configuration variables can be overridden at <tt class="docutils literal"><span class="pre">lxc-start</span></tt>
+using <em>-s key=value</em>. It is generally better to edit the container
+configuration file.</li>
+</ul>
+</div>
+<div class="section" id="network-configuration">
+<h3>Network Configuration<a class="headerlink" href="#network-configuration" title="Permalink to this headline">¶</a></h3>
+<p>Container networking in LXC is very flexible. It is triggered by the
+<tt class="docutils literal"><span class="pre">lxc.network.type</span></tt> configuration file entries. If no such entries
+exist, then the container will share the host&#8217;s networking stack.
+Services and connections started in the container will be using the
+host&#8217;s IP address. If at least one <tt class="docutils literal"><span class="pre">lxc.network.type</span></tt> entry is
+present, then the container will have a private (layer 2) network stack.
+It will have its own network interfaces and firewall rules. There are
+several options for <tt class="docutils literal"><span class="pre">lxc.network.type</span></tt>:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">lxc.network.type=empty</span></tt>: The container will have no network
+interfaces other than loopback.</li>
+<li><tt class="docutils literal"><span class="pre">lxc.network.type=veth</span></tt>: This is the default when using the ubuntu
+or ubuntu-cloud templates, and creates a veth network tunnel. One end
+of this tunnel becomes the network interface inside the container.
+The other end is attached to a bridged on the host. Any number of
+such tunnels can be created by adding more <tt class="docutils literal"><span class="pre">lxc.network.type=veth</span></tt>
+entries in the container configuration file. The bridge to which the
+host end of the tunnel will be attached is specified with
+<tt class="docutils literal"><span class="pre">lxc.network.link</span> <span class="pre">=</span> <span class="pre">lxcbr0</span></tt>.</li>
+<li><tt class="docutils literal"><span class="pre">lxc.network.type=phys</span></tt> A physical network interface (i.e. eth2) is
+passed into the container.</li>
+</ul>
+<p>Two other options are to use vlan or macvlan, however their use is more
+complicated and is not described here. A few other networking options
+exist:</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">lxc.network.flags</span></tt> can only be set to <em>up</em> and ensures that the
+network interface is up.</li>
+<li><tt class="docutils literal"><span class="pre">lxc.network.hwaddr</span></tt> specifies a mac address to assign to the nic
+inside the container.</li>
+<li><tt class="docutils literal"><span class="pre">lxc.network.ipv4</span></tt> and <tt class="docutils literal"><span class="pre">lxc.network.ipv6</span></tt> set the respective IP
+addresses, if those should be static.</li>
+<li><tt class="docutils literal"><span class="pre">lxc.network.name</span></tt> specifies a name to assign inside the container.
+If this is not specified, a good default (i.e. eth0 for the first
+nic) is chosen.</li>
+<li><tt class="docutils literal"><span class="pre">lxc.network.lxcscript.up</span></tt> specifies a script to be called after
+the host side of the networking has been set up. See the
+<tt class="docutils literal"><span class="pre">lxc.conf(5)</span></tt> manual page for details.</li>
+</ul>
+</div>
+<div class="section" id="control-group-configuration">
+<h3>Control group configuration<a class="headerlink" href="#control-group-configuration" title="Permalink to this headline">¶</a></h3>
+<p>Cgroup options can be specified using <tt class="docutils literal"><span class="pre">lxc.cgroup</span></tt> entries.
+<tt class="docutils literal"><span class="pre">lxc.cgroup.subsystem.item</span> <span class="pre">=</span> <span class="pre">value</span></tt> instructs LXC to set cgroup
+<tt class="docutils literal"><span class="pre">subsystem</span></tt>&#8216;s <tt class="docutils literal"><span class="pre">item</span></tt> to <tt class="docutils literal"><span class="pre">value</span></tt>. It is perhaps simpler to realize
+that this will simply write <tt class="docutils literal"><span class="pre">value</span></tt> to the file <tt class="docutils literal"><span class="pre">item</span></tt> for the
+container&#8217;s control group for subsystem <tt class="docutils literal"><span class="pre">subsystem</span></tt>. For instance, to
+set the memory limit to 320M, you could add</p>
+<p>which will cause 320000000 to be written to the file
+<tt class="docutils literal"><span class="pre">/sys/fs/cgroup/memory/lxc/CN/limit_in_bytes</span></tt>.</p>
+</div>
+<div class="section" id="rootfs-mounts-and-fstab">
+<h3>Rootfs, mounts and fstab<a class="headerlink" href="#rootfs-mounts-and-fstab" title="Permalink to this headline">¶</a></h3>
+<p>An important part of container setup is the mounting of various
+filesystems into place. The following is an example configuration file
+excerpt demonstrating the commonly used configuration options:</p>
+<p>The first line says that the container&#8217;s root filesystem is already
+mounted at <tt class="docutils literal"><span class="pre">/var/lib/lxc/CN/rootfs</span></tt>. If the filesystem is a block
+device (such as an LVM logical volume), then the path to the block
+device must be given instead.</p>
+<p>Each <tt class="docutils literal"><span class="pre">lxc.mount.entry</span></tt> line should contain an item to mount in valid
+fstab format. The target directory should be prefixed by
+<tt class="docutils literal"><span class="pre">/var/lib/lxc/CN/rootfs</span></tt>, even if <tt class="docutils literal"><span class="pre">lxc.rootfs</span></tt> points to a block
+device.</p>
+<p>Finally, <tt class="docutils literal"><span class="pre">lxc.mount</span></tt> points to a file, in fstab format, containing
+further items to mount. Note that all of these entries will be mounted
+by the host before the container init is started. In this way it is
+possible to bind mount various directories from the host into the
+container.</p>
+</div>
+<div class="section" id="other-configuration-options">
+<h3>Other configuration options<a class="headerlink" href="#other-configuration-options" title="Permalink to this headline">¶</a></h3>
+<ul>
+<li><p class="first"><tt class="docutils literal"><span class="pre">lxc.cap.drop</span></tt> can be used to prevent the container from having or
+ever obtaining the listed capabilities. For instance, including</p>
+<p>will prevent the container from mounting filesystems, as well as all
+other actions which require cap_sys_admin. See the
+<tt class="docutils literal"><span class="pre">capabilities(7)</span></tt> manual page for a list of capabilities and their
+meanings.</p>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">lxc.aa_profile</span> <span class="pre">=</span> <span class="pre">lxc-CN-profile</span></tt> specifies a custom Apparmor
+profile in which to start the container. See ? for more information.</p>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">lxc.console=/path/to/consolefile</span></tt> will cause console messages to
+be written to the specified file.</p>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">lxc.arch</span></tt> specifies the architecture for the container, for
+instance x86, or x86_64.</p>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">lxc.tty=5</span></tt> specifies that 5 consoles (in addition to
+<tt class="docutils literal"><span class="pre">/dev/console</span></tt>) should be created. That is, consoles will be
+available on <tt class="docutils literal"><span class="pre">/dev/tty1</span></tt> through <tt class="docutils literal"><span class="pre">/dev/tty5</span></tt>. The ubuntu
+templates set this value to 4.</p>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">lxc.pts=1024</span></tt> specifies that the container should have a private
+(Unix98) devpts filesystem mount. If this is not specified, then the
+container will share <tt class="docutils literal"><span class="pre">/dev/pts</span></tt> with the host, which is rarely
+desired. The number 1024 means that 1024 ptys should be allowed in
+the container, however this number is currently ignored. Before
+starting the container init, LXC will do (essentially) a</p>
+<p>inside the container. It is important to realize that the container
+should not mount devpts filesystems of its own. It may safely do bind
+or move mounts of its mounted <tt class="docutils literal"><span class="pre">/dev/pts</span></tt>. But if it does</p>
+<p>it will remount the host&#8217;s devpts instance. If it adds the
+newinstance mount option, then it will mount a new private (empty)
+instance. In neither case will it remount the instance which was set
+up by LXC. For this reason, and to prevent the container from using
+the host&#8217;s ptys, the default Apparmor policy will not allow
+containers to mount devpts filesystems after the container&#8217;s init has
+been started.</p>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">lxc.devttydir</span></tt> specifies a directory under <tt class="docutils literal"><span class="pre">/dev</span></tt> in which LXC
+will create its console devices. If this option is not specified,
+then the ptys will be bind-mounted over <tt class="docutils literal"><span class="pre">/dev/console</span></tt> and
+<tt class="docutils literal"><span class="pre">/dev/ttyN.</span></tt> However, rare package updates may try to blindly <em>rm
+-f</em> and then <em>mknod</em> those devices. They will fail (because the file
+has been bind-mounted), causing the package update to fail. When
+<tt class="docutils literal"><span class="pre">lxc.devttydir</span></tt> is set to LXC, for instance, then LXC will
+bind-mount the console ptys onto <tt class="docutils literal"><span class="pre">/dev/lxc/console</span></tt> and
+<tt class="docutils literal"><span class="pre">/dev/lxc/ttyN,</span></tt> and subsequently symbolically link them to
+<tt class="docutils literal"><span class="pre">/dev/console</span></tt> and <tt class="docutils literal"><span class="pre">/dev/ttyN.</span></tt> This allows the package updates
+to succeed, at the risk of making future gettys on those consoles
+fail until the next reboot. This problem will be ideally solved with
+device namespaces.</p>
+</li>
+<li><p class="first">The <tt class="docutils literal"><span class="pre">lxc.hook.</span></tt> options specify programs to run at various points
+in a container&#8217;s life cycle. See ? for more information on these
+hooks. To have multiple hooks called at any point, list them in
+multiple entries. The possible values, whose precise meanings are
+described in ?, are</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">lxc.hook.pre-start</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">lxc.hook.pre-mount</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">lxc.hook.mount</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">lxc.hook.start</span></tt></li>
+<li><tt class="docutils literal"><span class="pre">lxc.hook.post-stop</span></tt></li>
+</ul>
+</li>
+<li><p class="first">The <tt class="docutils literal"><span class="pre">lxc.include</span></tt> option specifies another configuration file to be
+loaded. This allows common configuration sections to be defined once
+and included by several containers, simplifying updates of the common
+section.</p>
+</li>
+<li><p class="first">The <tt class="docutils literal"><span class="pre">lxc.seccomp</span></tt> option (introduced with Ubuntu 12.10) specifies a
+file containing a <em>seccomp</em> policy to load. See ? for more
+information on seccomp in lxc.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="updates-in-ubuntu-containers">
+<h2>Updates in Ubuntu containers<a class="headerlink" href="#updates-in-ubuntu-containers" title="Permalink to this headline">¶</a></h2>
+<p>Because of some limitations which are placed on containers, package
+upgrades at times can fail. For instance, a package install or upgrade
+might fail if it is not allowed to create or open a block device. This
+often blocks all future upgrades until the issue is resolved. In some
+cases, you can work around this by chrooting into the container, to
+avoid the container restrictions, and completing the upgrade in the
+chroot.</p>
+<p>Some of the specific things known to occasionally impede package
+upgrades include:</p>
+<ul class="simple">
+<li>The container modifications performed when creating containers with
+the &#8211;trim option.</li>
+<li>Actions performed by lxcguest. For instance, because
+<tt class="docutils literal"><span class="pre">/lib/init/fstab</span></tt> is bind-mounted from another file, mountall
+upgrades which insist on replacing that file can fail.</li>
+<li>The over-mounting of console devices with ptys from the host can
+cause trouble with udev upgrades.</li>
+<li>Apparmor policy and devices cgroup restrictions can prevent package
+upgrades from performing certain actions.</li>
+<li>Capabilities dropped by use of <tt class="docutils literal"><span class="pre">lxc.cap.drop</span></tt> can likewise stop
+package upgrades from performing certain actions.</li>
+</ul>
+</div>
+<div class="section" id="libvirt-lxc">
+<h2>Libvirt LXC<a class="headerlink" href="#libvirt-lxc" title="Permalink to this headline">¶</a></h2>
+<p>Libvirt is a powerful hypervisor management solution with which you can
+administer Qemu, Xen and LXC virtual machines, both locally and remote.
+The libvirt LXC driver is a separate implementation from what we
+normally call <em>LXC</em>. A few differences include:</p>
+<ul class="simple">
+<li>Configuration is stored in xml format</li>
+<li>There no tools to facilitate container creation</li>
+<li>By default there is no console on <tt class="docutils literal"><span class="pre">/dev/console</span></tt></li>
+<li>There is no support (yet) for container reboot or full shutdown</li>
+</ul>
+<div class="section" id="converting-a-lxc-container-to-libvirt-lxc">
+<h3>Converting a LXC container to libvirt-lxc<a class="headerlink" href="#converting-a-lxc-container-to-libvirt-lxc" title="Permalink to this headline">¶</a></h3>
+<p>? showed how to create LXC containers. If you&#8217;ve created a valid LXC
+container in this way, you can manage it with libvirt. Fetch a sample
+xml file from</p>
+<p>Edit this file to replace the container name and root filesystem
+locations. Then you can define the container with:</p>
+</div>
+<div class="section" id="creating-a-container-from-cloud-image">
+<h3>Creating a container from cloud image<a class="headerlink" href="#creating-a-container-from-cloud-image" title="Permalink to this headline">¶</a></h3>
+<p>If you prefer to create a pristine new container just for LXC, you can
+download an ubuntu cloud image, extract it, and point a libvirt LXC xml
+file to it. For instance, find the url for a root tarball for the latest
+daily Ubuntu 12.04 LTS cloud image using</p>
+<p>Extract the downloaded tarball, for instance</p>
+<p>Download the xml template</p>
+<p>In the xml template, replace the name o1 with c1 and the source
+directory <tt class="docutils literal"><span class="pre">/var/lib/lxc/o1/rootfs</span></tt> with <tt class="docutils literal"><span class="pre">$HOME/c1</span></tt>. Then define the
+container using</p>
+</div>
+<div class="section" id="interacting-with-libvirt-containers">
+<h3>Interacting with libvirt containers<a class="headerlink" href="#interacting-with-libvirt-containers" title="Permalink to this headline">¶</a></h3>
+<p>As we&#8217;ve seen, you can create a libvirt-lxc container using</p>
+<p>To start a container called <em>container</em>, use</p>
+<p>To stop a running container, use</p>
+<p>Note that whereas the <tt class="docutils literal"><span class="pre">lxc-destroy</span></tt> command deletes the container, the
+<tt class="docutils literal"><span class="pre">virsh</span> <span class="pre">destroy</span></tt> command stops a running container. To delete the
+container definition, use</p>
+<p>To get a console to a running container, use</p>
+<p>Exit the console by simultaneously pressing control and ].</p>
+</div>
+</div>
+<div class="section" id="the-lxcguest-package">
+<h2>The lxcguest package<a class="headerlink" href="#the-lxcguest-package" title="Permalink to this headline">¶</a></h2>
+<p>In the 11.04 (Natty) and 11.10 (Oneiric) releases of Ubuntu, a package
+was introduced called <em>lxcguest</em>. An unmodified root image could not be
+safely booted inside a container, but an image with the lxcguest package
+installed could be booted as a container, on bare hardware, or in a Xen,
+kvm, or VMware virtual machine.</p>
+<p>As of the 12.04 LTS release, the work previously done by the lxcguest
+package was pushed into the core packages, and the lxcguest package was
+removed. As a result, an unmodified 12.04 LTS image can be booted as a
+container, on bare hardware, or in a Xen, kvm, or VMware virtual
+machine. To use an older release, the lxcguest package should still be
+used.</p>
+</div>
+<div class="section" id="python-api">
+<h2>Python api<a class="headerlink" href="#python-api" title="Permalink to this headline">¶</a></h2>
+<p>As of 12.10 (Quantal) a python3-lxc package is available which provides
+a python module, called <tt class="docutils literal"><span class="pre">lxc</span></tt>, for managing lxc containers. An example
+python session to create and start an Ubuntu container called <tt class="docutils literal"><span class="pre">C1</span></tt>,
+then wait until it has been shut down, would look like:</p>
+<div class="highlight-python"><pre># sudo python3
+Python 3.2.3 (default, Aug 28 2012, 08:26:03)
+[GCC 4.7.1 20120814 (prerelease)] on linux2
+Type "help", "copyright", "credits" or "license" for more information.
+&gt;&gt;&gt; import lxc
+__main__:1: Warning: The python-lxc API isn't yet stable and may change at any p
+oint in the future.
+&gt;&gt;&gt; c=lxc.Container("C1")
+&gt;&gt;&gt; c.create("ubuntu")
+True
+&gt;&gt;&gt; c.start()
+True
+&gt;&gt;&gt; c.wait("STOPPED")
+True</pre>
+</div>
+<p>Debug information for containers started with the python API will be
+placed in <tt class="docutils literal"><span class="pre">/var/log/lxccontainer.log</span></tt>.</p>
+</div>
+<div class="section" id="security">
+<h2>Security<a class="headerlink" href="#security" title="Permalink to this headline">¶</a></h2>
+<p>A namespace maps ids to resources. By not providing a container any id
+with which to reference a resource, the resource can be protected. This
+is the basis of some of the security afforded to container users. For
+instance, IPC namespaces are completely isolated. Other namespaces,
+however, have various <em>leaks</em> which allow privilege to be
+inappropriately exerted from a container into another container or to
+the host.</p>
+<p>By default, LXC containers are started under a Apparmor policy to
+restrict some actions. However, while stronger security is a goal for
+future releases, in 12.04 LTS the goal of the Apparmor policy is not to
+stop malicious actions but rather to stop accidental harm of the host by
+the guest. The details of AppArmor integration with lxc are in section ?</p>
+<div class="section" id="exploitable-system-calls">
+<h3>Exploitable system calls<a class="headerlink" href="#exploitable-system-calls" title="Permalink to this headline">¶</a></h3>
+<p>It is a core container feature that containers share a kernel with the
+host. Therefore if the kernel contains any exploitable system calls the
+container can exploit these as well. Once the container controls the
+kernel it can fully control any resource known to the host.</p>
+<p>Since Ubuntu 12.10 (Quantal) a container can also be constrained by a
+seccomp filter. Seccomp is a new kernel feature which filters the system
+calls which may be used by a task and its children. While improved and
+simplified policy management is expected in the near future, the current
+policy consists of a simple whitelist of system call numbers. The policy
+file begins with a version number (which must be 1) on the first line
+and a policy type (which must be &#8216;whitelist&#8217;) on the second line. It is
+followed by a list of numbers, one per line.</p>
+<p>In general to run a full distribution container a large number of system
+calls will be needed. However for application containers it may be
+possible to reduce the number of available system calls to only a few.
+Even for system containers running a full distribution security gains
+may be had, for instance by removing the 32-bit compatibility system
+calls in a 64-bit container. See ? for details of how to configure a
+container to use seccomp. By default, no seccomp policy is loaded.</p>
+</div>
+</div>
+<div class="section" id="id12">
+<h2>Resources<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>The DeveloperWorks article <a class="reference external" href="https://www.ibm.com/developerworks/linux/library/l-lxc-containers/">LXC: Linux container
+tools</a>
+was an early introduction to the use of containers.</li>
+<li>The <a class="reference external" href="http://www.ibm.com/developerworks/linux/library/l-lxc-security/index.html">Secure Containers
+Cookbook</a>
+demonstrated the use of security modules to make containers more
+secure.</li>
+<li>Manual pages referenced above can be found at:</li>
+<li>The upstream LXC project is hosted at
+<a class="reference external" href="http://lxc.sf.net">Sourceforge</a>.</li>
+<li>LXC security issues are listed and discussed at <a class="reference external" href="http://wiki.ubuntu.com/LxcSecurity">the LXC Security
+wiki page</a></li>
+<li>For more on namespaces in Linux, see: S. Bhattiprolu, E. W.
+Biederman, S. E. Hallyn, and D. Lezcano. Virtual Servers and Check-
+point/Restart in Mainstream Linux. SIGOPS Op- erating Systems Review,
+42(5), 2008.</li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/ubuntu_black-orange_hex_su-medium_cropped.png" alt="Logo"/>
+            </a></p>
+<h3><a href="index.html">Table Of Contents</a></h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="introduction.html#support">Support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html#preparing-to-install">Preparing to Install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html#installing-from-cd">Installing from CD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html#upgrading">Upgrading</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html#advanced-installation">Advanced Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html#kernel-crash-dump">Kernel Crash Dump</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html">Package Management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html#introduction">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html#dpkg">dpkg</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html#apt-get">Apt-Get</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html#aptitude">Aptitude</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html#automatic-updates">Automatic Updates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html#configuration">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html#references">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-config.html">Networking</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-config.html#network-configuration">Network Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-config.html#tcp-ip">TCP/IP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-config.html#dynamic-host-configuration-protocol-dhcp">Dynamic Host Configuration Protocol (DHCP)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-config.html#time-synchronisation-with-ntp">Time Synchronisation with NTP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multipath.html">DMM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multipath.html#device-mapper-multipathing">Device Mapper Multipathing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multipath.html#multipath-devices">Multipath Devices</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multipath.html#setting-up-dmm-overview">Setting up DMM Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multipath.html#the-dmm-configuration-file">The DMM Configuration File</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multipath.html#dmm-administration-and-troubleshooting">DMM Administration and Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="remote-administration.html">Remote Administration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="remote-administration.html#openssh-server">OpenSSH Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="remote-administration.html#puppet">Puppet</a></li>
+<li class="toctree-l1"><a class="reference internal" href="remote-administration.html#zentyal">Zentyal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-auth.html">Network Authentication</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-auth.html#openldap-server">OpenLDAP Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-auth.html#samba-and-ldap">Samba and LDAP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-auth.html#kerberos">Kerberos</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-auth.html#kerberos-and-ldap">Kerberos and LDAP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dns.html">Domain Name Service (DNS)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dns.html#installation">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dns.html#configuration">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dns.html#troubleshooting">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dns.html#references">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html">Security</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html#user-management">User Management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html#console-security">Console Security</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html#firewall">Firewall</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html#apparmor">AppArmor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html#certificates">Certificates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html#ecryptfs">eCryptfs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="monitoring.html">Monitoring</a></li>
+<li class="toctree-l1"><a class="reference internal" href="monitoring.html#overview">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="monitoring.html#nagios">Nagios</a></li>
+<li class="toctree-l1"><a class="reference internal" href="monitoring.html#munin">Munin</a></li>
+<li class="toctree-l1"><a class="reference internal" href="web-servers.html">Web Servers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="web-servers.html#httpd-apache2-web-server">HTTPD - Apache2 Web Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="web-servers.html#php5-scripting-language">PHP5 - Scripting Language</a></li>
+<li class="toctree-l1"><a class="reference internal" href="web-servers.html#squid-proxy-server">Squid - Proxy Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="web-servers.html#ruby-on-rails">Ruby on Rails</a></li>
+<li class="toctree-l1"><a class="reference internal" href="web-servers.html#apache-tomcat">Apache Tomcat</a></li>
+<li class="toctree-l1"><a class="reference internal" href="databases.html">Databases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="databases.html#mysql">MySQL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="databases.html#postgresql">PostgreSQL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lamp-applications.html">LAMP Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lamp-applications.html#overview">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lamp-applications.html#moin-moin">Moin Moin</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lamp-applications.html#mediawiki">MediaWiki</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lamp-applications.html#phpmyadmin">phpMyAdmin</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lamp-applications.html#wordpress">WordPress</a></li>
+<li class="toctree-l1"><a class="reference internal" href="file-server.html">File Servers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="file-server.html#ftp-server">FTP Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="file-server.html#network-file-system-nfs">Network File System (NFS)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="file-server.html#iscsi-initiator">iSCSI Initiator</a></li>
+<li class="toctree-l1"><a class="reference internal" href="file-server.html#cups-print-server">CUPS - Print Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mail.html">Email Services</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mail.html#postfix">Postfix</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mail.html#exim4">Exim4</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mail.html#dovecot-server">Dovecot Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mail.html#mailman">Mailman</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mail.html#mail-filtering">Mail Filtering</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chat.html">Chat Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chat.html#overview">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chat.html#irc-server">IRC Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chat.html#jabber-instant-messaging-server">Jabber Instant Messaging Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vcs.html">Version Control System</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vcs.html#bazaar">Bazaar</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vcs.html#git">Git</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vcs.html#subversion">Subversion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vcs.html#references">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samba.html">Samba</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samba.html#introduction">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samba.html#file-server">File Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samba.html#print-server">Print Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samba.html#securing-file-and-print-server">Securing File and Print Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samba.html#as-a-domain-controller">As a Domain Controller</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samba.html#active-directory-integration">Active Directory Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backups.html">Backups</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backups.html#shell-scripts">Shell Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backups.html#archive-rotation">Archive Rotation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backups.html#bacula">Bacula</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">Virtualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#libvirt">libvirt</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="#cloud-images-and-vmbuilder">Cloud images and vmbuilder</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="#ubuntu-cloud">Ubuntu Cloud</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="#lxc">LXC</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="clustering.html">Clustering</a></li>
+<li class="toctree-l1"><a class="reference internal" href="clustering.html#drbd">DRBD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vpn.html">VPN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vpn.html#openvpn">OpenVPN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="other-apps.html">Other Useful Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="other-apps.html#pam-motd">pam_motd</a></li>
+<li class="toctree-l1"><a class="reference internal" href="other-apps.html#etckeeper">etckeeper</a></li>
+<li class="toctree-l1"><a class="reference internal" href="other-apps.html#byobu">Byobu</a></li>
+<li class="toctree-l1"><a class="reference internal" href="other-apps.html#references">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reporting-bugs.html">Appendix</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reporting-bugs.html#reporting-bugs-in-ubuntu-server-edition">Reporting Bugs in Ubuntu Server Edition</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="backups.html"
+                        title="previous chapter">Backups</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="clustering.html"
+                        title="next chapter">Clustering</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/virtualization.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="clustering.html" title="Clustering"
+             >next</a></li>
+        <li class="right" >
+          <a href="backups.html" title="Backups"
+             >previous</a> |</li>
+        <li><a href="index.html">Ubuntu Server Guide - 14.04 LTS</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Ubuntu Documentation Contributors.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

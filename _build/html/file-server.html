@@ -1,0 +1,657 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>File Servers &mdash; Ubuntu Server Guide - 14.04 LTS</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '14.04',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Ubuntu Server Guide - 14.04 LTS" href="index.html" />
+    <link rel="next" title="Email Services" href="mail.html" />
+    <link rel="prev" title="LAMP Applications" href="lamp-applications.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="mail.html" title="Email Services"
+             accesskey="N">next</a></li>
+        <li class="right" >
+          <a href="lamp-applications.html" title="LAMP Applications"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Ubuntu Server Guide - 14.04 LTS</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="file-servers">
+<h1>File Servers<a class="headerlink" href="#file-servers" title="Permalink to this headline">¶</a></h1>
+<p>If you have more than one computer on a single network. At some point
+you will probably need to share files between them. In this section we
+cover installing and configuring FTP, NFS, and CUPS.</p>
+</div>
+<div class="section" id="ftp-server">
+<h1>FTP Server<a class="headerlink" href="#ftp-server" title="Permalink to this headline">¶</a></h1>
+<p>File Transfer Protocol (FTP) is a TCP protocol for downloading files
+between computers. In the past, it has also been used for uploading but,
+as that method does not use encryption, user credentials as well as data
+transferred in the clear and are easily intercepted. So if you are here
+looking for a way to upload and download files securely, see the section
+on OpenSSH in ? instead.</p>
+<p>FTP works on a client/server model. The server component is called an
+<em>FTP daemon</em>. It continuously listens for FTP requests from remote
+clients. When a request is received, it manages the login and sets up
+the connection. For the duration of the session it executes any of
+commands sent by the FTP client.</p>
+<p>Access to an FTP server can be managed in two ways:</p>
+<ul class="simple">
+<li>Anonymous</li>
+<li>Authenticated</li>
+</ul>
+<p>In the Anonymous mode, remote clients can access the FTP server by using
+the default user account called &#8220;anonymous&#8221; or &#8220;ftp&#8221; and sending an
+email address as the password. In the Authenticated mode a user must
+have an account and a password. This latter choice is very insecure and
+should not be used except in special circumstances. If you are looking
+to transfer files securely see SFTP in the section on OpenSSH-Server.
+User access to the FTP server directories and files is dependent on the
+permissions defined for the account used at login. As a general rule,
+the FTP daemon will hide the root directory of the FTP server and change
+it to the FTP Home directory. This hides the rest of the file system
+from remote sessions.</p>
+<div class="section" id="vsftpd-ftp-server-installation">
+<h2>vsftpd - FTP Server Installation<a class="headerlink" href="#vsftpd-ftp-server-installation" title="Permalink to this headline">¶</a></h2>
+<p>vsftpd is an FTP daemon available in Ubuntu. It is easy to install, set
+up, and maintain. To install vsftpd you can run the following command:</p>
+</div>
+<div class="section" id="anonymous-ftp-configuration">
+<h2>Anonymous FTP Configuration<a class="headerlink" href="#anonymous-ftp-configuration" title="Permalink to this headline">¶</a></h2>
+<p>By default vsftpd is <em>not</em> configured to allow anonymous download. If
+you wish to enable anonymous download edit <tt class="docutils literal"><span class="pre">/etc/vsftpd.conf</span></tt> by
+changing:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">anonymous_enable</span><span class="o">=</span><span class="n">Yes</span>
+</pre></div>
+</div>
+<p>During installation a <em>ftp</em> user is created with a home directory of
+<tt class="docutils literal"><span class="pre">/srv/ftp</span></tt>. This is the default FTP directory.</p>
+<p>If you wish to change this location, to <tt class="docutils literal"><span class="pre">/srv/files/ftp</span></tt> for example,
+simply create a directory in another location and change the <em>ftp</em>
+user&#8217;s home directory:</p>
+<p>After making the change restart vsftpd:</p>
+<p>Finally, copy any files and directories you would like to make available
+through anonymous FTP to <tt class="docutils literal"><span class="pre">/srv/files/ftp</span></tt>, or <tt class="docutils literal"><span class="pre">/srv/ftp</span></tt> if you wish
+to use the default.</p>
+</div>
+<div class="section" id="user-authenticated-ftp-configuration">
+<h2>User Authenticated FTP Configuration<a class="headerlink" href="#user-authenticated-ftp-configuration" title="Permalink to this headline">¶</a></h2>
+<p>By default vsftpd is configured to authenticate system users and allow
+them to download files. If you want users to be able to upload files,
+edit <tt class="docutils literal"><span class="pre">/etc/vsftpd.conf</span></tt>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">write_enable</span><span class="o">=</span><span class="n">YES</span>
+</pre></div>
+</div>
+<p>Now restart vsftpd:</p>
+<p>Now when system users login to FTP they will start in their <em>home</em>
+directories where they can download, upload, create directories, etc.</p>
+<p>Similarly, by default, anonymous users are not allowed to upload files
+to FTP server. To change this setting, you should uncomment the
+following line, and restart vsftpd:</p>
+<div class="highlight-python"><pre>anon_upload_enable=YES
+
+**Warning**
+
+Enabling anonymous FTP upload can be an extreme security risk. It is
+best to not enable anonymous upload on servers accessed directly
+from the Internet.</pre>
+</div>
+<p>The configuration file consists of many configuration parameters. The
+information about each parameter is available in the configuration file.
+Alternatively, you can refer to the man page, <tt class="docutils literal"><span class="pre">man</span> <span class="pre">5</span> <span class="pre">vsftpd.conf</span></tt> for
+details of each parameter.</p>
+</div>
+<div class="section" id="securing-ftp">
+<h2>Securing FTP<a class="headerlink" href="#securing-ftp" title="Permalink to this headline">¶</a></h2>
+<p>There are options in <tt class="docutils literal"><span class="pre">/etc/vsftpd.conf</span></tt> to help make vsftpd more
+secure. For example users can be limited to their home directories by
+uncommenting:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">chroot_local_user</span><span class="o">=</span><span class="n">YES</span>
+</pre></div>
+</div>
+<p>You can also limit a specific list of users to just their home
+directories:</p>
+<div class="highlight-python"><pre>chroot_list_enable=YES
+chroot_list_file=/etc/vsftpd.chroot_list</pre>
+</div>
+<p>After uncommenting the above options, create a
+<tt class="docutils literal"><span class="pre">/etc/vsftpd.chroot_list</span></tt> containing a list of users one per line.
+Then restart vsftpd:</p>
+<p>Also, the <tt class="docutils literal"><span class="pre">/etc/ftpusers</span></tt> file is a list of users that are
+<em>disallowed</em> FTP access. The default list includes root, daemon, nobody,
+etc. To disable FTP access for additional users simply add them to the
+list.</p>
+<p>FTP can also be encrypted using <em>FTPS</em>. Different from <em>SFTP</em>, <em>FTPS</em> is
+FTP over Secure Socket Layer (SSL). <em>SFTP</em> is a FTP like session over an
+encrypted <em>SSH</em> connection. A major difference is that users of SFTP
+need to have a <em>shell</em> account on the system, instead of a <em>nologin</em>
+shell. Providing all users with a shell may not be ideal for some
+environments, such as a shared web host. However, it is possible to
+restrict such accounts to only SFTP and disable shell interaction. See
+the section on OpenSSH-Server for more.</p>
+<p>To configure <em>FTPS</em>, edit <tt class="docutils literal"><span class="pre">/etc/vsftpd.conf</span></tt> and at the bottom add:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">ssl_enable</span><span class="o">=</span><span class="n">Yes</span>
+</pre></div>
+</div>
+<p>Also, notice the certificate and key related options:</p>
+<div class="highlight-python"><pre>rsa_cert_file=/etc/ssl/certs/ssl-cert-snakeoil.pem
+rsa_private_key_file=/etc/ssl/private/ssl-cert-snakeoil.key</pre>
+</div>
+<p>By default these options are set to the certificate and key provided by
+the ssl-cert package. In a production environment these should be
+replaced with a certificate and key generated for the specific host. For
+more information on certificates see ?.</p>
+<p>Now restart vsftpd, and non-anonymous users will be forced to use
+<em>FTPS</em>:</p>
+<p>To allow users with a shell of <tt class="docutils literal"><span class="pre">/usr/sbin/nologin</span></tt> access to FTP, but
+have no shell access, edit <tt class="docutils literal"><span class="pre">/etc/shells</span></tt> adding the <em>nologin</em> shell:</p>
+<div class="highlight-python"><pre># /etc/shells: valid login shells
+/bin/csh
+/bin/sh
+/usr/bin/es
+/usr/bin/ksh
+/bin/ksh
+/usr/bin/rc
+/usr/bin/tcsh
+/bin/tcsh
+/usr/bin/esh
+/bin/dash
+/bin/bash
+/bin/rbash
+/usr/bin/screen
+/usr/sbin/nologin</pre>
+</div>
+<p>This is necessary because, by default vsftpd uses PAM for
+authentication, and the <tt class="docutils literal"><span class="pre">/etc/pam.d/vsftpd</span></tt> configuration file
+contains:</p>
+<div class="highlight-python"><pre>auth    required        pam_shells.so</pre>
+</div>
+<p>The <em>shells</em> PAM module restricts access to shells listed in the
+<tt class="docutils literal"><span class="pre">/etc/shells</span></tt> file.</p>
+<p>Most popular FTP clients can be configured to connect using FTPS. The
+lftp command line FTP client has the ability to use FTPS as well.</p>
+</div>
+<div class="section" id="references">
+<h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>See the <a class="reference external" href="http://vsftpd.beasts.org/vsftpd_conf.html">vsftpd
+website</a> for more
+information.</li>
+<li>For detailed <tt class="docutils literal"><span class="pre">/etc/vsftpd.conf</span></tt> options see the <a class="reference external" href="http://manpages.ubuntu.com/manpages/&amp;distro-short-codename;/en/man5/vsftpd.conf.5.html">vsftpd.conf man
+page</a>.</li>
+</ul>
+</div>
+</div>
+<div class="section" id="network-file-system-nfs">
+<h1>Network File System (NFS)<a class="headerlink" href="#network-file-system-nfs" title="Permalink to this headline">¶</a></h1>
+<p>NFS allows a system to share directories and files with others over a
+network. By using NFS, users and programs can access files on remote
+systems almost as if they were local files.</p>
+<p>Some of the most notable benefits that NFS can provide are:</p>
+<ul class="simple">
+<li>Local workstations use less disk space because commonly used data can
+be stored on a single machine and still remain accessible to others
+over the network.</li>
+<li>There is no need for users to have separate home directories on every
+network machine. Home directories could be set up on the NFS server
+and made available throughout the network.</li>
+<li>Storage devices such as floppy disks, CDROM drives, and USB Thumb
+drives can be used by other machines on the network. This may reduce
+the number of removable media drives throughout the network.</li>
+</ul>
+<div class="section" id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
+<p>At a terminal prompt enter the following command to install the NFS
+Server:</p>
+</div>
+<div class="section" id="configuration">
+<h2>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h2>
+<p>You can configure the directories to be exported by adding them to the
+<tt class="docutils literal"><span class="pre">/etc/exports</span></tt> file. For example:</p>
+<div class="highlight-python"><pre>/ubuntu  *(ro,sync,no_root_squash)
+/home    *(rw,sync,no_root_squash)</pre>
+</div>
+<p>You can replace * with one of the hostname formats. Make the hostname
+declaration as specific as possible so unwanted systems cannot access
+the NFS mount.</p>
+<p>To start the NFS server, you can run the following command at a terminal
+prompt:</p>
+</div>
+<div class="section" id="nfs-client-configuration">
+<h2>NFS Client Configuration<a class="headerlink" href="#nfs-client-configuration" title="Permalink to this headline">¶</a></h2>
+<p>Use the mount command to mount a shared NFS directory from another
+machine, by typing a command line similar to the following at a terminal
+prompt:</p>
+<div class="highlight-python"><pre>**Warning**
+
+The mount point directory ``/local/ubuntu`` must exist. There should
+be no files or subdirectories in the ``/local/ubuntu`` directory.</pre>
+</div>
+<p>An alternate way to mount an NFS share from another machine is to add a
+line to the <tt class="docutils literal"><span class="pre">/etc/fstab</span></tt> file. The line must state the hostname of the
+NFS server, the directory on the server being exported, and the
+directory on the local machine where the NFS share is to be mounted.</p>
+<p>The general syntax for the line in <tt class="docutils literal"><span class="pre">/etc/fstab</span></tt> file is as follows:</p>
+<div class="highlight-python"><pre>example.hostname.com:/ubuntu /local/ubuntu nfs rsize=8192,wsize=8192,timeo=14,intr</pre>
+</div>
+<p>If you have trouble mounting an NFS share, make sure the nfs-common
+package is installed on your client. To install nfs-common enter the
+following command at the terminal prompt:</p>
+</div>
+<div class="section" id="id1">
+<h2>References<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference external" href="http://nfs.sourceforge.net/">Linux NFS faq</a></p>
+<p><a class="reference external" href="https://help.ubuntu.com/community/NFSv4Howto">Ubuntu Wiki NFS Howto</a></p>
+</div>
+</div>
+<div class="section" id="iscsi-initiator">
+<h1>iSCSI Initiator<a class="headerlink" href="#iscsi-initiator" title="Permalink to this headline">¶</a></h1>
+<p><em>iSCSI</em> (Internet Small Computer System Interface) is a protocol that
+allows SCSI commands to be transmitted over a network. Typically iSCSI
+is implemented in a SAN (Storage Area Network) to allow servers to
+access a large store of hard drive space. The iSCSI protocol refers to
+clients as <em>initiators</em> and iSCSI servers as <em>targets</em>.</p>
+<p>Ubuntu Server can be configured as both an iSCSI initiator and a target.
+This guide provides commands and configuration options to setup an iSCSI
+initiator. It is assumed that you already have an iSCSI target on your
+local network and have the appropriate rights to connect to it. The
+instructions for setting up a target vary greatly between hardware
+providers, so consult your vendor documentation to configure your
+specific iSCSI target.</p>
+<div class="section" id="iscsi-initiator-install">
+<h2>iSCSI Initiator Install<a class="headerlink" href="#iscsi-initiator-install" title="Permalink to this headline">¶</a></h2>
+<p>To configure Ubuntu Server as an iSCSI initiator install the open-iscsi
+package. In a terminal enter:</p>
+</div>
+<div class="section" id="iscsi-initiator-configuration">
+<h2>iSCSI Initiator Configuration<a class="headerlink" href="#iscsi-initiator-configuration" title="Permalink to this headline">¶</a></h2>
+<p>Once the open-iscsi package is installed, edit
+<tt class="docutils literal"><span class="pre">/etc/iscsi/iscsid.conf</span></tt> changing the following:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">node</span><span class="o">.</span><span class="n">startup</span> <span class="o">=</span> <span class="n">automatic</span>
+</pre></div>
+</div>
+<p>You can check which targets are available by using the iscsiadm utility.
+Enter the following in a terminal:</p>
+<div class="highlight-python"><pre>-  *-m:* determines the mode that iscsiadm executes in.</pre>
+</div>
+<ul>
+<li><p class="first"><em>-t:</em> specifies the type of discovery.</p>
+</li>
+<li><p class="first"><em>-p:</em> option indicates the target IP address.</p>
+<blockquote>
+<div><p><strong>Note</strong></p>
+<p>Change example <em>192.168.0.10</em> to the target IP address on your
+network.</p>
+</div></blockquote>
+</li>
+</ul>
+<p>If the target is available you should see output similar to the
+following:</p>
+<div class="highlight-python"><pre>**Note**
+
+The *iqn* number and IP address above will vary depending on your
+hardware.</pre>
+</div>
+<p>You should now be able to connect to the iSCSI target, and depending on
+your target setup you may have to enter user credentials. Login to the
+iSCSI node:</p>
+<p>Check to make sure that the new disk has been detected using dmesg:</p>
+<p>In the output above <em>sdb</em> is the new iSCSI disk. Remember this is just
+an example; the output you see on your screen will vary.</p>
+<p>Next, create a partition, format the file system, and mount the new
+iSCSI disk. In a terminal enter:</p>
+<div class="highlight-python"><pre>**Note**
+
+The above commands are from inside the fdisk utility; see
+``man fdisk`` for more detailed instructions. Also, the cfdisk
+utility is sometimes more user friendly.</pre>
+</div>
+<p>Now format the file system and mount it to <tt class="docutils literal"><span class="pre">/srv</span></tt> as an example:</p>
+<p>Finally, add an entry to <tt class="docutils literal"><span class="pre">/etc/fstab</span></tt> to mount the iSCSI drive during
+boot:</p>
+<div class="highlight-python"><pre>/dev/sdb1       /srv        ext4    defaults,auto,_netdev 0 0</pre>
+</div>
+<p>It is a good idea to make sure everything is working as expected by
+rebooting the server.</p>
+</div>
+<div class="section" id="id2">
+<h2>References<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference external" href="http://www.open-iscsi.org/">Open-iSCSI Website</a></p>
+<p><a class="reference external" href="http://wiki.debian.org/SAN/iSCSI/open-iscsi">Debian Open-iSCSI page</a></p>
+</div>
+</div>
+<div class="section" id="cups-print-server">
+<h1>CUPS - Print Server<a class="headerlink" href="#cups-print-server" title="Permalink to this headline">¶</a></h1>
+<p>The primary mechanism for Ubuntu printing and print services is the
+<strong>Common UNIX Printing System</strong> (CUPS). This printing system is a freely
+available, portable printing layer which has become the new standard for
+printing in most Linux distributions.</p>
+<p>CUPS manages print jobs and queues and provides network printing using
+the standard Internet Printing Protocol (IPP), while offering support
+for a very large range of printers, from dot-matrix to laser and many in
+between. CUPS also supports PostScript Printer Description (PPD) and
+auto-detection of network printers, and features a simple web-based
+configuration and administration tool.</p>
+<div class="section" id="id3">
+<h2>Installation<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<p>To install CUPS on your Ubuntu computer, simply use sudo with the
+apt-get command and give the packages to install as the first parameter.
+A complete CUPS install has many package dependencies, but they may all
+be specified on the same command line. Enter the following at a terminal
+prompt to install CUPS:</p>
+<p>Upon authenticating with your user password, the packages should be
+downloaded and installed without error. Upon the conclusion of
+installation, the CUPS server will be started automatically.</p>
+<p>For troubleshooting purposes, you can access CUPS server errors via the
+error log file at: <tt class="docutils literal"><span class="pre">/var/log/cups/error_log</span></tt>. If the error log does
+not show enough information to troubleshoot any problems you encounter,
+the verbosity of the CUPS log can be increased by changing the
+<strong>LogLevel</strong> directive in the configuration file (discussed below) to
+&#8220;debug&#8221; or even &#8220;debug2&#8221;, which logs everything, from the default of
+&#8220;info&#8221;. If you make this change, remember to change it back once you&#8217;ve
+solved your problem, to prevent the log file from becoming overly large.</p>
+</div>
+<div class="section" id="id4">
+<h2>Configuration<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
+<p>The Common UNIX Printing System server&#8217;s behavior is configured through
+the directives contained in the file <tt class="docutils literal"><span class="pre">/etc/cups/cupsd.conf</span></tt>. The CUPS
+configuration file follows the same syntax as the primary configuration
+file for the Apache HTTP server, so users familiar with editing Apache&#8217;s
+configuration file should feel at ease when editing the CUPS
+configuration file. Some examples of settings you may wish to change
+initially will be presented here.</p>
+<blockquote>
+<div><p><strong>Tip</strong></p>
+<p>Prior to editing the configuration file, you should make a copy of
+the original file and protect it from writing, so you will have the
+original settings as a reference, and to reuse as necessary.</p>
+<p>Copy the <tt class="docutils literal"><span class="pre">/etc/cups/cupsd.conf</span></tt> file and protect it from writing
+with the following commands, issued at a terminal prompt:</p>
+</div></blockquote>
+<div class="highlight-python"><pre>-  **ServerAdmin**: To configure the email address of the designated</pre>
+</div>
+<blockquote>
+<div><p>administrator of the CUPS server, simply edit the
+<tt class="docutils literal"><span class="pre">/etc/cups/cupsd.conf</span></tt> configuration file with your preferred text
+editor, and add or modify the <em>ServerAdmin</em> line accordingly. For
+example, if you are the Administrator for the CUPS server, and your
+e-mail address is <a class="reference external" href="mailto:'bjoy&#37;&#52;&#48;somebigco&#46;com">'bjoy<span>&#64;</span>somebigco<span>&#46;</span>com</a>&#8216;, then you would modify the
+ServerAdmin line to appear as such:</p>
+<div class="highlight-python"><pre>ServerAdmin bjoy@somebigco.com</pre>
+</div>
+</div></blockquote>
+<ul>
+<li><p class="first"><strong>Listen</strong>: By default on Ubuntu, the CUPS server installation
+listens only on the loopback interface at IP address <em>127.0.0.1</em>. In
+order to instruct the CUPS server to listen on an actual network
+adapter&#8217;s IP address, you must specify either a hostname, the IP
+address, or optionally, an IP address/port pairing via the addition
+of a Listen directive. For example, if your CUPS server resides on a
+local network at the IP address <em>192.168.10.250</em> and you&#8217;d like to
+make it accessible to the other systems on this subnetwork, you would
+edit the <tt class="docutils literal"><span class="pre">/etc/cups/cupsd.conf</span></tt> and add a Listen directive, as
+such:</p>
+<div class="highlight-python"><pre>Listen 127.0.0.1:631           # existing loopback Listen
+Listen /var/run/cups/cups.sock # existing socket Listen
+Listen 192.168.10.250:631      # Listen on the LAN interface, Port 631 (IPP)</pre>
+</div>
+<p>In the example above, you may comment out or remove the reference to
+the Loopback address (127.0.0.1) if you do not wish cupsd to listen
+on that interface, but would rather have it only listen on the
+Ethernet interfaces of the Local Area Network (LAN). To enable
+listening for all network interfaces for which a certain hostname is
+bound, including the Loopback, you could create a Listen entry for
+the hostname <em>socrates</em> as such:</p>
+<div class="highlight-python"><pre>Listen socrates:631  # Listen on all interfaces for the hostname 'socrates'</pre>
+</div>
+<p>or by omitting the Listen directive and using <em>Port</em> instead, as in:</p>
+<div class="highlight-python"><pre>Port 631  # Listen on port 631 on all interfaces</pre>
+</div>
+</li>
+</ul>
+<p>For more examples of configuration directives in the CUPS server
+configuration file, view the associated system manual page by entering
+the following command at a terminal prompt:</p>
+<div class="highlight-python"><pre>**Note**
+
+Whenever you make changes to the ``/etc/cups/cupsd.conf``
+configuration file, you'll need to restart the CUPS server by typing
+the following command at a terminal prompt:</pre>
+</div>
+</div>
+<div class="section" id="web-interface">
+<h2>Web Interface<a class="headerlink" href="#web-interface" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><p><strong>Tip</strong></p>
+<p>CUPS can be configured and monitored using a web interface, which by
+default is available at <a class="reference external" href="http://localhost:631/admin">http://localhost:631/admin</a>. The web
+interface can be used to perform all printer management tasks.</p>
+</div></blockquote>
+<p>In order to perform administrative tasks via the web interface, you must
+either have the root account enabled on your server, or authenticate as
+a user in the <em>lpadmin</em> group. For security reasons, CUPS won&#8217;t
+authenticate a user that doesn&#8217;t have a password.</p>
+<p>To add a user to the <em>lpadmin</em> group, run at the terminal prompt:</p>
+<p>Further documentation is available in the <em>Documentation/Help</em> tab of
+the web interface.</p>
+</div>
+<div class="section" id="id5">
+<h2>References<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference external" href="http://www.cups.org/">CUPS Website</a></p>
+<p><a class="reference external" href="http://wiki.debian.org/SAN/iSCSI/open-iscsi">Debian Open-iSCSI page</a></p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/ubuntu_black-orange_hex_su-medium_cropped.png" alt="Logo"/>
+            </a></p>
+<h3><a href="index.html">Table Of Contents</a></h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="introduction.html#support">Support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html#preparing-to-install">Preparing to Install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html#installing-from-cd">Installing from CD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html#upgrading">Upgrading</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html#advanced-installation">Advanced Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html#kernel-crash-dump">Kernel Crash Dump</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html">Package Management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html#introduction">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html#dpkg">dpkg</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html#apt-get">Apt-Get</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html#aptitude">Aptitude</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html#automatic-updates">Automatic Updates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html#configuration">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html#references">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-config.html">Networking</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-config.html#network-configuration">Network Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-config.html#tcp-ip">TCP/IP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-config.html#dynamic-host-configuration-protocol-dhcp">Dynamic Host Configuration Protocol (DHCP)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-config.html#time-synchronisation-with-ntp">Time Synchronisation with NTP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multipath.html">DMM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multipath.html#device-mapper-multipathing">Device Mapper Multipathing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multipath.html#multipath-devices">Multipath Devices</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multipath.html#setting-up-dmm-overview">Setting up DMM Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multipath.html#the-dmm-configuration-file">The DMM Configuration File</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multipath.html#dmm-administration-and-troubleshooting">DMM Administration and Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="remote-administration.html">Remote Administration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="remote-administration.html#openssh-server">OpenSSH Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="remote-administration.html#puppet">Puppet</a></li>
+<li class="toctree-l1"><a class="reference internal" href="remote-administration.html#zentyal">Zentyal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-auth.html">Network Authentication</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-auth.html#openldap-server">OpenLDAP Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-auth.html#samba-and-ldap">Samba and LDAP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-auth.html#kerberos">Kerberos</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-auth.html#kerberos-and-ldap">Kerberos and LDAP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dns.html">Domain Name Service (DNS)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dns.html#installation">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dns.html#configuration">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dns.html#troubleshooting">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dns.html#references">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html">Security</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html#user-management">User Management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html#console-security">Console Security</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html#firewall">Firewall</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html#apparmor">AppArmor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html#certificates">Certificates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html#ecryptfs">eCryptfs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="monitoring.html">Monitoring</a></li>
+<li class="toctree-l1"><a class="reference internal" href="monitoring.html#overview">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="monitoring.html#nagios">Nagios</a></li>
+<li class="toctree-l1"><a class="reference internal" href="monitoring.html#munin">Munin</a></li>
+<li class="toctree-l1"><a class="reference internal" href="web-servers.html">Web Servers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="web-servers.html#httpd-apache2-web-server">HTTPD - Apache2 Web Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="web-servers.html#php5-scripting-language">PHP5 - Scripting Language</a></li>
+<li class="toctree-l1"><a class="reference internal" href="web-servers.html#squid-proxy-server">Squid - Proxy Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="web-servers.html#ruby-on-rails">Ruby on Rails</a></li>
+<li class="toctree-l1"><a class="reference internal" href="web-servers.html#apache-tomcat">Apache Tomcat</a></li>
+<li class="toctree-l1"><a class="reference internal" href="databases.html">Databases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="databases.html#mysql">MySQL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="databases.html#postgresql">PostgreSQL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lamp-applications.html">LAMP Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lamp-applications.html#overview">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lamp-applications.html#moin-moin">Moin Moin</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lamp-applications.html#mediawiki">MediaWiki</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lamp-applications.html#phpmyadmin">phpMyAdmin</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lamp-applications.html#wordpress">WordPress</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">File Servers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#ftp-server">FTP Server</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="#network-file-system-nfs">Network File System (NFS)</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="#iscsi-initiator">iSCSI Initiator</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="#cups-print-server">CUPS - Print Server</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="mail.html">Email Services</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mail.html#postfix">Postfix</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mail.html#exim4">Exim4</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mail.html#dovecot-server">Dovecot Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mail.html#mailman">Mailman</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mail.html#mail-filtering">Mail Filtering</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chat.html">Chat Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chat.html#overview">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chat.html#irc-server">IRC Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chat.html#jabber-instant-messaging-server">Jabber Instant Messaging Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vcs.html">Version Control System</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vcs.html#bazaar">Bazaar</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vcs.html#git">Git</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vcs.html#subversion">Subversion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vcs.html#references">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samba.html">Samba</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samba.html#introduction">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samba.html#file-server">File Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samba.html#print-server">Print Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samba.html#securing-file-and-print-server">Securing File and Print Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samba.html#as-a-domain-controller">As a Domain Controller</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samba.html#active-directory-integration">Active Directory Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backups.html">Backups</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backups.html#shell-scripts">Shell Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backups.html#archive-rotation">Archive Rotation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backups.html#bacula">Bacula</a></li>
+<li class="toctree-l1"><a class="reference internal" href="virtualization.html">Virtualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="virtualization.html#libvirt">libvirt</a></li>
+<li class="toctree-l1"><a class="reference internal" href="virtualization.html#cloud-images-and-vmbuilder">Cloud images and vmbuilder</a></li>
+<li class="toctree-l1"><a class="reference internal" href="virtualization.html#ubuntu-cloud">Ubuntu Cloud</a></li>
+<li class="toctree-l1"><a class="reference internal" href="virtualization.html#lxc">LXC</a></li>
+<li class="toctree-l1"><a class="reference internal" href="clustering.html">Clustering</a></li>
+<li class="toctree-l1"><a class="reference internal" href="clustering.html#drbd">DRBD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vpn.html">VPN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vpn.html#openvpn">OpenVPN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="other-apps.html">Other Useful Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="other-apps.html#pam-motd">pam_motd</a></li>
+<li class="toctree-l1"><a class="reference internal" href="other-apps.html#etckeeper">etckeeper</a></li>
+<li class="toctree-l1"><a class="reference internal" href="other-apps.html#byobu">Byobu</a></li>
+<li class="toctree-l1"><a class="reference internal" href="other-apps.html#references">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reporting-bugs.html">Appendix</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reporting-bugs.html#reporting-bugs-in-ubuntu-server-edition">Reporting Bugs in Ubuntu Server Edition</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="lamp-applications.html"
+                        title="previous chapter">LAMP Applications</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="mail.html"
+                        title="next chapter">Email Services</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/file-server.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="mail.html" title="Email Services"
+             >next</a></li>
+        <li class="right" >
+          <a href="lamp-applications.html" title="LAMP Applications"
+             >previous</a> |</li>
+        <li><a href="index.html">Ubuntu Server Guide - 14.04 LTS</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Ubuntu Documentation Contributors.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,897 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Samba &mdash; Ubuntu Server Guide - 14.04 LTS</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '14.04',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Ubuntu Server Guide - 14.04 LTS" href="index.html" />
+    <link rel="next" title="Backups" href="backups.html" />
+    <link rel="prev" title="Version Control System" href="vcs.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="backups.html" title="Backups"
+             accesskey="N">next</a></li>
+        <li class="right" >
+          <a href="vcs.html" title="Version Control System"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Ubuntu Server Guide - 14.04 LTS</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="samba">
+<h1>Samba<a class="headerlink" href="#samba" title="Permalink to this headline">¶</a></h1>
+<p>Computer networks are often comprised of diverse systems, and while
+operating a network made up entirely of Ubuntu desktop and server
+computers would certainly be fun, some network environments must consist
+of both Ubuntu and Microsoft Windows systems working together in
+harmony. This section of the UBUNTU SG-TITLE introduces principles and
+tools used in configuring your Ubuntu Server for sharing network
+resources with Windows computers.</p>
+</div>
+<div class="section" id="introduction">
+<h1>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h1>
+<p>Successfully networking your Ubuntu system with Windows clients involves
+providing and integrating with services common to Windows environments.
+Such services assist the sharing of data and information about the
+computers and users involved in the network, and may be classified under
+three major categories of functionality:</p>
+<ul class="simple">
+<li><strong>File and Printer Sharing Services</strong>. Using the Server Message Block
+(SMB) protocol to facilitate the sharing of files, folders, volumes,
+and the sharing of printers throughout the network.</li>
+<li><strong>Directory Services</strong>. Sharing vital information about the computers
+and users of the network with such technologies as the Lightweight
+Directory Access Protocol (LDAP) and Microsoft Active Directory.</li>
+<li><strong>Authentication and Access</strong>. Establishing the identity of a
+computer or user of the network and determining the information the
+computer or user is authorized to access using such principles and
+technologies as file permissions, group policies, and the Kerberos
+authentication service.</li>
+</ul>
+<p>Fortunately, your Ubuntu system may provide all such facilities to
+Windows clients and share network resources among them. One of the
+principal pieces of software your Ubuntu system includes for Windows
+networking is the Samba suite of SMB server applications and tools.</p>
+<p>This section of the UBUNTU SG-TITLE will introduce some of the common
+Samba use cases, and how to install and configure the necessary
+packages. Additional detailed documentation and information on Samba can
+be found on the <a class="reference external" href="http://www.samba.org">Samba website</a>.</p>
+</div>
+<div class="section" id="file-server">
+<h1>File Server<a class="headerlink" href="#file-server" title="Permalink to this headline">¶</a></h1>
+<p>One of the most common ways to network Ubuntu and Windows computers is
+to configure Samba as a File Server. This section covers setting up a
+Samba server to share files with Windows clients.</p>
+<p>The server will be configured to share files with any client on the
+network without prompting for a password. If your environment requires
+stricter Access Controls see ?</p>
+<div class="section" id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
+<p>The first step is to install the samba package. From a terminal prompt
+enter:</p>
+<p>That&#8217;s all there is to it; you are now ready to configure Samba to share
+files.</p>
+</div>
+<div class="section" id="configuration">
+<h2>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h2>
+<p>The main Samba configuration file is located in <tt class="docutils literal"><span class="pre">/etc/samba/smb.conf</span></tt>.
+The default configuration file has a significant amount of comments in
+order to document various configuration directives.</p>
+<blockquote>
+<div><p><strong>Note</strong></p>
+<p>Not all the available options are included in the default
+configuration file. See the <tt class="docutils literal"><span class="pre">smb.conf</span></tt> man page or the <a class="reference external" href="http://samba.org/samba/docs/man/Samba-HOWTO-Collection/">Samba
+HOWTO
+Collection</a>
+for more details.</p>
+</div></blockquote>
+<p>First, edit the following key/value pairs in the <em>[global]</em> section of
+<tt class="docutils literal"><span class="pre">/etc/samba/smb.conf</span></tt>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">workgroup</span> <span class="o">=</span> <span class="n">EXAMPLE</span>
+<span class="o">...</span>
+<span class="n">security</span> <span class="o">=</span> <span class="n">user</span>
+</pre></div>
+</div>
+<p>The <em>security</em> parameter is farther down in the [global] section, and is
+commented by default. Also, change <em>EXAMPLE</em> to better match your
+environment.</p>
+<p>Create a new section at the bottom of the file, or uncomment one of the
+examples, for the directory to be shared:</p>
+<div class="highlight-python"><pre>[share]
+    comment = Ubuntu File Server Share
+    path = /srv/samba/share
+    browsable = yes
+    guest ok = yes
+    read only = no
+    create mask = 0755</pre>
+</div>
+<ul>
+<li><p class="first"><em>comment:</em> a short description of the share. Adjust to fit your
+needs.</p>
+</li>
+<li><p class="first"><em>path:</em> the path to the directory to share.</p>
+<p>This example uses <tt class="docutils literal"><span class="pre">/srv/samba/sharename</span></tt> because, according to the
+<em>Filesystem Hierarchy Standard (FHS)</em>,
+<a class="reference external" href="http://www.pathname.com/fhs/pub/fhs-2.3.html#SRVDATAFORSERVICESPROVIDEDBYSYSTEM">/srv</a>
+is where site-specific data should be served. Technically Samba
+shares can be placed anywhere on the filesystem as long as the
+permissions are correct, but adhering to standards is recommended.</p>
+</li>
+<li><p class="first"><em>browsable:</em> enables Windows clients to browse the shared directory
+using Windows Explorer.</p>
+</li>
+<li><p class="first"><em>guest ok:</em> allows clients to connect to the share without supplying
+a password.</p>
+</li>
+<li><p class="first"><em>read only:</em> determines if the share is read only or if write
+privileges are granted. Write privileges are allowed only when the
+value is <em>no</em>, as is seen in this example. If the value is <em>yes</em>,
+then access to the share is read only.</p>
+</li>
+<li><p class="first"><em>create mask:</em> determines the permissions new files will have when
+created.</p>
+</li>
+</ul>
+<p>Now that Samba is configured, the directory needs to be created and the
+permissions changed. From a terminal enter:</p>
+<div class="highlight-python"><pre>**Note**
+
+The *-p* switch tells mkdir to create the entire directory tree if
+it doesn't exist.</pre>
+</div>
+<p>Finally, restart the samba services to enable the new configuration:</p>
+<div class="highlight-python"><pre>**Warning**
+
+Once again, the above configuration gives all access to any client
+on the local network. For a more secure configuration see ?.</pre>
+</div>
+<p>From a Windows client you should now be able to browse to the Ubuntu
+file server and see the shared directory. If your client doesn&#8217;t show
+your share automatically, try to access your server by its IP address,
+e.g. \\192.168.1.1, in a Windows Explorer window. To check that
+everything is working try creating a directory from Windows.</p>
+<p>To create additional shares simply create new <em>[dir]</em> sections in
+<tt class="docutils literal"><span class="pre">/etc/samba/smb.conf</span></tt>, and restart <em>Samba</em>. Just make sure that the
+directory you want to share actually exists and the permissions are
+correct.</p>
+<blockquote>
+<div><p><strong>Note</strong></p>
+<p>The file share named <em>&#8220;[share]&#8221;</em> and the path <tt class="docutils literal"><span class="pre">/srv/samba/share</span></tt>
+are just examples. Adjust the share and path names to fit your
+environment. It is a good idea to name a share after a directory on
+the file system. Another example would be a share name of <em>[qa]</em>
+with a path of <tt class="docutils literal"><span class="pre">/srv/samba/qa</span></tt>.</p>
+</div></blockquote>
+</div>
+<div class="section" id="resources">
+<h2>Resources<a class="headerlink" href="#resources" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>For in depth Samba configurations see the <a class="reference external" href="http://samba.org/samba/docs/man/Samba-HOWTO-Collection/">Samba HOWTO
+Collection</a></li>
+<li>The guide is also available in <a class="reference external" href="http://www.amazon.com/exec/obidos/tg/detail/-/0131882228">printed
+format</a>.</li>
+<li>O&#8217;Reilly&#8217;s <a class="reference external" href="http://www.oreilly.com/catalog/9780596007690/">Using
+Samba</a> is another
+good reference.</li>
+<li>The <a class="reference external" href="https://help.ubuntu.com/community/Samba">Ubuntu Wiki Samba</a>
+page.</li>
+</ul>
+</div>
+</div>
+<div class="section" id="print-server">
+<h1>Print Server<a class="headerlink" href="#print-server" title="Permalink to this headline">¶</a></h1>
+<p>Another common use of Samba is to configure it to share printers
+installed, either locally or over the network, on an Ubuntu server.
+Similar to ? this section will configure Samba to allow any client on
+the local network to use the installed printers without prompting for a
+username and password.</p>
+<p>For a more secure configuration see ?.</p>
+<div class="section" id="id1">
+<h2>Installation<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<p>Before installing and configuring Samba it is best to already have a
+working CUPS installation. See ? for details.</p>
+<p>To install the samba package, from a terminal enter:</p>
+</div>
+<div class="section" id="id2">
+<h2>Configuration<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<p>After installing samba edit <tt class="docutils literal"><span class="pre">/etc/samba/smb.conf</span></tt>. Change the
+<em>workgroup</em> attribute to what is appropriate for your network, and
+change <em>security</em> to <em>user</em>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">workgroup</span> <span class="o">=</span> <span class="n">EXAMPLE</span>
+<span class="o">...</span>
+<span class="n">security</span> <span class="o">=</span> <span class="n">user</span>
+</pre></div>
+</div>
+<p>In the <em>[printers]</em> section change the <em>guest ok</em> option to <em>yes</em>:</p>
+<div class="highlight-python"><pre>browsable = yes
+guest ok = yes</pre>
+</div>
+<p>After editing <tt class="docutils literal"><span class="pre">smb.conf</span></tt> restart Samba:</p>
+<p>The default Samba configuration will automatically share any printers
+installed. Simply install the printer locally on your Windows clients.</p>
+</div>
+<div class="section" id="id3">
+<h2>Resources<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>For in depth Samba configurations see the <a class="reference external" href="http://samba.org/samba/docs/man/Samba-HOWTO-Collection/">Samba HOWTO
+Collection</a></li>
+<li>The guide is also available in <a class="reference external" href="http://www.amazon.com/exec/obidos/tg/detail/-/0131882228">printed
+format</a>.</li>
+<li>O&#8217;Reilly&#8217;s <a class="reference external" href="http://www.oreilly.com/catalog/9780596007690/">Using
+Samba</a> is another
+good reference.</li>
+<li>Also, see the <a class="reference external" href="http://www.cups.org/">CUPS Website</a> for more
+information on configuring CUPS.</li>
+<li>The <a class="reference external" href="https://help.ubuntu.com/community/Samba">Ubuntu Wiki Samba</a>
+page.</li>
+</ul>
+</div>
+</div>
+<div class="section" id="securing-file-and-print-server">
+<h1>Securing File and Print Server<a class="headerlink" href="#securing-file-and-print-server" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="samba-security-modes">
+<h2>Samba Security Modes<a class="headerlink" href="#samba-security-modes" title="Permalink to this headline">¶</a></h2>
+<p>There are two security levels available to the Common Internet
+Filesystem (CIFS) network protocol <em>user-level</em> and <em>share-level</em>.
+Samba&#8217;s <em>security mode</em> implementation allows more flexibility,
+providing four ways of implementing user-level security and one way to
+implement share-level:</p>
+<ul class="simple">
+<li><em>security = user:</em> requires clients to supply a username and password
+to connect to shares. Samba user accounts are separate from system
+accounts, but the libpam-smbpass package will sync system users and
+passwords with the Samba user database.</li>
+<li><em>security = domain:</em> this mode allows the Samba server to appear to
+Windows clients as a Primary Domain Controller (PDC), Backup Domain
+Controller (BDC), or a Domain Member Server (DMS). See ? for further
+information.</li>
+<li><em>security = ADS:</em> allows the Samba server to join an Active Directory
+domain as a native member. See ? for details.</li>
+<li><em>security = server:</em> this mode is left over from before Samba could
+become a member server, and due to some security issues should not be
+used. See the <a class="reference external" href="http://samba.org/samba/docs/man/Samba-HOWTO-Collection/ServerType.html#id349531">Server
+Security</a>
+section of the Samba guide for more details.</li>
+<li><em>security = share:</em> allows clients to connect to shares without
+supplying a username and password.</li>
+</ul>
+<p>The security mode you choose will depend on your environment and what
+you need the Samba server to accomplish.</p>
+</div>
+<div class="section" id="security-user">
+<h2>Security = User<a class="headerlink" href="#security-user" title="Permalink to this headline">¶</a></h2>
+<p>This section will reconfigure the Samba file and print server, from ?
+and ?, to require authentication.</p>
+<p>First, install the libpam-smbpass package which will sync the system
+users to the Samba user database:</p>
+<div class="highlight-python"><pre>**Note**
+
+If you chose the *Samba Server* task during installation
+libpam-smbpass is already installed.</pre>
+</div>
+<p>Edit <tt class="docutils literal"><span class="pre">/etc/samba/smb.conf</span></tt>, and in the <em>[share]</em> section change:</p>
+<div class="highlight-python"><pre>guest ok = no</pre>
+</div>
+<p>Finally, restart Samba for the new settings to take effect:</p>
+<p>Now when connecting to the shared directories or printers you should be
+prompted for a username and password.</p>
+<blockquote>
+<div><p><strong>Note</strong></p>
+<p>If you choose to map a network drive to the share you can check the
+“Reconnect at Logon” check box, which will require you to only enter
+the username and password once, at least until the password changes.</p>
+</div></blockquote>
+</div>
+<div class="section" id="share-security">
+<h2>Share Security<a class="headerlink" href="#share-security" title="Permalink to this headline">¶</a></h2>
+<p>There are several options available to increase the security for each
+individual shared directory. Using the <em>[share]</em> example, this section
+will cover some common options.</p>
+<div class="section" id="groups">
+<h3>Groups<a class="headerlink" href="#groups" title="Permalink to this headline">¶</a></h3>
+<p>Groups define a collection of computers or users which have a common
+level of access to particular network resources and offer a level of
+granularity in controlling access to such resources. For example, if a
+group <em>qa</em> is defined and contains the users <em>freda</em>, <em>danika</em>, and
+<em>rob</em> and a second group <em>support</em> is defined and consists of users
+<em>danika</em>, <em>jeremy</em>, and <em>vincent</em> then certain network resources
+configured to allow access by the <em>qa</em> group will subsequently enable
+access by freda, danika, and rob, but not jeremy or vincent. Since the
+user <em>danika</em> belongs to both the <em>qa</em> and <em>support</em> groups, she will be
+able to access resources configured for access by both groups, whereas
+all other users will have only access to resources explicitly allowing
+the group they are part of.</p>
+<p>By default Samba looks for the local system groups defined in
+<tt class="docutils literal"><span class="pre">/etc/group</span></tt> to determine which users belong to which groups. For more
+information on adding and removing users from groups see ?.</p>
+<p>When defining groups in the Samba configuration file,
+<tt class="docutils literal"><span class="pre">/etc/samba/smb.conf</span></tt>, the recognized syntax is to preface the group
+name with an &#8220;&#64;&#8221; symbol. For example, if you wished to define a group
+named <em>sysadmin</em> in a certain section of the <tt class="docutils literal"><span class="pre">/etc/samba/smb.conf</span></tt>,
+you would do so by entering the group name as <strong>&#64;sysadmin</strong>.</p>
+</div>
+<div class="section" id="file-permissions">
+<h3>File Permissions<a class="headerlink" href="#file-permissions" title="Permalink to this headline">¶</a></h3>
+<p>File Permissions define the explicit rights a computer or user has to a
+particular directory, file, or set of files. Such permissions may be
+defined by editing the <tt class="docutils literal"><span class="pre">/etc/samba/smb.conf</span></tt> file and specifying the
+explicit permissions of a defined file share.</p>
+<p>For example, if you have defined a Samba share called <em>share</em> and wish
+to give <em>read-only</em> permissions to the group of users known as <em>qa</em>, but
+wanted to allow writing to the share by the group called <em>sysadmin</em> and
+the user named <em>vincent</em>, then you could edit the
+<tt class="docutils literal"><span class="pre">/etc/samba/smb.conf</span></tt> file, and add the following entries under the
+<em>[share]</em> entry:</p>
+<div class="highlight-python"><pre>read list = @qa
+write list = @sysadmin, vincent</pre>
+</div>
+<p>Another possible Samba permission is to declare <em>administrative</em>
+permissions to a particular shared resource. Users having administrative
+permissions may read, write, or modify any information contained in the
+resource the user has been given explicit administrative permissions to.</p>
+<p>For example, if you wanted to give the user <em>melissa</em> administrative
+permissions to the <em>share</em> example, you would edit the
+<tt class="docutils literal"><span class="pre">/etc/samba/smb.conf</span></tt> file, and add the following line under the
+<em>[share]</em> entry:</p>
+<div class="highlight-python"><pre>admin users = melissa</pre>
+</div>
+<p>After editing <tt class="docutils literal"><span class="pre">/etc/samba/smb.conf</span></tt>, restart Samba for the changes to
+take effect:</p>
+<div class="highlight-python"><pre>**Note**
+
+For the *read list* and *write list* to work the Samba security mode
+must *not* be set to *security = share*</pre>
+</div>
+<p>Now that Samba has been configured to limit which groups have access to
+the shared directory, the filesystem permissions need to be updated.</p>
+<p>Traditional Linux file permissions do not map well to Windows NT Access
+Control Lists (ACLs). Fortunately POSIX ACLs are available on Ubuntu
+servers providing more fine grained control. For example, to enable ACLs
+on <tt class="docutils literal"><span class="pre">/srv</span></tt> an EXT3 filesystem, edit <tt class="docutils literal"><span class="pre">/etc/fstab</span></tt> adding the <em>acl</em>
+option:</p>
+<div class="highlight-python"><pre>UUID=66bcdd2e-8861-4fb0-b7e4-e61c569fe17d /srv  ext3    noatime,relatime,acl 0       1</pre>
+</div>
+<p>Then remount the partition:</p>
+<div class="highlight-python"><pre>**Note**
+
+The above example assumes ``/srv`` on a separate partition. If
+``/srv``, or wherever you have configured your share path, is part
+of the ``/`` partition a reboot may be required.</pre>
+</div>
+<p>To match the Samba configuration above the <em>sysadmin</em> group will be
+given read, write, and execute permissions to <tt class="docutils literal"><span class="pre">/srv/samba/share</span></tt>, the
+<em>qa</em> group will be given read and execute permissions, and the files
+will be owned by the username <em>melissa</em>. Enter the following in a
+terminal:</p>
+<div class="highlight-python"><pre>**Note**
+
+The setfacl command above gives *execute* permissions to all files
+in the ``/srv/samba/share`` directory, which you may or may not
+want.</pre>
+</div>
+<p>Now from a Windows client you should notice the new file permissions are
+implemented. See the acl and setfacl man pages for more information on
+POSIX ACLs.</p>
+</div>
+</div>
+<div class="section" id="samba-apparmor-profile">
+<h2>Samba AppArmor Profile<a class="headerlink" href="#samba-apparmor-profile" title="Permalink to this headline">¶</a></h2>
+<p>Ubuntu comes with the AppArmor security module, which provides mandatory
+access controls. The default AppArmor profile for Samba will need to be
+adapted to your configuration. For more details on using AppArmor see ?.</p>
+<p>There are default AppArmor profiles for <tt class="docutils literal"><span class="pre">/usr/sbin/smbd</span></tt> and
+<tt class="docutils literal"><span class="pre">/usr/sbin/nmbd</span></tt>, the Samba daemon binaries, as part of the
+apparmor-profiles packages. To install the package, from a terminal
+prompt enter:</p>
+<div class="highlight-python"><pre>**Note**
+
+This package contains profiles for several other binaries.</pre>
+</div>
+<p>By default the profiles for smbd and nmbd are in <em>complain</em> mode
+allowing Samba to work without modifying the profile, and only logging
+errors. To place the smbd profile into <em>enforce</em> mode, and have Samba
+work as expected, the profile will need to be modified to reflect any
+directories that are shared.</p>
+<p>Edit <tt class="docutils literal"><span class="pre">/etc/apparmor.d/usr.sbin.smbd</span></tt> adding information for <em>[share]</em>
+from the file server example:</p>
+<div class="highlight-python"><pre>/srv/samba/share/ r,
+/srv/samba/share/** rwkix,</pre>
+</div>
+<p>Now place the profile into <em>enforce</em> and reload it:</p>
+<p>You should now be able to read, write, and execute files in the shared
+directory as normal, and the smbd binary will have access to only the
+configured files and directories. Be sure to add entries for each
+directory you configure Samba to share. Also, any errors will be logged
+to <tt class="docutils literal"><span class="pre">/var/log/syslog</span></tt>.</p>
+</div>
+<div class="section" id="id4">
+<h2>Resources<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>For in depth Samba configurations see the <a class="reference external" href="http://samba.org/samba/docs/man/Samba-HOWTO-Collection/">Samba HOWTO
+Collection</a></li>
+<li>The guide is also available in <a class="reference external" href="http://www.amazon.com/exec/obidos/tg/detail/-/0131882228">printed
+format</a>.</li>
+<li>O&#8217;Reilly&#8217;s <a class="reference external" href="http://www.oreilly.com/catalog/9780596007690/">Using
+Samba</a> is also a
+good reference.</li>
+<li><a class="reference external" href="http://samba.org/samba/docs/man/Samba-HOWTO-Collection/securing-samba.html">Chapter
+18</a>
+of the Samba HOWTO Collection is devoted to security.</li>
+<li>For more information on Samba and ACLs see the <a class="reference external" href="http://samba.org/samba/docs/man/Samba-HOWTO-Collection/AccessControls.html#id397568">Samba ACLs
+page</a>.</li>
+<li>The <a class="reference external" href="https://help.ubuntu.com/community/Samba">Ubuntu Wiki Samba</a>
+page.</li>
+</ul>
+</div>
+</div>
+<div class="section" id="as-a-domain-controller">
+<h1>As a Domain Controller<a class="headerlink" href="#as-a-domain-controller" title="Permalink to this headline">¶</a></h1>
+<p>Although it cannot act as an Active Directory Primary Domain Controller
+(PDC), a Samba server can be configured to appear as a Windows NT4-style
+domain controller. A major advantage of this configuration is the
+ability to centralize user and machine credentials. Samba can also use
+multiple backends to store the user information.</p>
+<div class="section" id="primary-domain-controller">
+<h2>Primary Domain Controller<a class="headerlink" href="#primary-domain-controller" title="Permalink to this headline">¶</a></h2>
+<p>This section covers configuring Samba as a Primary Domain Controller
+(PDC) using the default smbpasswd backend.</p>
+<p>First, install Samba, and libpam-smbpass to sync the user accounts, by
+entering the following in a terminal prompt:</p>
+<p>Next, configure Samba by editing <tt class="docutils literal"><span class="pre">/etc/samba/smb.conf</span></tt>. The <em>security</em>
+mode should be set to <em>user</em>, and the <em>workgroup</em> should relate to your
+organization:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">workgroup</span> <span class="o">=</span> <span class="n">EXAMPLE</span>
+<span class="o">...</span>
+<span class="n">security</span> <span class="o">=</span> <span class="n">user</span>
+</pre></div>
+</div>
+<p>In the commented “Domains” section add or uncomment the following (the
+last line has been split to fit the format of this document):</p>
+<div class="highlight-python"><pre>   domain logons = yes
+   logon path = \\%N\%U\profile
+   logon drive = H:
+   logon home = \\%N\%U
+   logon script = logon.cmd
+   add machine script = sudo /usr/sbin/useradd -N -g machines -c Machine -d
+         /var/lib/samba -s /bin/false %u
+
+**Note**
+
+If you wish to not use *Roaming Profiles* leave the *logon home* and
+*logon path* options commented.</pre>
+</div>
+<ul>
+<li><p class="first"><em>domain logons:</em> provides the netlogon service causing Samba to act
+as a domain controller.</p>
+</li>
+<li><p class="first"><em>logon path:</em> places the user&#8217;s Windows profile into their home
+directory. It is also possible to configure a <em>[profiles]</em> share
+placing all profiles under a single directory.</p>
+</li>
+<li><p class="first"><em>logon drive:</em> specifies the home directory local path.</p>
+</li>
+<li><p class="first"><em>logon home:</em> specifies the home directory location.</p>
+</li>
+<li><p class="first"><em>logon script:</em> determines the script to be run locally once a user
+has logged in. The script needs to be placed in the <em>[netlogon]</em>
+share.</p>
+</li>
+<li><p class="first"><em>add machine script:</em> a script that will automatically create the
+<em>Machine Trust Account</em> needed for a workstation to join the domain.</p>
+<p>In this example the <em>machines</em> group will need to be created using
+the addgroup utility see ? for details.</p>
+</li>
+</ul>
+<p>Uncomment the <em>[homes]</em> share to allow the <em>logon home</em> to be mapped:</p>
+<div class="highlight-python"><pre>[homes]
+   comment = Home Directories
+   browseable = no
+   read only = no
+   create mask = 0700
+   directory mask = 0700
+   valid users = %S</pre>
+</div>
+<p>When configured as a domain controller a <em>[netlogon]</em> share needs to be
+configured. To enable the share, uncomment:</p>
+<div class="highlight-python"><pre>[netlogon]
+   comment = Network Logon Service
+   path = /srv/samba/netlogon
+   guest ok = yes
+   read only = yes
+   share modes = no
+
+**Note**
+
+The original *netlogon* share path is ``/home/samba/netlogon``, but
+according to the Filesystem Hierarchy Standard (FHS),
+`/srv &lt;http://www.pathname.com/fhs/pub/fhs-2.3.html#SRVDATAFORSERVICESPROVIDEDBYSYSTEM&gt;`__
+is the correct location for site-specific data provided by the
+system.</pre>
+</div>
+<p>Now create the <tt class="docutils literal"><span class="pre">netlogon</span></tt> directory, and an empty (for now)
+<tt class="docutils literal"><span class="pre">logon.cmd</span></tt> script file:</p>
+<p>You can enter any normal Windows logon script commands in <tt class="docutils literal"><span class="pre">logon.cmd</span></tt>
+to customize the client&#8217;s environment.</p>
+<p>Restart Samba to enable the new domain controller:</p>
+<p>Lastly, there are a few additional commands needed to setup the
+appropriate rights.</p>
+<p>With <em>root</em> being disabled by default, in order to join a workstation to
+the domain, a system group needs to be mapped to the Windows <em>Domain
+Admins</em> group. Using the net utility, from a terminal enter:</p>
+<div class="highlight-python"><pre>**Note**
+
+Change *sysadmin* to whichever group you prefer. Also, the user used
+to join the domain needs to be a member of the *sysadmin* group, as
+well as a member of the system *admin* group. The *admin* group
+allows sudo use.
+
+If the user does not have Samba credentials yet, you can add them
+with the smbpasswd utility, change the *sysadmin* username
+appropriately:
+
+::</pre>
+</div>
+<p>Also, rights need to be explicitly provided to the <em>Domain Admins</em> group
+to allow the <em>add machine script</em> (and other admin functions) to work.
+This is achieved by executing:</p>
+<p>You should now be able to join Windows clients to the Domain in the same
+manner as joining them to an NT4 domain running on a Windows server.</p>
+</div>
+<div class="section" id="backup-domain-controller">
+<h2>Backup Domain Controller<a class="headerlink" href="#backup-domain-controller" title="Permalink to this headline">¶</a></h2>
+<p>With a Primary Domain Controller (PDC) on the network it is best to have
+a Backup Domain Controller (BDC) as well. This will allow clients to
+authenticate in case the PDC becomes unavailable.</p>
+<p>When configuring Samba as a BDC you need a way to sync account
+information with the PDC. There are multiple ways of accomplishing this
+scp, rsync, or by using LDAP as the <em>passdb backend</em>.</p>
+<p>Using LDAP is the most robust way to sync account information, because
+both domain controllers can use the same information in real time.
+However, setting up a LDAP server may be overly complicated for a small
+number of user and computer accounts. See ? for details.</p>
+<p>First, install samba and libpam-smbpass. From a terminal enter:</p>
+<p>Now, edit <tt class="docutils literal"><span class="pre">/etc/samba/smb.conf</span></tt> and uncomment the following in the
+<em>[global]</em>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">workgroup</span> <span class="o">=</span> <span class="n">EXAMPLE</span>
+<span class="o">...</span>
+<span class="n">security</span> <span class="o">=</span> <span class="n">user</span>
+</pre></div>
+</div>
+<p>In the commented <em>Domains</em> uncomment or add:</p>
+<div class="highlight-python"><pre>domain logons = yes
+domain master = no</pre>
+</div>
+<p>Make sure a user has rights to read the files in <tt class="docutils literal"><span class="pre">/var/lib/samba</span></tt>. For
+example, to allow users in the <em>admin</em> group to scp the files, enter:</p>
+<p>Next, sync the user accounts, using scp to copy the <tt class="docutils literal"><span class="pre">/var/lib/samba</span></tt>
+directory from the PDC:</p>
+<div class="highlight-python"><pre>**Note**
+
+Replace *username* with a valid username and *pdc* with the hostname
+or IP Address of your actual PDC.</pre>
+</div>
+<p>Finally, restart samba:</p>
+<p>You can test that your Backup Domain controller is working by stopping
+the Samba daemon on the PDC, then trying to login to a Windows client
+joined to the domain.</p>
+<p>Another thing to keep in mind is if you have configured the <em>logon home</em>
+option as a directory on the PDC, and the PDC becomes unavailable,
+access to the user&#8217;s <em>Home</em> drive will also be unavailable. For this
+reason it is best to configure the <em>logon home</em> to reside on a separate
+file server from the PDC and BDC.</p>
+</div>
+<div class="section" id="id5">
+<h2>Resources<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>For in depth Samba configurations see the <a class="reference external" href="http://samba.org/samba/docs/man/Samba-HOWTO-Collection/">Samba HOWTO
+Collection</a></li>
+<li>The guide is also available in <a class="reference external" href="http://www.amazon.com/exec/obidos/tg/detail/-/0131882228">printed
+format</a>.</li>
+<li>O&#8217;Reilly&#8217;s <a class="reference external" href="http://www.oreilly.com/catalog/9780596007690/">Using
+Samba</a> is also a
+good reference.</li>
+<li><a class="reference external" href="http://samba.org/samba/docs/man/Samba-HOWTO-Collection/samba-pdc.html">Chapter
+4</a>
+of the Samba HOWTO Collection explains setting up a Primary Domain
+Controller.</li>
+<li><a class="reference external" href="http://us3.samba.org/samba/docs/man/Samba-HOWTO-Collection/samba-bdc.html">Chapter
+5</a>
+of the Samba HOWTO Collection explains setting up a Backup Domain
+Controller.</li>
+<li>The <a class="reference external" href="https://help.ubuntu.com/community/Samba">Ubuntu Wiki Samba</a>
+page.</li>
+</ul>
+</div>
+</div>
+<div class="section" id="active-directory-integration">
+<h1>Active Directory Integration<a class="headerlink" href="#active-directory-integration" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="accessing-a-samba-share">
+<h2>Accessing a Samba Share<a class="headerlink" href="#accessing-a-samba-share" title="Permalink to this headline">¶</a></h2>
+<p>Another, use for Samba is to integrate into an existing Windows network.
+Once part of an Active Directory domain, Samba can provide file and
+print services to AD users.</p>
+<p>The simplest way to join an AD domain is to use Likewise-open. For
+detailed instructions see the <a class="reference external" href="http://www.beyondtrust.com/Technical-Support/Downloads/files/pbiso/Manuals/ubuntu-active-directory.html">Likewise Open
+documentation</a>.</p>
+<p>Once part of the Active Directory domain, enter the following command in
+the terminal prompt:</p>
+<p>Next, edit <tt class="docutils literal"><span class="pre">/etc/samba/smb.conf</span></tt> changing:</p>
+<div class="highlight-python"><pre>workgroup = EXAMPLE
+...
+security = ads
+realm = EXAMPLE.COM
+...
+idmap backend = lwopen
+idmap uid = 50-9999999999
+idmap gid = 50-9999999999</pre>
+</div>
+<p>Restart samba for the new settings to take effect:</p>
+<p>You should now be able to access any Samba shares from a Windows client.
+However, be sure to give the appropriate AD users or groups access to
+the share directory. See ? for more details.</p>
+</div>
+<div class="section" id="accessing-a-windows-share">
+<h2>Accessing a Windows Share<a class="headerlink" href="#accessing-a-windows-share" title="Permalink to this headline">¶</a></h2>
+<p>Now that the Samba server is part of the Active Directory domain you can
+access any Windows server shares:</p>
+<ul>
+<li><p class="first">To mount a Windows file share enter the following in a terminal
+prompt:</p>
+<p>It is also possible to access shares on computers not part of an AD
+domain, but a username and password will need to be provided.</p>
+</li>
+<li><p class="first">To mount the share during boot place an entry in <tt class="docutils literal"><span class="pre">/etc/fstab</span></tt>, for
+example:</p>
+<div class="highlight-python"><pre>//192.168.0.5/share /mnt/windows cifs auto,username=steve,password=secret,rw 0        0</pre>
+</div>
+</li>
+<li><p class="first">Another way to copy files from a Windows server is to use the
+smbclient utility. To list the files in a Windows share:</p>
+</li>
+<li><p class="first">To copy a file from the share, enter:</p>
+<p>This will copy the <tt class="docutils literal"><span class="pre">file.txt</span></tt> into the current directory.</p>
+</li>
+<li><p class="first">And to copy a file to the share:</p>
+<p>This will copy the <tt class="docutils literal"><span class="pre">/etc/hosts</span></tt> to
+<tt class="docutils literal"><span class="pre">//fs01.example.com/share/hosts</span></tt>.</p>
+</li>
+<li><p class="first">The <em>-c</em> option used above allows you to execute the smbclient
+command all at once. This is useful for scripting and minor file
+operations. To enter the <em>smb: \&gt;</em> prompt, a FTP like prompt where
+you can execute normal file and directory commands, simply execute:</p>
+<div class="highlight-python"><pre>**Note**
+
+Replace all instances of *fs01.example.com/share*,
+*//192.168.0.5/share*, *username=steve,password=secret*, and
+*file.txt* with your server's IP, hostname, share name, file name,
+and an actual username and password with rights to the share.</pre>
+</div>
+</li>
+</ul>
+</div>
+<div class="section" id="id6">
+<h2>Resources<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h2>
+<p>For more smbclient options see the man page: <tt class="docutils literal"><span class="pre">man</span> <span class="pre">smbclient</span></tt>, also
+available
+<a class="reference external" href="http://manpages.ubuntu.com/manpages/&amp;distro-short-codename;/en/man1/smbclient.1.html">online</a>.</p>
+<p>The mount.cifs <a class="reference external" href="http://manpages.ubuntu.com/manpages/&amp;distro-short-codename;/en/man8/mount.cifs.8.html">man
+page</a>
+is also useful for more detailed information.</p>
+<p>The <a class="reference external" href="https://help.ubuntu.com/community/Samba">Ubuntu Wiki Samba</a>
+page.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/ubuntu_black-orange_hex_su-medium_cropped.png" alt="Logo"/>
+            </a></p>
+<h3><a href="index.html">Table Of Contents</a></h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="introduction.html#support">Support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html#preparing-to-install">Preparing to Install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html#installing-from-cd">Installing from CD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html#upgrading">Upgrading</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html#advanced-installation">Advanced Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html#kernel-crash-dump">Kernel Crash Dump</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html">Package Management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html#introduction">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html#dpkg">dpkg</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html#apt-get">Apt-Get</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html#aptitude">Aptitude</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html#automatic-updates">Automatic Updates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html#configuration">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html#references">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-config.html">Networking</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-config.html#network-configuration">Network Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-config.html#tcp-ip">TCP/IP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-config.html#dynamic-host-configuration-protocol-dhcp">Dynamic Host Configuration Protocol (DHCP)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-config.html#time-synchronisation-with-ntp">Time Synchronisation with NTP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multipath.html">DMM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multipath.html#device-mapper-multipathing">Device Mapper Multipathing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multipath.html#multipath-devices">Multipath Devices</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multipath.html#setting-up-dmm-overview">Setting up DMM Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multipath.html#the-dmm-configuration-file">The DMM Configuration File</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multipath.html#dmm-administration-and-troubleshooting">DMM Administration and Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="remote-administration.html">Remote Administration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="remote-administration.html#openssh-server">OpenSSH Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="remote-administration.html#puppet">Puppet</a></li>
+<li class="toctree-l1"><a class="reference internal" href="remote-administration.html#zentyal">Zentyal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-auth.html">Network Authentication</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-auth.html#openldap-server">OpenLDAP Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-auth.html#samba-and-ldap">Samba and LDAP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-auth.html#kerberos">Kerberos</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-auth.html#kerberos-and-ldap">Kerberos and LDAP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dns.html">Domain Name Service (DNS)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dns.html#installation">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dns.html#configuration">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dns.html#troubleshooting">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dns.html#references">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html">Security</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html#user-management">User Management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html#console-security">Console Security</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html#firewall">Firewall</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html#apparmor">AppArmor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html#certificates">Certificates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html#ecryptfs">eCryptfs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="monitoring.html">Monitoring</a></li>
+<li class="toctree-l1"><a class="reference internal" href="monitoring.html#overview">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="monitoring.html#nagios">Nagios</a></li>
+<li class="toctree-l1"><a class="reference internal" href="monitoring.html#munin">Munin</a></li>
+<li class="toctree-l1"><a class="reference internal" href="web-servers.html">Web Servers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="web-servers.html#httpd-apache2-web-server">HTTPD - Apache2 Web Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="web-servers.html#php5-scripting-language">PHP5 - Scripting Language</a></li>
+<li class="toctree-l1"><a class="reference internal" href="web-servers.html#squid-proxy-server">Squid - Proxy Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="web-servers.html#ruby-on-rails">Ruby on Rails</a></li>
+<li class="toctree-l1"><a class="reference internal" href="web-servers.html#apache-tomcat">Apache Tomcat</a></li>
+<li class="toctree-l1"><a class="reference internal" href="databases.html">Databases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="databases.html#mysql">MySQL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="databases.html#postgresql">PostgreSQL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lamp-applications.html">LAMP Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lamp-applications.html#overview">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lamp-applications.html#moin-moin">Moin Moin</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lamp-applications.html#mediawiki">MediaWiki</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lamp-applications.html#phpmyadmin">phpMyAdmin</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lamp-applications.html#wordpress">WordPress</a></li>
+<li class="toctree-l1"><a class="reference internal" href="file-server.html">File Servers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="file-server.html#ftp-server">FTP Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="file-server.html#network-file-system-nfs">Network File System (NFS)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="file-server.html#iscsi-initiator">iSCSI Initiator</a></li>
+<li class="toctree-l1"><a class="reference internal" href="file-server.html#cups-print-server">CUPS - Print Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mail.html">Email Services</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mail.html#postfix">Postfix</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mail.html#exim4">Exim4</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mail.html#dovecot-server">Dovecot Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mail.html#mailman">Mailman</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mail.html#mail-filtering">Mail Filtering</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chat.html">Chat Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chat.html#overview">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chat.html#irc-server">IRC Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chat.html#jabber-instant-messaging-server">Jabber Instant Messaging Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vcs.html">Version Control System</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vcs.html#bazaar">Bazaar</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vcs.html#git">Git</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vcs.html#subversion">Subversion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vcs.html#references">References</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">Samba</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#introduction">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#file-server">File Server</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="#print-server">Print Server</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="#securing-file-and-print-server">Securing File and Print Server</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="#as-a-domain-controller">As a Domain Controller</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="#active-directory-integration">Active Directory Integration</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="backups.html">Backups</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backups.html#shell-scripts">Shell Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backups.html#archive-rotation">Archive Rotation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backups.html#bacula">Bacula</a></li>
+<li class="toctree-l1"><a class="reference internal" href="virtualization.html">Virtualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="virtualization.html#libvirt">libvirt</a></li>
+<li class="toctree-l1"><a class="reference internal" href="virtualization.html#cloud-images-and-vmbuilder">Cloud images and vmbuilder</a></li>
+<li class="toctree-l1"><a class="reference internal" href="virtualization.html#ubuntu-cloud">Ubuntu Cloud</a></li>
+<li class="toctree-l1"><a class="reference internal" href="virtualization.html#lxc">LXC</a></li>
+<li class="toctree-l1"><a class="reference internal" href="clustering.html">Clustering</a></li>
+<li class="toctree-l1"><a class="reference internal" href="clustering.html#drbd">DRBD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vpn.html">VPN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vpn.html#openvpn">OpenVPN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="other-apps.html">Other Useful Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="other-apps.html#pam-motd">pam_motd</a></li>
+<li class="toctree-l1"><a class="reference internal" href="other-apps.html#etckeeper">etckeeper</a></li>
+<li class="toctree-l1"><a class="reference internal" href="other-apps.html#byobu">Byobu</a></li>
+<li class="toctree-l1"><a class="reference internal" href="other-apps.html#references">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reporting-bugs.html">Appendix</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reporting-bugs.html#reporting-bugs-in-ubuntu-server-edition">Reporting Bugs in Ubuntu Server Edition</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="vcs.html"
+                        title="previous chapter">Version Control System</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="backups.html"
+                        title="next chapter">Backups</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/samba.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="backups.html" title="Backups"
+             >next</a></li>
+        <li class="right" >
+          <a href="vcs.html" title="Version Control System"
+             >previous</a> |</li>
+        <li><a href="index.html">Ubuntu Server Guide - 14.04 LTS</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Ubuntu Documentation Contributors.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

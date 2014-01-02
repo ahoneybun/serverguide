@@ -1,0 +1,766 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>VPN &mdash; Ubuntu Server Guide - 14.04 LTS</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '14.04',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Ubuntu Server Guide - 14.04 LTS" href="index.html" />
+    <link rel="next" title="Other Useful Applications" href="other-apps.html" />
+    <link rel="prev" title="Clustering" href="clustering.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="other-apps.html" title="Other Useful Applications"
+             accesskey="N">next</a></li>
+        <li class="right" >
+          <a href="clustering.html" title="Clustering"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Ubuntu Server Guide - 14.04 LTS</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="vpn">
+<h1>VPN<a class="headerlink" href="#vpn" title="Permalink to this headline">¶</a></h1>
+<p>OpenVPN is a Virtual Private Networking (VPN) solution provided in the
+Ubuntu Repositories. It is flexible, reliable and secure. It belongs to
+the family of SSL/TLS VPN stacks (different from IPSec VPNs). This
+chapter will cover installing and configuring OpenVPN to create a VPN.</p>
+</div>
+<div class="section" id="openvpn">
+<h1>OpenVPN<a class="headerlink" href="#openvpn" title="Permalink to this headline">¶</a></h1>
+<p>If you want more than just pre-shared keys OpenVPN makes it easy to
+setup and use a Public Key Infrastructure (PKI) to use SSL/TLS
+certificates for authentication and key exchange between the VPN server
+and clients. OpenVPN can be used in a routed or bridged VPN mode and can
+be configured to use either UDP or TCP. The port number can be
+configured as well, but port 1194 is the official one. And it is only
+using that single port for all communication. VPN client implementations
+are available for almost anything including all Linux distributions, OS
+X, Windows and OpenWRT based WLAN routers.</p>
+<div class="section" id="server-installation">
+<h2>Server Installation<a class="headerlink" href="#server-installation" title="Permalink to this headline">¶</a></h2>
+<p>To install openvpn in a terminal enter:</p>
+</div>
+<div class="section" id="public-key-infrastructure-setup">
+<h2>Public Key Infrastructure Setup<a class="headerlink" href="#public-key-infrastructure-setup" title="Permalink to this headline">¶</a></h2>
+<p>The first step in building an OpenVPN configuration is to establish a
+PKI (public key infrastructure). The PKI consists of:</p>
+<ul class="simple">
+<li>a separate certificate (also known as a public key) and private key
+for the server and each client, and</li>
+<li>a master Certificate Authority (CA) certificate and key which is used
+to sign each of the server and client certificates.</li>
+</ul>
+<p>OpenVPN supports bidirectional authentication based on certificates,
+meaning that the client must authenticate the server certificate and the
+server must authenticate the client certificate before mutual trust is
+established.</p>
+<p>Both server and client will authenticate the other by first verifying
+that the presented certificate was signed by the master certificate
+authority (CA), and then by testing information in the now-authenticated
+certificate header, such as the certificate common name or certificate
+type (client or server).</p>
+<div class="section" id="certificate-authority-setup">
+<h3>Certificate Authority Setup<a class="headerlink" href="#certificate-authority-setup" title="Permalink to this headline">¶</a></h3>
+<p>To setup your own Certificate Authority (CA) and generating certificates
+and keys for an OpenVPN server and multiple clients first copy the
+<tt class="docutils literal"><span class="pre">easy-rsa</span></tt> directory to <tt class="docutils literal"><span class="pre">/etc/openvpn</span></tt>. This will ensure that any
+changes to the scripts will not be lost when the package is updated.
+From a terminal change to user root and:</p>
+<p>Next, edit <tt class="docutils literal"><span class="pre">/etc/openvpn/easy-rsa/vars</span></tt> adjusting the following to
+your environment:</p>
+<div class="highlight-python"><pre>export KEY_COUNTRY="US"
+export KEY_PROVINCE="NC"
+export KEY_CITY="Winston-Salem"
+export KEY_ORG="Example Company"
+export KEY_EMAIL="steve@example.com"
+export KEY_CN=MyVPN
+export KEY_NAME=MyVPN
+export KEY_OU=MyVPN</pre>
+</div>
+<p>Enter the following to generate the master Certificate Authority (CA)
+certificate and key:</p>
+</div>
+<div class="section" id="server-certificates">
+<h3>Server Certificates<a class="headerlink" href="#server-certificates" title="Permalink to this headline">¶</a></h3>
+<p>Next, we will generate a certificate and private key for the server:</p>
+<p>As in the previous step, most parameters can be defaulted. Two other
+queries require positive responses, &#8220;Sign the certificate? [y/n]&#8221; and &#8220;1
+out of 1 certificate requests certified, commit? [y/n]&#8221;.</p>
+<p>Diffie Hellman parameters must be generated for the OpenVPN server:</p>
+<p>All certificates and keys have been generated in the subdirectory keys/.
+Common practice is to copy them to /etc/openvpn/:</p>
+</div>
+<div class="section" id="client-certificates">
+<h3>Client Certificates<a class="headerlink" href="#client-certificates" title="Permalink to this headline">¶</a></h3>
+<p>The VPN client will also need a certificate to authenticate itself to
+the server. Usually you create a different certificate for each client.
+To create the certificate, enter the following in a terminal while being
+user root:</p>
+<p>Copy the following files to the client using a secure method:</p>
+<ul class="simple">
+<li>/etc/openvpn/ca.crt</li>
+<li>/etc/openvpn/easy-rsa/keys/client1.crt</li>
+<li>/etc/openvpn/easy-rsa/keys/client1.key</li>
+</ul>
+<p>As the client certificates and keys are only required on the client
+machine, you should remove them from the server.</p>
+</div>
+</div>
+<div class="section" id="simple-server-configuration">
+<h2>Simple Server Configuration<a class="headerlink" href="#simple-server-configuration" title="Permalink to this headline">¶</a></h2>
+<p>Along with your OpenVPN installation you got these sample config files
+(and many more if if you check):</p>
+<div class="highlight-python"><pre>root@server:/# ls -l /usr/share/doc/openvpn/examples/sample-config-files/
+total 68
+-rw-r--r-- 1 root root 3427 2011-07-04 15:09 client.conf
+-rw-r--r-- 1 root root 4141 2011-07-04 15:09 server.conf.gz</pre>
+</div>
+<p>Start with copying and unpacking server.conf.gz to
+/etc/openvpn/server.conf.</p>
+<p>Edit <tt class="docutils literal"><span class="pre">/etc/openvpn/server.conf</span></tt> to make sure the following lines are
+pointing to the certificates and keys you created in the section above.</p>
+<div class="highlight-python"><pre>ca ca.crt
+cert myservername.crt
+key myservername.key
+dh dh1024.pem</pre>
+</div>
+<p>That is the minimum you have to configure to get a working OpenVPN
+server. You can use all the default settings in the sample server.conf
+file. Now start the server. You will find logging and error messages in
+your syslog.</p>
+<div class="highlight-python"><pre>root@server:/etc/openvpn# service openvpn start
+ * Starting virtual private network daemon(s)...
+   *   Autostarting VPN 'server'                     [ OK ]</pre>
+</div>
+<p>Now check if OpenVPN created a tun0 interface:</p>
+<div class="highlight-python"><pre>root@server:/etc/openvpn# ifconfig tun0
+tun0      Link encap:UNSPEC  HWaddr 00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00
+          inet addr:10.8.0.1  P-t-P:10.8.0.2  Mask:255.255.255.255
+          UP POINTOPOINT RUNNING NOARP MULTICAST  MTU:1500  Metric:1
+[...]</pre>
+</div>
+</div>
+<div class="section" id="simple-client-configuration">
+<h2>Simple Client Configuration<a class="headerlink" href="#simple-client-configuration" title="Permalink to this headline">¶</a></h2>
+<p>There are various different OpenVPN client implementations with and
+without GUIs. You can read more about clients in a later section. For
+now we use the OpenVPN client for Ubuntu which is the same executable as
+the server. So you have to install the openvpn package again on the
+client machine:</p>
+<p>This time copy the client.conf sample config file to /etc/openvpn/.</p>
+<p>Copy the client keys and the certificate of the CA you created in the
+section above to e.g. /etc/openvpn/ and edit
+<tt class="docutils literal"><span class="pre">/etc/openvpn/client.conf</span></tt> to make sure the following lines are
+pointing to those files. If you have the files in /etc/openvpn/ you can
+omit the path.</p>
+<div class="highlight-python"><pre>ca ca.crt
+cert client1.crt
+key client1.key</pre>
+</div>
+<p>And you have to at least specify the OpenVPN server name or address.
+Make sure the keyword client is in the config. That&#8217;s what enables
+client mode.</p>
+<div class="highlight-python"><pre>client
+remote vpnserver.example.com 1194</pre>
+</div>
+<p>Also, make sure you specify the keyfile names you copied from the server</p>
+<div class="highlight-python"><pre>ca ca.crt
+cert client1.crt
+key client1.key</pre>
+</div>
+<p>Now start the OpenVPN client:</p>
+<div class="highlight-python"><pre>root@client:/etc/openvpn# service openvpn start
+ * Starting virtual private network daemon(s)...
+   *   Autostarting VPN 'client'                          [ OK ]</pre>
+</div>
+<p>Check if it created a tun0 interface:</p>
+<div class="highlight-python"><pre>root@client:/etc/openvpn# ifconfig tun0
+tun0      Link encap:UNSPEC  HWaddr 00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00
+          inet addr:10.8.0.6  P-t-P:10.8.0.5  Mask:255.255.255.255
+          UP POINTOPOINT RUNNING NOARP MULTICAST  MTU:1500  Metric:1</pre>
+</div>
+<p>Check if you can ping the OpenVPN server:</p>
+<div class="highlight-python"><pre>root@client:/etc/openvpn# ping 10.8.0.1
+PING 10.8.0.1 (10.8.0.1) 56(84) bytes of data.
+64 bytes from 10.8.0.1: icmp_req=1 ttl=64 time=0.920 ms
+
+**Note**
+
+The OpenVPN server always uses the first usable IP address in the
+client network and only that IP is pingable. E.g. if you configured
+a /24 for the client network mask, the .1 address will be used. The
+P-t-P address you see in the ifconfig output above is usually not
+answering ping requests.</pre>
+</div>
+<p>Check out your routes:</p>
+<div class="highlight-python"><pre>root@client:/etc/openvpn# netstat -rn
+Kernel IP routing table
+Destination     Gateway         Genmask         Flags   MSS Window  irtt Iface
+10.8.0.5        0.0.0.0         255.255.255.255 UH        0 0          0 tun0
+10.8.0.1        10.8.0.5        255.255.255.255 UGH       0 0          0 tun0
+192.168.42.0    0.0.0.0         255.255.255.0   U         0 0          0 eth0
+0.0.0.0         192.168.42.1    0.0.0.0         UG        0 0          0 eth0</pre>
+</div>
+</div>
+<div class="section" id="first-trouble-shooting">
+<h2>First trouble shooting<a class="headerlink" href="#first-trouble-shooting" title="Permalink to this headline">¶</a></h2>
+<p>If the above didn&#8217;t work for you, check this:</p>
+<ul class="simple">
+<li>Check your syslog, e.g. grep -i vpn /var/log/syslog</li>
+<li>Check that you have specified the keyfile names correctly in
+client.conf and server.conf.</li>
+<li>Can the client connect to the server machine? Maybe a firewall is
+blocking access? Check syslog on server.</li>
+<li>Client and server must use same protocol and port, e.g. UDP port
+1194, see port and proto config option</li>
+<li>Client and server must use same config regarding compression, see
+comp-lzo config option</li>
+<li>Client and server must use same config regarding bridged vs routed
+mode, see server vs server-bridge config option</li>
+</ul>
+</div>
+<div class="section" id="advanced-configuration">
+<h2>Advanced configuration<a class="headerlink" href="#advanced-configuration" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="advanced-routed-vpn-configuration-on-server">
+<h3>Advanced routed VPN configuration on server<a class="headerlink" href="#advanced-routed-vpn-configuration-on-server" title="Permalink to this headline">¶</a></h3>
+<p>The above is a very simple working VPN. The client can access services
+on the VPN server machine through an encrypted tunnel. If you want to
+reach more servers or anything in other networks, push some routes to
+the clients. E.g. if your company&#8217;s network can be summarized to the
+network 192.168.0.0/16, you could push this route to the clients. But
+you will also have to change the routing for the way back - your servers
+need to know a route to the VPN client-network.</p>
+<p>Or you might push a default gateway to all the clients to send all their
+internet traffic to the VPN gateway first and from there via the company
+firewall into the internet. This section shows you some possible
+options.</p>
+<p>Push routes to the client to allow it to reach other private subnets
+behind the server. Remember that these private subnets will also need to
+know to route the OpenVPN client address pool (10.8.0.0/24) back to the
+OpenVPN server.</p>
+<div class="highlight-python"><pre>push "route 10.0.0.0 255.0.0.0"</pre>
+</div>
+<p>If enabled, this directive will configure all clients to redirect their
+default network gateway through the VPN, causing all IP traffic such as
+web browsing and DNS lookups to go through the VPN (the OpenVPN server
+machine or your central firewall may need to NAT the TUN/TAP interface
+to the internet in order for this to work properly).</p>
+<div class="highlight-python"><pre>push "redirect-gateway def1 bypass-dhcp"</pre>
+</div>
+<p>Configure server mode and supply a VPN subnet for OpenVPN to draw client
+addresses from. The server will take 10.8.0.1 for itself, the rest will
+be made available to clients. Each client will be able to reach the
+server on 10.8.0.1. Comment this line out if you are ethernet bridging.</p>
+<div class="highlight-python"><pre>server 10.8.0.0 255.255.255.0</pre>
+</div>
+<p>Maintain a record of client to virtual IP address associations in this
+file. If OpenVPN goes down or is restarted, reconnecting clients can be
+assigned the same virtual IP address from the pool that was previously
+assigned.</p>
+<div class="highlight-python"><pre>ifconfig-pool-persist ipp.txt</pre>
+</div>
+<p>Push DNS servers to the client.</p>
+<div class="highlight-python"><pre>push "dhcp-option DNS 10.0.0.2"
+push "dhcp-option DNS 10.1.0.2"</pre>
+</div>
+<p>Allow client to client communication.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">client</span><span class="o">-</span><span class="n">to</span><span class="o">-</span><span class="n">client</span>
+</pre></div>
+</div>
+<p>Enable compression on the VPN link.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">comp</span><span class="o">-</span><span class="n">lzo</span>
+</pre></div>
+</div>
+<p>The keepalive directive causes ping-like messages to be sent back and
+forth over the link so that each side knows when the other side has gone
+down. Ping every 1 second, assume that remote peer is down if no ping
+received during a 3 second time period.</p>
+<div class="highlight-python"><pre>keepalive 1 3</pre>
+</div>
+<p>It&#8217;s a good idea to reduce the OpenVPN daemon&#8217;s privileges after
+initialization.</p>
+<div class="highlight-python"><pre>user nobody
+group nogroup</pre>
+</div>
+<p>OpenVPN 2.0 includes a feature that allows the OpenVPN server to
+securely obtain a username and password from a connecting client, and to
+use that information as a basis for authenticating the client. To use
+this authentication method, first add the auth-user-pass directive to
+the client configuration. It will direct the OpenVPN client to query the
+user for a username/password, passing it on to the server over the
+secure TLS channel.</p>
+<div class="highlight-python"><pre># client config!
+auth-user-pass</pre>
+</div>
+<p>This will tell the OpenVPN server to validate the username/password
+entered by clients using the login PAM module. Useful if you have
+centralized authentication with e.g. Kerberos.</p>
+<div class="highlight-python"><pre>plugin /usr/lib/openvpn/openvpn-plugin-auth-pam.so login
+
+**Note**
+
+Please read the OpenVPN `hardening security
+guide &lt;http://openvpn.net/index.php/open-source/documentation/howto.html#security&gt;`__
+for further security advice.</pre>
+</div>
+</div>
+<div class="section" id="advanced-bridged-vpn-configuration-on-server">
+<h3>Advanced bridged VPN configuration on server<a class="headerlink" href="#advanced-bridged-vpn-configuration-on-server" title="Permalink to this headline">¶</a></h3>
+<p>OpenVPN can be setup for either a routed or a bridged VPN mode.
+Sometimes this is also referred to as OSI layer-2 versus layer-3 VPN. In
+a bridged VPN all layer-2 frames - e.g. all ethernet frames - are sent
+to the VPN partners and in a routed VPN only layer-3 packets are sent to
+VPN partners. In bridged mode all traffic including traffic which was
+traditionally LAN-local like local network broadcasts, DHCP requests,
+ARP requests etc. are sent to VPN partners whereas in routed mode this
+would be filtered.</p>
+<div class="section" id="prepare-interface-config-for-bridging-on-server">
+<h4>Prepare interface config for bridging on server<a class="headerlink" href="#prepare-interface-config-for-bridging-on-server" title="Permalink to this headline">¶</a></h4>
+<p>Make sure you have the bridge-utils package installed:</p>
+<p>Before you setup OpenVPN in bridged mode you need to change your
+interface configuration. Let&#8217;s assume your server has an interface eth0
+connected to the internet and an interface eth1 connected to the LAN you
+want to bridge. Your /etc/network/interfaces would like this:</p>
+<div class="highlight-python"><pre>auto eth0
+iface eth0 inet static
+  address 1.2.3.4
+  netmask 255.255.255.248
+  default 1.2.3.1
+
+auto eth1
+iface eth1 inet static
+  address 10.0.0.4
+  netmask 255.255.255.0</pre>
+</div>
+<p>This straight forward interface config needs to be changed into a
+bridged mode like where the config of interface eth1 moves to the new
+br0 interface. Plus we configure that br0 should bridge interface eth1.
+We also need to make sure that interface eth1 is always in promiscuous
+mode - this tells the interface to forward all ethernet frames to the IP
+stack.</p>
+<div class="highlight-python"><pre>auto eth0
+iface eth0 inet static
+  address 1.2.3.4
+  netmask 255.255.255.248
+  default 1.2.3.1
+
+auto eth1
+iface eth1 inet manual
+  up ip link set $IFACE up promisc on
+
+auto br0
+iface br0 inet static
+  address 10.0.0.4
+  netmask 255.255.255.0
+  bridge_ports eth1</pre>
+</div>
+<p>At this point you need to bring up the bridge. Be prepared that this
+might not work as expected and that you will lose remote connectivity.
+Make sure you can solve problems having local access.</p>
+</div>
+<div class="section" id="prepare-server-config-for-bridging">
+<h4>Prepare server config for bridging<a class="headerlink" href="#prepare-server-config-for-bridging" title="Permalink to this headline">¶</a></h4>
+<p>Edit <tt class="docutils literal"><span class="pre">/etc/openvpn/server.conf</span></tt> changing the following options to:</p>
+<div class="highlight-python"><pre>;dev tun
+dev tap
+up "/etc/openvpn/up.sh br0 eth1"
+;server 10.8.0.0 255.255.255.0
+server-bridge 10.0.0.4 255.255.255.0 10.0.0.128 10.0.0.254</pre>
+</div>
+<p>Next, create a helper script to add the <em>tap</em> interface to the bridge
+and to ensure that eth1 is promiscuous mode. Create
+<tt class="docutils literal"><span class="pre">/etc/openvpn/up.sh</span></tt>:</p>
+<div class="highlight-python"><pre>#!/bin/sh
+
+BR=$1
+ETHDEV=$2
+TAPDEV=$3
+
+/sbin/ip link set "$TAPDEV" up
+/sbin/ip link set "$ETHDEV" promisc on
+/sbin/brctl addif $BR $TAPDEV</pre>
+</div>
+<p>Then make it executable:</p>
+<p>After configuring the server, restart openvpn by entering:</p>
+</div>
+<div class="section" id="client-configuration">
+<h4>Client Configuration<a class="headerlink" href="#client-configuration" title="Permalink to this headline">¶</a></h4>
+<p>First, install openvpn on the client:</p>
+<p>Then with the server configured and the client certificates copied to
+the <tt class="docutils literal"><span class="pre">/etc/openvpn/</span></tt> directory, create a client configuration file by
+copying the example. In a terminal on the client machine enter:</p>
+<p>Now edit <tt class="docutils literal"><span class="pre">/etc/openvpn/client.conf</span></tt> changing the following options:</p>
+<div class="highlight-python"><pre>dev tap
+;dev tun
+ca ca.crt
+cert client1.crt
+key client1.key</pre>
+</div>
+<p>Finally, restart openvpn:</p>
+<p>You should now be able to connect to the remote LAN through the VPN.</p>
+</div>
+</div>
+</div>
+<div class="section" id="client-software-implementations">
+<h2>Client software implementations<a class="headerlink" href="#client-software-implementations" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="linux-network-manager-gui-for-openvpn">
+<h3>Linux Network-Manager GUI for OpenVPN<a class="headerlink" href="#linux-network-manager-gui-for-openvpn" title="Permalink to this headline">¶</a></h3>
+<p>Many Linux distributions including Ubuntu desktop variants come with
+Network Manager, a nice GUI to configure your network settings. It also
+can manage your VPN connections. Make sure you have package
+network-manager-openvpn installed. Here you see that the installation
+installs all other required packages as well:</p>
+<div class="highlight-python"><pre>root@client:~# apt-get install network-manager-openvpn
+Reading package lists... Done
+Building dependency tree
+Reading state information... Done
+The following extra packages will be installed:
+  liblzo2-2 libpkcs11-helper1 network-manager-openvpn-gnome openvpn
+Suggested packages:
+  resolvconf
+The following NEW packages will be installed:
+  liblzo2-2 libpkcs11-helper1 network-manager-openvpn
+  network-manager-openvpn-gnome openvpn
+0 upgraded, 5 newly installed, 0 to remove and 631 not upgraded.
+Need to get 700 kB of archives.
+After this operation, 3,031 kB of additional disk space will be used.
+Do you want to continue [Y/n]?</pre>
+</div>
+<p>To inform network-manager about the new installed packages you will have
+to restart it:</p>
+<div class="highlight-python"><pre>root@client:~# restart network-manager
+network-manager start/running, process 3078</pre>
+</div>
+<p>Open the Network Manager GUI, select the VPN tab and then the &#8216;Add&#8217;
+button. Select OpenVPN as the VPN type in the opening requester and
+press &#8216;Create&#8217;. In the next window add the OpenVPN&#8217;s server name as the
+&#8216;Gateway&#8217;, set &#8216;Type&#8217; to &#8216;Certificates (TLS)&#8217;, point &#8216;User Certificate&#8217;
+to your user certificate, &#8216;CA Certificate&#8217; to your CA certificate and
+&#8216;Private Key&#8217; to your private key file. Use the advanced button to
+enable compression (e.g. comp-lzo), dev tap, or other special settings
+you set on the server. Now try to establish your VPN.</p>
+</div>
+<div class="section" id="openvpn-with-gui-for-mac-os-x-tunnelblick">
+<h3>OpenVPN with GUI for Mac OS X: Tunnelblick<a class="headerlink" href="#openvpn-with-gui-for-mac-os-x-tunnelblick" title="Permalink to this headline">¶</a></h3>
+<p>Tunnelblick is an excellent free, open source implementation of a GUI
+for OpenVPN for OS X. The project&#8217;s homepage is at
+<a class="reference external" href="http://code.google.com/p/tunnelblick/">http://code.google.com/p/tunnelblick/</a>. Download the latest OS X
+installer from there and install it. Then put your client.ovpn config
+file together with the certificates and keys in
+/Users/username/Library/Application Support/Tunnelblick/Configurations/
+and lauch Tunnelblick from your Application folder.</p>
+<div class="highlight-python"><pre># sample client.ovpn for Tunnelblick
+client
+remote blue.example.com
+port 1194
+proto udp
+dev tun
+dev-type tun
+ns-cert-type server
+reneg-sec 86400
+auth-user-pass
+auth-nocache
+auth-retry interact
+comp-lzo yes
+verb 3
+ca ca.crt
+cert client.crt
+key client.key</pre>
+</div>
+</div>
+<div class="section" id="openvpn-with-gui-for-win-7">
+<h3>OpenVPN with GUI for Win 7<a class="headerlink" href="#openvpn-with-gui-for-win-7" title="Permalink to this headline">¶</a></h3>
+<p>First download and install the latest <a class="reference external" href="http://www.openvpn.net/index.php/open-source/downloads.html">OpenVPN Windows
+Installer</a>.
+OpenVPN 2.3.2 was the latest when this was written. As of this writing,
+the management GUI is included with the Windows binary installer.</p>
+<p>You need to start the OpenVPN service. Goto Start &gt; Computer &gt; Manage &gt;
+Services and Applications &gt; Services. Find the OpenVPN service and start
+it. Set it&#8217;s startup type to automatic. When you start the OpenVPN MI
+GUI the first time you need to run it as an administrator. You have to
+right click on it and you will see that option.</p>
+<p>You will have to write your OpenVPN config in a textfile and place it in
+C:\Program Files\OpenVPN\config\client.ovpn along with the CA
+certificate. You could put the user certificate in the user&#8217;s home
+directory like in the follwing example.</p>
+<div class="highlight-python"><pre># C:\Program Files\OpenVPN\config\client.ovpn
+client
+remote server.example.com
+port 1194
+proto udp
+dev tun
+dev-type tun
+ns-cert-type server
+reneg-sec 86400
+auth-user-pass
+auth-retry interact
+comp-lzo yes
+verb 3
+ca ca.crt
+cert "C:\\Users\\username\\My Documents\\openvpn\\client.crt"
+key "C:\\Users\\username\\My Documents\\openvpn\\client.key"
+management 127.0.0.1 1194
+management-hold
+management-query-passwords
+auth-retry interact
+; Set the name of the Windows TAP network interface device here
+dev-node MyTAP</pre>
+</div>
+<p>Note: If you are not using user authentication and/or you want to run
+the service without user interaction, comment out the following options:</p>
+<div class="highlight-python"><pre>auth-user-pass
+auth-retry interact
+management 127.0.0.1 1194
+management-hold
+management-query-passwords</pre>
+</div>
+<p>You may want to set the Windows service to &#8220;automatic&#8221;.</p>
+</div>
+<div class="section" id="openvpn-for-openwrt">
+<h3>OpenVPN for OpenWRT<a class="headerlink" href="#openvpn-for-openwrt" title="Permalink to this headline">¶</a></h3>
+<p>OpenWRT is described as a Linux distribution for embedded devices like
+WLAN router. There are certain types of WLAN routers who can be flashed
+to run OpenWRT. Depending on the available memory on your OpenWRT router
+you can run software like OpenVPN and you could for example build a
+small inexpensive branch office router with VPN connectivity to the
+central office. More info on OpenVPN on OpenWRT is
+<a class="reference external" href="http://wiki.openwrt.org/doc/howto/vpn.overview">here</a>. And here is
+the OpenWRT project&#8217;s homepage: <a class="reference external" href="http://openwrt.org">http://openwrt.org</a></p>
+<p>Log into your OpenWRT router and install OpenVPN:</p>
+<p>Check out /etc/config/openvpn and put your client config in there. Copy
+certificates and keys to /etc/openvpn/</p>
+<div class="highlight-python"><pre>config openvpn client1
+        option enable 1
+        option client 1
+#       option dev tap
+        option dev tun
+        option proto udp
+        option ca /etc/openvpn/ca.crt
+        option cert /etc/openvpn/client.crt
+        option key /etc/openvpn/client.key
+        option comp_lzo 1</pre>
+</div>
+<p>Restart OpenVPN:</p>
+<p>You will have to see if you need to adjust your router&#8217;s routing and
+firewall rules.</p>
+</div>
+</div>
+<div class="section" id="references">
+<h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>See the <a class="reference external" href="http://openvpn.net/">OpenVPN</a> website for additional
+information.</li>
+<li><a class="reference external" href="http://openvpn.net/index.php/open-source/documentation/howto.html#security">OpenVPN hardening security
+guide</a></li>
+<li>Also, Pakt&#8217;s <a class="reference external" href="http://www.packtpub.com/openvpn/book">OpenVPN: Building and Integrating Virtual Private
+Networks</a> is a good
+resource.</li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/ubuntu_black-orange_hex_su-medium_cropped.png" alt="Logo"/>
+            </a></p>
+<h3><a href="index.html">Table Of Contents</a></h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="introduction.html#support">Support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html#preparing-to-install">Preparing to Install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html#installing-from-cd">Installing from CD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html#upgrading">Upgrading</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html#advanced-installation">Advanced Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html#kernel-crash-dump">Kernel Crash Dump</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html">Package Management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html#introduction">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html#dpkg">dpkg</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html#apt-get">Apt-Get</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html#aptitude">Aptitude</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html#automatic-updates">Automatic Updates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html#configuration">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html#references">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-config.html">Networking</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-config.html#network-configuration">Network Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-config.html#tcp-ip">TCP/IP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-config.html#dynamic-host-configuration-protocol-dhcp">Dynamic Host Configuration Protocol (DHCP)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-config.html#time-synchronisation-with-ntp">Time Synchronisation with NTP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multipath.html">DMM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multipath.html#device-mapper-multipathing">Device Mapper Multipathing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multipath.html#multipath-devices">Multipath Devices</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multipath.html#setting-up-dmm-overview">Setting up DMM Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multipath.html#the-dmm-configuration-file">The DMM Configuration File</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multipath.html#dmm-administration-and-troubleshooting">DMM Administration and Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="remote-administration.html">Remote Administration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="remote-administration.html#openssh-server">OpenSSH Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="remote-administration.html#puppet">Puppet</a></li>
+<li class="toctree-l1"><a class="reference internal" href="remote-administration.html#zentyal">Zentyal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-auth.html">Network Authentication</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-auth.html#openldap-server">OpenLDAP Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-auth.html#samba-and-ldap">Samba and LDAP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-auth.html#kerberos">Kerberos</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-auth.html#kerberos-and-ldap">Kerberos and LDAP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dns.html">Domain Name Service (DNS)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dns.html#installation">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dns.html#configuration">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dns.html#troubleshooting">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dns.html#references">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html">Security</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html#user-management">User Management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html#console-security">Console Security</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html#firewall">Firewall</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html#apparmor">AppArmor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html#certificates">Certificates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html#ecryptfs">eCryptfs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="monitoring.html">Monitoring</a></li>
+<li class="toctree-l1"><a class="reference internal" href="monitoring.html#overview">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="monitoring.html#nagios">Nagios</a></li>
+<li class="toctree-l1"><a class="reference internal" href="monitoring.html#munin">Munin</a></li>
+<li class="toctree-l1"><a class="reference internal" href="web-servers.html">Web Servers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="web-servers.html#httpd-apache2-web-server">HTTPD - Apache2 Web Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="web-servers.html#php5-scripting-language">PHP5 - Scripting Language</a></li>
+<li class="toctree-l1"><a class="reference internal" href="web-servers.html#squid-proxy-server">Squid - Proxy Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="web-servers.html#ruby-on-rails">Ruby on Rails</a></li>
+<li class="toctree-l1"><a class="reference internal" href="web-servers.html#apache-tomcat">Apache Tomcat</a></li>
+<li class="toctree-l1"><a class="reference internal" href="databases.html">Databases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="databases.html#mysql">MySQL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="databases.html#postgresql">PostgreSQL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lamp-applications.html">LAMP Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lamp-applications.html#overview">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lamp-applications.html#moin-moin">Moin Moin</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lamp-applications.html#mediawiki">MediaWiki</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lamp-applications.html#phpmyadmin">phpMyAdmin</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lamp-applications.html#wordpress">WordPress</a></li>
+<li class="toctree-l1"><a class="reference internal" href="file-server.html">File Servers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="file-server.html#ftp-server">FTP Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="file-server.html#network-file-system-nfs">Network File System (NFS)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="file-server.html#iscsi-initiator">iSCSI Initiator</a></li>
+<li class="toctree-l1"><a class="reference internal" href="file-server.html#cups-print-server">CUPS - Print Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mail.html">Email Services</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mail.html#postfix">Postfix</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mail.html#exim4">Exim4</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mail.html#dovecot-server">Dovecot Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mail.html#mailman">Mailman</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mail.html#mail-filtering">Mail Filtering</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chat.html">Chat Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chat.html#overview">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chat.html#irc-server">IRC Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chat.html#jabber-instant-messaging-server">Jabber Instant Messaging Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vcs.html">Version Control System</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vcs.html#bazaar">Bazaar</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vcs.html#git">Git</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vcs.html#subversion">Subversion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vcs.html#references">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samba.html">Samba</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samba.html#introduction">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samba.html#file-server">File Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samba.html#print-server">Print Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samba.html#securing-file-and-print-server">Securing File and Print Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samba.html#as-a-domain-controller">As a Domain Controller</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samba.html#active-directory-integration">Active Directory Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backups.html">Backups</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backups.html#shell-scripts">Shell Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backups.html#archive-rotation">Archive Rotation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backups.html#bacula">Bacula</a></li>
+<li class="toctree-l1"><a class="reference internal" href="virtualization.html">Virtualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="virtualization.html#libvirt">libvirt</a></li>
+<li class="toctree-l1"><a class="reference internal" href="virtualization.html#cloud-images-and-vmbuilder">Cloud images and vmbuilder</a></li>
+<li class="toctree-l1"><a class="reference internal" href="virtualization.html#ubuntu-cloud">Ubuntu Cloud</a></li>
+<li class="toctree-l1"><a class="reference internal" href="virtualization.html#lxc">LXC</a></li>
+<li class="toctree-l1"><a class="reference internal" href="clustering.html">Clustering</a></li>
+<li class="toctree-l1"><a class="reference internal" href="clustering.html#drbd">DRBD</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">VPN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#openvpn">OpenVPN</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="other-apps.html">Other Useful Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="other-apps.html#pam-motd">pam_motd</a></li>
+<li class="toctree-l1"><a class="reference internal" href="other-apps.html#etckeeper">etckeeper</a></li>
+<li class="toctree-l1"><a class="reference internal" href="other-apps.html#byobu">Byobu</a></li>
+<li class="toctree-l1"><a class="reference internal" href="other-apps.html#references">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reporting-bugs.html">Appendix</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reporting-bugs.html#reporting-bugs-in-ubuntu-server-edition">Reporting Bugs in Ubuntu Server Edition</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="clustering.html"
+                        title="previous chapter">Clustering</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="other-apps.html"
+                        title="next chapter">Other Useful Applications</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/vpn.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="other-apps.html" title="Other Useful Applications"
+             >next</a></li>
+        <li class="right" >
+          <a href="clustering.html" title="Clustering"
+             >previous</a> |</li>
+        <li><a href="index.html">Ubuntu Server Guide - 14.04 LTS</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Ubuntu Documentation Contributors.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

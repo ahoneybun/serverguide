@@ -1,0 +1,338 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>&lt;no title&gt; &mdash; Ubuntu Server Guide 14.04 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '14.04',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Ubuntu Server Guide 14.04 documentation" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li><a href="index.html">Ubuntu Server Guide 14.04 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <table border="1" class="docutils">
+<colgroup>
+<col width="34%" />
+<col width="66%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Attribute</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><strong>polling_interval</strong></td>
+<td>Specifies the interval between two path checks
+in seconds. For properly functioning paths, the
+interval between checks will gradually increase
+to (4 * <strong>polling_interval</strong>). The default
+value is <strong>5</strong>.</td>
+</tr>
+<tr class="row-odd"><td><strong>udev_dir</strong></td>
+<td>The directory where udev device nodes are
+created. The default value is /dev.</td>
+</tr>
+<tr class="row-even"><td><strong>multipath_dir</strong></td>
+<td>The directory where the dynamic shared objects
+are stored. The default value is system
+dependent, commonly <tt class="docutils literal"><span class="pre">/lib/multipath</span></tt>.</td>
+</tr>
+<tr class="row-odd"><td><strong>verbosity</strong></td>
+<td>The default verbosity. Higher values increase
+the verbosity level. Valid levels are between 0
+and 6. The default value is 2.</td>
+</tr>
+<tr class="row-even"><td><strong>path_selector</strong></td>
+<td><p class="first">Specifies the default algorithm to use in
+determining what path to use for the next I/O
+operation. Possible values include:</p>
+<ul class="simple">
+<li><strong>round-robin 0</strong>: Loop through every path in
+the path group, sending the same amount of
+I/O to each.</li>
+<li><strong>queue-length 0</strong>: Send the next bunch of
+I/O down the path with the least number of
+outstanding I/O requests.</li>
+<li><strong>service-time 0</strong>: Send the next bunch of
+I/O down the path with the shortest estimated
+service time, which is determined by dividing
+the total size of the outstanding I/O to each
+path by its relative throughput.</li>
+</ul>
+<p class="last">The default value is <strong>round-robin 0</strong>.</p>
+</td>
+</tr>
+<tr class="row-odd"><td><a href="#id1"><span class="problematic" id="id2">**</span></a>path_grouping_policy
+**</td>
+<td><p class="first">Specifies the default path grouping policy to
+apply to unspecified multipaths. Possible values
+include:</p>
+<ul class="simple">
+<li><strong>failover</strong> = 1 path per priority group</li>
+<li><strong>multibus</strong> = all valid paths in 1 priority
+group</li>
+<li><strong>group_by_serial</strong> = 1 priority group per
+detected serial number</li>
+<li><strong>group_by_prio</strong> = 1 priority group per
+path priority value</li>
+<li><strong>group_by_node_name</strong> = 1 priority group
+per target node name.</li>
+</ul>
+<p class="last">The default value is <strong>failover.</strong></p>
+</td>
+</tr>
+<tr class="row-even"><td><strong>getuid_callout</strong></td>
+<td>Specifies the default program and arguments to
+call out to obtain a unique path identifier. An
+absolute path is required.
+The default value is <strong>/lib/udev/scsi_id
+&#8211;whitelisted &#8211;device=/dev/%n.</strong></td>
+</tr>
+<tr class="row-odd"><td><strong>prio</strong></td>
+<td><p class="first">Specifies the default function to call to obtain
+a path priority value. For example, the ALUA
+bits in SPC-3 provide an exploitable prio value.
+Possible values include:</p>
+<ul class="simple">
+<li><strong>const</strong>: Set a priority of 1 to all paths.</li>
+<li><strong>emc</strong>: Generate the path priority for EMC
+arrays.</li>
+<li><strong>alua</strong>: Generate the path priority based on
+the SCSI-3 ALUA settings.</li>
+<li><strong>netapp</strong>: Generate the path priority for
+NetApp arrays.</li>
+<li><strong>rdac</strong>: Generate the path priority for
+LSI/Engenio RDAC controller.</li>
+<li><strong>hp_sw</strong>: Generate the path priority for
+Compaq/HP controller in active/standby mode.</li>
+<li><strong>hds</strong>: Generate the path priority for
+Hitachi HDS Modular storage arrays.</li>
+</ul>
+<p class="last">The default value is <strong>const</strong>.</p>
+</td>
+</tr>
+<tr class="row-even"><td><strong>prio_args</strong></td>
+<td>The arguments string passed to the prio function
+Most prio functions do not need arguments. The
+datacore prioritizer need one. Example,
+<strong>&#8220;timeout=1000 preferredsds=foo&#8221;</strong>. The default
+value is (null) <strong>&#8220;&#8221;</strong>.</td>
+</tr>
+<tr class="row-odd"><td><strong>features</strong></td>
+<td>The extra features of multipath devices. The
+only existing feature is
+<strong>queue_if_no_path</strong>, which is the same as
+setting <strong>no_path_retry</strong> to <strong>queue</strong>. For
+information on issues that may arise when using
+this feature, see Section, <a class="reference external" href="#multipath-issues-with-queue_if_no_path">&#8220;Issues with
+queue_if_no_path
+feature&#8221;</a>.</td>
+</tr>
+<tr class="row-even"><td><strong>path_checker</strong></td>
+<td><p class="first">Specifies the default method used to determine
+the state of the paths. Possible values include:</p>
+<ul class="simple">
+<li><strong>readsector0</strong>: Read the first sector of the
+device.</li>
+<li><strong>tur</strong>: Issue a TEST UNIT READY to the
+device.</li>
+<li><strong>emc_clariion</strong>: Query the EMC Clariion
+specific EVPD page 0xC0 to determine the
+path.</li>
+<li><strong>hp_sw</strong>: Check the path state for HP
+storage arrays with Active/Standby firmware.</li>
+<li><strong>rdac</strong>: Check the path status for
+LSI/Engenio RDAC storage controller.</li>
+<li><strong>directio</strong>: Read the first sector with
+direct I/O.</li>
+</ul>
+<p class="last">The default value is <strong>directio</strong>.</p>
+</td>
+</tr>
+<tr class="row-odd"><td><strong>failback</strong></td>
+<td><p class="first">Manages path group failback.</p>
+<ul class="simple">
+<li>A value of <strong>immediate</strong> specifies immediate
+failback to the highest priority path group
+that contains active paths.</li>
+<li>A value of <strong>manual</strong> specifies that there
+should not be immediate failback but that
+failback can happen only with operator
+intervention.</li>
+<li>A numeric value greater than zero specifies
+deferred failback, expressed in seconds.</li>
+</ul>
+<p class="last">The default value is <strong>manual</strong>.</p>
+</td>
+</tr>
+<tr class="row-even"><td><strong>rr_min_io</strong></td>
+<td>Specifies the number of I/O requests to route to
+a path before switching to the next path in the
+current path group.
+The default value is <tt class="docutils literal"><span class="pre">1000</span></tt>.</td>
+</tr>
+<tr class="row-odd"><td><strong>rr_weight</strong></td>
+<td>If set to <strong>priorities</strong>, then instead of
+sending <strong>rr_min_io</strong> requests to a path
+before calling <strong>path_selector</strong> to choose the
+next path, the number of requests to send is
+determined by <strong>rr_min_io</strong> times the path&#8217;s
+priority, as determined by the prio function. If
+set to <strong>uniform</strong>, all path weights are equal.
+The default value is <strong>uniform</strong>.</td>
+</tr>
+<tr class="row-even"><td><strong>no_path_retry</strong></td>
+<td>A numeric value for this attribute specifies the
+number of times the system should attempt to use
+a failed path before disabling queueing. A value
+of fail indicates <strong>immediate</strong> failure, without
+queueing. A value of <strong>queue</strong> indicates that
+queueing should not stop until the path is
+fixed.
+The default value is <tt class="docutils literal"><span class="pre">0</span></tt>.</td>
+</tr>
+<tr class="row-odd"><td><a href="#id3"><span class="problematic" id="id4">**</span></a>user_friendly_names*
+*</td>
+<td>If set to yes, specifies that the system should
+use the <tt class="docutils literal"><span class="pre">/etc/multipath/bindings</span></tt> file to
+assign a persistent and unique <strong>alias</strong> to the
+<strong>multipath</strong>, in the form of mpathn. If set to
+no, specifies that the system should use the
+WWID as the <strong>alias</strong> for the <strong>multipath</strong>. In
+either case, what is specified here will be
+overridden by any device-specific aliases you
+specify in the multipaths section of the
+configuration file.
+The default value is <strong>no</strong>.</td>
+</tr>
+<tr class="row-even"><td><a href="#id5"><span class="problematic" id="id6">**</span></a>queue_without_daemon
+**</td>
+<td>If set to no, the <strong>multipathd</strong> daemon will
+disable queueing for all devices when it is shut
+down.
+The default value is <strong>yes</strong>.</td>
+</tr>
+<tr class="row-odd"><td><strong>flush_on_last_del</strong></td>
+<td>If set to yes, then <strong>multipath</strong> will disable
+queueing when the last path to a device has been
+deleted.
+The default value is <strong>no</strong>.</td>
+</tr>
+<tr class="row-even"><td><strong>max_fds</strong></td>
+<td>Sets the maximum number of open file descriptors
+that can be opened by <strong>multipath</strong> and the
+<strong>multipathd</strong> daemon. This is equivalent to the
+ulimit -n command. A value of max will set this
+to the system limit from
+<tt class="docutils literal"><span class="pre">/proc/sys/fs/nr_open</span></tt>. If this is not set,
+the maximum number of open file descriptors is
+taken from the calling process; it is usually
+1024. To be safe, this should be set to the
+maximum number of paths plus 32, if that number
+is greater than 1024.</td>
+</tr>
+<tr class="row-odd"><td><strong>checker_timer</strong></td>
+<td>The timeout to use for path checkers that issue
+SCSI commands with an explicit timeout, in
+seconds.
+The default value is taken from
+<tt class="docutils literal"><span class="pre">/sys/block/sdx/device/timeout</span></tt>, which is
+<tt class="docutils literal"><span class="pre">30</span></tt> seconds as of 12.04 LTS</td>
+</tr>
+<tr class="row-even"><td><strong>fast_io_fail_tmo</strong></td>
+<td>The number of seconds the SCSI layer will wait
+after a problem has been detected on an FC
+remote port before failing I/O to devices on
+that remote port. This value should be smaller
+than the value of dev_loss_tmo. Setting this
+to off will disable the timeout.
+The default value is determined by the OS.</td>
+</tr>
+<tr class="row-odd"><td><strong>dev_loss_tmo</strong></td>
+<td>The number of seconds the SCSI layer will wait
+after a problem has been detected on an FC
+remote port before removing it from the system.
+Setting this to infinity will set this to
+2147483647 seconds, or 68 years. The default
+value is determined by the OS.</td>
+</tr>
+</tbody>
+</table>
+<p>Table: Multipath Configuration Defaults</p>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/multipath-config-defaults-table.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li><a href="index.html">Ubuntu Server Guide 14.04 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Ubuntu Documentation Contributors.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

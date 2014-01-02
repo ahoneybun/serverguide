@@ -1,0 +1,570 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>LAMP Applications &mdash; Ubuntu Server Guide - 14.04 LTS</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '14.04',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Ubuntu Server Guide - 14.04 LTS" href="index.html" />
+    <link rel="next" title="File Servers" href="file-server.html" />
+    <link rel="prev" title="Databases" href="databases.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="file-server.html" title="File Servers"
+             accesskey="N">next</a></li>
+        <li class="right" >
+          <a href="databases.html" title="Databases"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Ubuntu Server Guide - 14.04 LTS</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="lamp-applications">
+<h1>LAMP Applications<a class="headerlink" href="#lamp-applications" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="overview">
+<h1>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h1>
+<p>LAMP installations (Linux + Apache + MySQL + PHP/Perl/Python) are a
+popular setup for Ubuntu servers. There is a plethora of Open Source
+applications written using the LAMP application stack. Some popular LAMP
+applications are Wiki&#8217;s, Content Management Systems, and Management
+Software such as phpMyAdmin.</p>
+<p>One advantage of LAMP is the substantial flexibility for different
+database, web server, and scripting languages. Popular substitutes for
+MySQL include PostgreSQL and SQLite. Python, Perl, and Ruby are also
+frequently used instead of PHP. While Nginx, Cherokee and Lighttpd can
+replace Apache.</p>
+<p>The fastest way to get started is to install LAMP using tasksel. Tasksel
+is a Debian/Ubuntu tool that installs multiple related packages as a
+co-ordinated &#8220;task&#8221; onto your system. To install a LAMP server:</p>
+<p>At a terminal prompt enter the following command:</p>
+<p>After installing it you&#8217;ll be able to install most <em>LAMP</em> applications
+in this way:</p>
+<ul class="simple">
+<li>Download an archive containing the application source files.</li>
+<li>Unpack the archive, usually in a directory accessible to a web
+server.</li>
+<li>Depending on where the source was extracted, configure a web server
+to serve the files.</li>
+<li>Configure the application to connect to the database.</li>
+<li>Run a script, or browse to a page of the application, to install the
+database needed by the application.</li>
+<li>Once the steps above, or similar steps, are completed you are ready
+to begin using the application.</li>
+</ul>
+<p>A disadvantage of using this approach is that the application files are
+not placed in the file system in a standard way, which can cause
+confusion as to where the application is installed. Another larger
+disadvantage is updating the application. When a new version is
+released, the same process used to install the application is needed to
+apply updates.</p>
+<p>Fortunately, a number of <em>LAMP</em> applications are already packaged for
+Ubuntu, and are available for installation in the same way as non-LAMP
+applications. Depending on the application some extra configuration and
+setup steps may be needed, however.</p>
+<p>This section covers how to install some <em>LAMP</em> applications.</p>
+</div>
+<div class="section" id="moin-moin">
+<h1>Moin Moin<a class="headerlink" href="#moin-moin" title="Permalink to this headline">¶</a></h1>
+<p>MoinMoin is a Wiki engine implemented in Python, based on the PikiPiki
+Wiki engine, and licensed under the GNU GPL.</p>
+<div class="section" id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
+<p>To install MoinMoin, run the following command in the command prompt:</p>
+<p>You should also install apache2 web server. For installing apache2 web
+server, please refer to ? sub-section in ? section.</p>
+</div>
+<div class="section" id="configuration">
+<h2>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h2>
+<p>For configuring your first Wiki application, please run the following
+set of commands. Let us assume that you are creating a Wiki named
+<em>mywiki</em>:</p>
+<p>Now you should configure MoinMoin to find your new Wiki <em>mywiki</em>. To
+configure MoinMoin, open <tt class="docutils literal"><span class="pre">/etc/moin/mywiki.py</span></tt> file and change the
+following line:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">data_dir</span> <span class="o">=</span> <span class="s">&#39;/org/mywiki/data&#39;</span>
+</pre></div>
+</div>
+<p>to</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">data_dir</span> <span class="o">=</span> <span class="s">&#39;/usr/share/moin/mywiki/data&#39;</span>
+</pre></div>
+</div>
+<p>Also, below the <em>data_dir</em> option add the <em>data_underlay_dir</em>:</p>
+<div class="highlight-python"><pre>data_underlay_dir='/usr/share/moin/mywiki/underlay'
+
+**Note**
+
+If the ``/etc/moin/mywiki.py`` file does not exists, you should copy
+``/usr/share/moin/config/wikifarm/mywiki.py`` file to
+``/etc/moin/mywiki.py`` file and do the above mentioned change.
+
+**Note**
+
+If you have named your Wiki as *my\_wiki\_name* you should insert a
+line “("my\_wiki\_name", r".\*")” in ``/etc/moin/farmconfig.py``
+file after the line “("mywiki", r".\*")”.</pre>
+</div>
+<p>Once you have configured MoinMoin to find your first Wiki application
+<em>mywiki</em>, you should configure apache2 and make it ready for your Wiki
+application.</p>
+<p>You should add the following lines in
+<tt class="docutils literal"><span class="pre">/etc/apache2/sites-available/default</span></tt> file inside the “&lt;VirtualHost
+*&gt;” tag:</p>
+<div class="highlight-python"><pre>### moin
+  ScriptAlias /mywiki "/usr/share/moin/mywiki/moin.cgi"
+  alias /moin_static193 "/usr/share/moin/htdocs"
+  &lt;Directory /usr/share/moin/htdocs&gt;
+  Order allow,deny
+  allow from all
+  &lt;/Directory&gt;
+### end moin</pre>
+</div>
+<p>Once you configure the apache2 web server and make it ready for your
+Wiki application, you should restart it. You can run the following
+command to restart the apache2 web server:</p>
+</div>
+<div class="section" id="verification">
+<h2>Verification<a class="headerlink" href="#verification" title="Permalink to this headline">¶</a></h2>
+<p>You can verify the Wiki application and see if it works by pointing your
+web browser to the following URL:</p>
+<div class="highlight-python"><pre>http://localhost/mywiki</pre>
+</div>
+<p>For more details, please refer to the <a class="reference external" href="http://moinmo.in/">MoinMoin</a>
+web site.</p>
+</div>
+<div class="section" id="references">
+<h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>For more information see the <a class="reference external" href="http://moinmo.in/">moinmoin Wiki</a>.</li>
+<li>Also, see the <a class="reference external" href="https://help.ubuntu.com/community/MoinMoin">Ubuntu Wiki
+MoinMoin</a> page.</li>
+</ul>
+</div>
+</div>
+<div class="section" id="mediawiki">
+<h1>MediaWiki<a class="headerlink" href="#mediawiki" title="Permalink to this headline">¶</a></h1>
+<p>MediaWiki is an web based Wiki software written in the PHP language. It
+can either use MySQL or PostgreSQL Database Management System.</p>
+<div class="section" id="id1">
+<h2>Installation<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<p>Before installing MediaWiki you should also install Apache2, the PHP5
+scripting language and Database a Management System. MySQL or PostgreSQL
+are the most common, choose one depending on your need. Please refer to
+those sections in this manual for installation instructions.</p>
+<p>To install MediaWiki, run the following command in the command prompt:</p>
+<p>For additional MediaWiki functionality see the mediawiki-extensions
+package.</p>
+</div>
+<div class="section" id="id2">
+<h2>Configuration<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<p>The Apache configuration file <tt class="docutils literal"><span class="pre">mediawiki.conf</span></tt> for MediaWiki is
+installed in <tt class="docutils literal"><span class="pre">/etc/apache2/conf.d/</span></tt> directory. You should uncomment
+the following line in this file to access MediaWiki application.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># Alias /mediawiki /var/lib/mediawiki</span>
+</pre></div>
+</div>
+<p>After you uncomment the above line, restart Apache server and access
+MediaWiki using the following url:</p>
+<div class="highlight-python"><pre>http://localhost/mediawiki/config/index.php
+
+**Tip**
+
+Please read the “Checking environment...” section in this page. You
+should be able to fix many issues by carefully reading this section.</pre>
+</div>
+<p>Once the configuration is complete, you should copy the
+<tt class="docutils literal"><span class="pre">LocalSettings.php</span></tt> file to <tt class="docutils literal"><span class="pre">/etc/mediawiki</span></tt> directory:</p>
+<p>You may also want to edit <tt class="docutils literal"><span class="pre">/etc/mediawiki/LocalSettings.php</span></tt> in order
+to set the memory limit (disabled by default):</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">ini_set</span><span class="p">(</span> <span class="s">&#39;memory_limit&#39;</span><span class="p">,</span> <span class="s">&#39;64M&#39;</span> <span class="p">);</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="extensions">
+<h2>Extensions<a class="headerlink" href="#extensions" title="Permalink to this headline">¶</a></h2>
+<p>The extensions add new features and enhancements for the MediaWiki
+application. The extensions give wiki administrators and end users the
+ability to customize MediaWiki to their requirements.</p>
+<p>You can download MediaWiki extensions as an archive file or checkout
+from the Subversion repository. You should copy it to
+<tt class="docutils literal"><span class="pre">/var/lib/mediawiki/extensions</span></tt> directory. You should also add the
+following line at the end of file: <tt class="docutils literal"><span class="pre">/etc/mediawiki/LocalSettings.php</span></tt>.</p>
+<div class="highlight-python"><pre>require_once "$IP/extensions/ExtentionName/ExtentionName.php";</pre>
+</div>
+</div>
+<div class="section" id="id3">
+<h2>References<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>For more details, please refer to the
+<a class="reference external" href="http://www.mediawiki.org">MediaWiki</a> web site.</li>
+<li>The <a class="reference external" href="http://www.packtpub.com/Mediawiki/book">MediaWiki Administrators&#8217; Tutorial
+Guide</a> contains a wealth
+of information for new MediaWiki administrators.</li>
+<li>Also, the <a class="reference external" href="https://help.ubuntu.com/community/MediaWiki">Ubuntu Wiki
+MediaWiki</a> page is a
+good resource.</li>
+</ul>
+</div>
+</div>
+<div class="section" id="phpmyadmin">
+<h1>phpMyAdmin<a class="headerlink" href="#phpmyadmin" title="Permalink to this headline">¶</a></h1>
+<p>phpMyAdmin is a LAMP application specifically written for administering
+MySQL servers. Written in PHP, and accessed through a web browser,
+phpMyAdmin provides a graphical interface for database administration
+tasks.</p>
+<div class="section" id="id4">
+<h2>Installation<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
+<p>Before installing phpMyAdmin you will need access to a MySQL database
+either on the same host as that phpMyAdmin is installed on, or on a host
+accessible over the network. For more information see ?. From a terminal
+prompt enter:</p>
+<p>At the prompt choose which web server to be configured for phpMyAdmin.
+The rest of this section will use Apache2 for the web server.</p>
+<p>In a browser go to <em>http://servername/phpmyadmin</em>, replacing
+<em>servername</em> with the server&#8217;s actual hostname. At the login, page enter
+<em>root</em> for the <em>username</em>, or another MySQL user, if you have any setup,
+and enter the MySQL user&#8217;s password.</p>
+<p>Once logged in you can reset the <em>root</em> password if needed, create
+users, create/destroy databases and tables, etc.</p>
+</div>
+<div class="section" id="id5">
+<h2>Configuration<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
+<p>The configuration files for phpMyAdmin are located in
+<tt class="docutils literal"><span class="pre">/etc/phpmyadmin</span></tt>. The main configuration file is
+<tt class="docutils literal"><span class="pre">/etc/phpmyadmin/config.inc.php</span></tt>. This file contains configuration
+options that apply globally to phpMyAdmin.</p>
+<p>To use phpMyAdmin to administer a MySQL database hosted on another
+server, adjust the following in <tt class="docutils literal"><span class="pre">/etc/phpmyadmin/config.inc.php</span></tt>:</p>
+<div class="highlight-python"><pre>$cfg['Servers'][$i]['host'] = 'db_server';
+
+**Note**
+
+Replace *db\_server* with the actual remote database server name or
+IP address. Also, be sure that the phpMyAdmin host has permissions
+to access the remote database.</pre>
+</div>
+<p>Once configured, log out of phpMyAdmin and back in, and you should be
+accessing the new server.</p>
+<p>The <tt class="docutils literal"><span class="pre">config.header.inc.php</span></tt> and <tt class="docutils literal"><span class="pre">config.footer.inc.php</span></tt> files are
+used to add a HTML header and footer to phpMyAdmin.</p>
+<p>Another important configuration file is <tt class="docutils literal"><span class="pre">/etc/phpmyadmin/apache.conf</span></tt>,
+this file is symlinked to <tt class="docutils literal"><span class="pre">/etc/apache2/conf.d/phpmyadmin.conf</span></tt>, and
+is used to configure Apache2 to serve the phpMyAdmin site. The file
+contains directives for loading PHP, directory permissions, etc. For
+more information on configuring Apache2 see ?.</p>
+</div>
+<div class="section" id="id6">
+<h2>References<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>The phpMyAdmin documentation comes installed with the package and can
+be accessed from the <em>phpMyAdmin Documentation</em> link (a question mark
+with a box around it) under the phpMyAdmin logo. The official docs
+can also be access on the
+<a class="reference external" href="http://www.phpmyadmin.net/home_page/docs.php">phpMyAdmin</a> site.</li>
+<li>Also, <a class="reference external" href="http://www.packtpub.com/phpmyadmin-3rd-edition/book">Mastering
+phpMyAdmin</a>
+is a great resource.</li>
+<li>A third resource is the <a class="reference external" href="https://help.ubuntu.com/community/phpMyAdmin">phpMyAdmin Ubuntu
+Wiki</a> page.</li>
+</ul>
+</div>
+</div>
+<div class="section" id="wordpress">
+<h1>WordPress<a class="headerlink" href="#wordpress" title="Permalink to this headline">¶</a></h1>
+<p>Wordpress is a blog tool, publishing platform and CMS implemented in PHP
+and licensed under the GNU GPLv2.</p>
+<div class="section" id="id7">
+<h2>Installation<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h2>
+<p>To install WordPress, run the following comand in the command prompt:</p>
+<p>You should also install apache2 web server and mysql server. For
+installing apache2 web server, please refer to ? sub-section in ?
+section. For installing mysql server, please refer to ? sub-section in ?
+section.</p>
+</div>
+<div class="section" id="id8">
+<h2>Configuration<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h2>
+<p>For configuring your first WordPress application, configure an apache
+site. Open <tt class="docutils literal"><span class="pre">/etc/apache2/sites-available/wordpress</span></tt> and write the
+following lines:</p>
+<div class="highlight-python"><pre>Alias /blog /usr/share/wordpress
+Alias /blog/wp-content /var/lib/wordpress/wp-content
+&lt;Directory /usr/share/wordpress&gt;
+    Options FollowSymLinks
+    AllowOverride Limit Options FileInfo
+    DirectoryIndex index.php
+    Order allow,deny
+    Allow from all
+&lt;/Directory&gt;
+&lt;Directory /var/lib/wordpress/wp-content&gt;
+    Options FollowSymLinks
+    Order allow,deny
+    Allow from all
+&lt;/Directory&gt;</pre>
+</div>
+<p>Enable this new WordPress site</p>
+<p>Once you configure the apache2 web server and make it ready for your
+WordPress application, you should restart it. You can run the following
+command to restart the apache2 web server:</p>
+<p>To facilitate multiple WordPress installations, the name of this
+configuration file is based on the Host header of the HTTP request. This
+means that you can have a configuration per VirtualHost by simply
+matching the hostname portion of this configuration with your Apache
+Virtual Host. e.g. /etc/wordpress/config-10.211.55.50.php,
+/etc/wordpress/config-hostalias1.php, etc. These instructions assume you
+can access Apache via the localhost hostname (perhaps by using an ssh
+tunnel) if not, replace /etc/wordpress/config-localhost.php with
+/etc/wordpress/config-NAME_OF_YOUR_VIRTUAL_HOST.php.</p>
+<p>Once the configuration file is written, it is up to you to choose a
+convention for username and password to mysql for each WordPress
+database instance. This documentation shows only one, localhost,
+example.</p>
+<p>Now configure WordPress to use a mysql database. Open
+<tt class="docutils literal"><span class="pre">/etc/wordpress/config-localhost.php</span></tt> file and write the following
+lines:</p>
+<div class="highlight-python"><pre>&lt;?php
+define('DB_NAME', 'wordpress');
+define('DB_USER', 'wordpress');
+define('DB_PASSWORD', 'yourpasswordhere');
+define('DB_HOST', 'localhost');
+define('WP_CONTENT_DIR', '/var/lib/wordpress/wp-content');
+?&gt;</pre>
+</div>
+<p>Now create this mysql database. Open a temporary file with mysql
+commands <tt class="docutils literal"><span class="pre">wordpress.sql</span></tt> and write the following lines:</p>
+<div class="highlight-python"><pre>CREATE DATABASE wordpress;
+GRANT SELECT,INSERT,UPDATE,DELETE,CREATE,DROP,ALTER
+ON wordpress.*
+TO wordpress@localhost
+IDENTIFIED BY 'yourpasswordhere';
+FLUSH PRIVILEGES;</pre>
+</div>
+<p>Execute these commands.</p>
+<p>Your new WordPress can now be configured by visiting
+<a class="reference external" href="http://localhost/blog/wp-admin/install.php">http://localhost/blog/wp-admin/install.php</a>. (Or
+<a class="reference external" href="http://NAME_OF_YOUR_VIRTUAL_HOST/blog/wp-admin/install.php">http://NAME_OF_YOUR_VIRTUAL_HOST/blog/wp-admin/install.php</a> if your
+server has no GUI and you are completing WordPress configuration via a
+web browser running on another computer.) Fill out the Site Title,
+username, password, and E-mail and click Install WordPress.</p>
+<p>Note the generated password (if applicable) and click the login
+password. Your WordPress is now ready for use.</p>
+</div>
+<div class="section" id="id9">
+<h2>References<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><a class="reference external" href="https://codex.wordpress.org/">WordPress.org Codex</a></li>
+<li><a class="reference external" href="https://help.ubuntu.com/community/WordPress">Ubuntu Wiki
+WordPress</a></li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/ubuntu_black-orange_hex_su-medium_cropped.png" alt="Logo"/>
+            </a></p>
+<h3><a href="index.html">Table Of Contents</a></h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="introduction.html#support">Support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html#preparing-to-install">Preparing to Install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html#installing-from-cd">Installing from CD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html#upgrading">Upgrading</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html#advanced-installation">Advanced Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html#kernel-crash-dump">Kernel Crash Dump</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html">Package Management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html#introduction">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html#dpkg">dpkg</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html#apt-get">Apt-Get</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html#aptitude">Aptitude</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html#automatic-updates">Automatic Updates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html#configuration">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html#references">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-config.html">Networking</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-config.html#network-configuration">Network Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-config.html#tcp-ip">TCP/IP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-config.html#dynamic-host-configuration-protocol-dhcp">Dynamic Host Configuration Protocol (DHCP)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-config.html#time-synchronisation-with-ntp">Time Synchronisation with NTP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multipath.html">DMM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multipath.html#device-mapper-multipathing">Device Mapper Multipathing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multipath.html#multipath-devices">Multipath Devices</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multipath.html#setting-up-dmm-overview">Setting up DMM Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multipath.html#the-dmm-configuration-file">The DMM Configuration File</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multipath.html#dmm-administration-and-troubleshooting">DMM Administration and Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="remote-administration.html">Remote Administration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="remote-administration.html#openssh-server">OpenSSH Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="remote-administration.html#puppet">Puppet</a></li>
+<li class="toctree-l1"><a class="reference internal" href="remote-administration.html#zentyal">Zentyal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-auth.html">Network Authentication</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-auth.html#openldap-server">OpenLDAP Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-auth.html#samba-and-ldap">Samba and LDAP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-auth.html#kerberos">Kerberos</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-auth.html#kerberos-and-ldap">Kerberos and LDAP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dns.html">Domain Name Service (DNS)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dns.html#installation">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dns.html#configuration">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dns.html#troubleshooting">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dns.html#references">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html">Security</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html#user-management">User Management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html#console-security">Console Security</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html#firewall">Firewall</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html#apparmor">AppArmor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html#certificates">Certificates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html#ecryptfs">eCryptfs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="monitoring.html">Monitoring</a></li>
+<li class="toctree-l1"><a class="reference internal" href="monitoring.html#overview">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="monitoring.html#nagios">Nagios</a></li>
+<li class="toctree-l1"><a class="reference internal" href="monitoring.html#munin">Munin</a></li>
+<li class="toctree-l1"><a class="reference internal" href="web-servers.html">Web Servers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="web-servers.html#httpd-apache2-web-server">HTTPD - Apache2 Web Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="web-servers.html#php5-scripting-language">PHP5 - Scripting Language</a></li>
+<li class="toctree-l1"><a class="reference internal" href="web-servers.html#squid-proxy-server">Squid - Proxy Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="web-servers.html#ruby-on-rails">Ruby on Rails</a></li>
+<li class="toctree-l1"><a class="reference internal" href="web-servers.html#apache-tomcat">Apache Tomcat</a></li>
+<li class="toctree-l1"><a class="reference internal" href="databases.html">Databases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="databases.html#mysql">MySQL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="databases.html#postgresql">PostgreSQL</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">LAMP Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#moin-moin">Moin Moin</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="#mediawiki">MediaWiki</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="#phpmyadmin">phpMyAdmin</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="#wordpress">WordPress</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="file-server.html">File Servers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="file-server.html#ftp-server">FTP Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="file-server.html#network-file-system-nfs">Network File System (NFS)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="file-server.html#iscsi-initiator">iSCSI Initiator</a></li>
+<li class="toctree-l1"><a class="reference internal" href="file-server.html#cups-print-server">CUPS - Print Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mail.html">Email Services</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mail.html#postfix">Postfix</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mail.html#exim4">Exim4</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mail.html#dovecot-server">Dovecot Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mail.html#mailman">Mailman</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mail.html#mail-filtering">Mail Filtering</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chat.html">Chat Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chat.html#overview">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chat.html#irc-server">IRC Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chat.html#jabber-instant-messaging-server">Jabber Instant Messaging Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vcs.html">Version Control System</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vcs.html#bazaar">Bazaar</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vcs.html#git">Git</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vcs.html#subversion">Subversion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vcs.html#references">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samba.html">Samba</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samba.html#introduction">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samba.html#file-server">File Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samba.html#print-server">Print Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samba.html#securing-file-and-print-server">Securing File and Print Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samba.html#as-a-domain-controller">As a Domain Controller</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samba.html#active-directory-integration">Active Directory Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backups.html">Backups</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backups.html#shell-scripts">Shell Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backups.html#archive-rotation">Archive Rotation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backups.html#bacula">Bacula</a></li>
+<li class="toctree-l1"><a class="reference internal" href="virtualization.html">Virtualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="virtualization.html#libvirt">libvirt</a></li>
+<li class="toctree-l1"><a class="reference internal" href="virtualization.html#cloud-images-and-vmbuilder">Cloud images and vmbuilder</a></li>
+<li class="toctree-l1"><a class="reference internal" href="virtualization.html#ubuntu-cloud">Ubuntu Cloud</a></li>
+<li class="toctree-l1"><a class="reference internal" href="virtualization.html#lxc">LXC</a></li>
+<li class="toctree-l1"><a class="reference internal" href="clustering.html">Clustering</a></li>
+<li class="toctree-l1"><a class="reference internal" href="clustering.html#drbd">DRBD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vpn.html">VPN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vpn.html#openvpn">OpenVPN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="other-apps.html">Other Useful Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="other-apps.html#pam-motd">pam_motd</a></li>
+<li class="toctree-l1"><a class="reference internal" href="other-apps.html#etckeeper">etckeeper</a></li>
+<li class="toctree-l1"><a class="reference internal" href="other-apps.html#byobu">Byobu</a></li>
+<li class="toctree-l1"><a class="reference internal" href="other-apps.html#references">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reporting-bugs.html">Appendix</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reporting-bugs.html#reporting-bugs-in-ubuntu-server-edition">Reporting Bugs in Ubuntu Server Edition</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="databases.html"
+                        title="previous chapter">Databases</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="file-server.html"
+                        title="next chapter">File Servers</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/lamp-applications.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="file-server.html" title="File Servers"
+             >next</a></li>
+        <li class="right" >
+          <a href="databases.html" title="Databases"
+             >previous</a> |</li>
+        <li><a href="index.html">Ubuntu Server Guide - 14.04 LTS</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Ubuntu Documentation Contributors.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

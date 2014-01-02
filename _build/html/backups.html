@@ -1,0 +1,796 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Backups &mdash; Ubuntu Server Guide - 14.04 LTS</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '14.04',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Ubuntu Server Guide - 14.04 LTS" href="index.html" />
+    <link rel="next" title="Virtualization" href="virtualization.html" />
+    <link rel="prev" title="Samba" href="samba.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="virtualization.html" title="Virtualization"
+             accesskey="N">next</a></li>
+        <li class="right" >
+          <a href="samba.html" title="Samba"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Ubuntu Server Guide - 14.04 LTS</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="backups">
+<h1>Backups<a class="headerlink" href="#backups" title="Permalink to this headline">¶</a></h1>
+<p>There are many ways to backup an Ubuntu installation. The most important
+thing about backups is to develop a <em>backup plan</em> consisting of what to
+backup, where to back it up to, and how to restore it.</p>
+<p>The following sections discuss various ways of accomplishing these
+tasks.</p>
+</div>
+<div class="section" id="shell-scripts">
+<h1>Shell Scripts<a class="headerlink" href="#shell-scripts" title="Permalink to this headline">¶</a></h1>
+<p>One of the simplest ways to backup a system is using a <em>shell script</em>.
+For example, a script can be used to configure which directories to
+backup, and pass those directories as arguments to the tar utility,
+which creates an archive file. The archive file can then be moved or
+copied to another location. The archive can also be created on a remote
+file system such as an <em>NFS</em> mount.</p>
+<p>The tar utility creates one archive file out of many files or
+directories. tar can also filter the files through compression
+utilities, thus reducing the size of the archive file.</p>
+<div class="section" id="simple-shell-script">
+<h2>Simple Shell Script<a class="headerlink" href="#simple-shell-script" title="Permalink to this headline">¶</a></h2>
+<p>The following shell script uses tar to create an archive file on a
+remotely mounted NFS file system. The archive filename is determined
+using additional command line utilities.</p>
+<div class="highlight-python"><pre>#!/bin/sh
+####################################
+#
+# Backup to NFS mount script.
+#
+####################################
+
+# What to backup.
+backup_files="/home /var/spool/mail /etc /root /boot /opt"
+
+# Where to backup to.
+dest="/mnt/backup"
+
+# Create archive filename.
+day=$(date +%A)
+hostname=$(hostname -s)
+archive_file="$hostname-$day.tgz"
+
+# Print start status message.
+echo "Backing up $backup_files to $dest/$archive_file"
+date
+echo
+
+# Backup the files using tar.
+tar czf $dest/$archive_file $backup_files
+
+# Print end status message.
+echo
+echo "Backup finished"
+date
+
+# Long listing of files in $dest to check file sizes.
+ls -lh $dest</pre>
+</div>
+<ul class="simple">
+<li><em>$backup_files:</em> a variable listing which directories you would like
+to backup. The list should be customized to fit your needs.</li>
+<li><em>$day:</em> a variable holding the day of the week (Monday, Tuesday,
+Wednesday, etc). This is used to create an archive file for each day
+of the week, giving a backup history of seven days. There are other
+ways to accomplish this including using the date utility.</li>
+<li><em>$hostname:</em> variable containing the <em>short</em> hostname of the system.
+Using the hostname in the archive filename gives you the option of
+placing daily archive files from multiple systems in the same
+directory.</li>
+<li><em>$archive_file:</em> the full archive filename.</li>
+<li><em>$dest:</em> destination of the archive file. The directory needs to be
+created and in this case <em>mounted</em> before executing the backup
+script. See ? for details of using <em>NFS</em>.</li>
+<li><em>status messages:</em> optional messages printed to the console using the
+echo utility.</li>
+<li><em>tar czf $dest/$archive_file $backup_files:</em> the tar command used
+to create the archive file.<ul>
+<li><em>c:</em> creates an archive.</li>
+<li><em>z:</em> filter the archive through the gzip utility compressing the
+archive.</li>
+<li><em>f:</em> output to an archive file. Otherwise the tar output will be
+sent to STDOUT.</li>
+</ul>
+</li>
+<li><em>ls -lh $dest:</em> optional statement prints a <em>-l</em> long listing in <em>-h</em>
+human readable format of the destination directory. This is useful
+for a quick file size check of the archive file. This check should
+not replace testing the archive file.</li>
+</ul>
+<p>This is a simple example of a backup shell script; however there are
+many options that can be included in such a script. See ? for links to
+resources providing more in-depth shell scripting information.</p>
+</div>
+<div class="section" id="executing-the-script">
+<h2>Executing the Script<a class="headerlink" href="#executing-the-script" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="executing-from-a-terminal">
+<h3>Executing from a Terminal<a class="headerlink" href="#executing-from-a-terminal" title="Permalink to this headline">¶</a></h3>
+<p>The simplest way of executing the above backup script is to copy and
+paste the contents into a file. <tt class="docutils literal"><span class="pre">backup.sh</span></tt> for example. Then from a
+terminal prompt:</p>
+<p>This is a great way to test the script to make sure everything works as
+expected.</p>
+</div>
+<div class="section" id="executing-with-cron">
+<h3>Executing with cron<a class="headerlink" href="#executing-with-cron" title="Permalink to this headline">¶</a></h3>
+<p>The cron utility can be used to automate the script execution. The cron
+daemon allows the execution of scripts, or commands, at a specified time
+and date.</p>
+<p>cron is configured through entries in a <tt class="docutils literal"><span class="pre">crontab</span></tt> file. <tt class="docutils literal"><span class="pre">crontab</span></tt>
+files are separated into fields:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># m h dom mon dow   command</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><em>m:</em> minute the command executes on, between 0 and 59.</li>
+<li><em>h:</em> hour the command executes on, between 0 and 23.</li>
+<li><em>dom:</em> day of month the command executes on.</li>
+<li><em>mon:</em> the month the command executes on, between 1 and 12.</li>
+<li><em>dow:</em> the day of the week the command executes on, between 0 and 7.
+Sunday may be specified by using 0 or 7, both values are valid.</li>
+<li><em>command:</em> the command to execute.</li>
+</ul>
+<p>To add or change entries in a <tt class="docutils literal"><span class="pre">crontab</span></tt> file the crontab -e command
+should be used. Also, the contents of a <tt class="docutils literal"><span class="pre">crontab</span></tt> file can be viewed
+using the crontab -l command.</p>
+<p>To execute the backup.sh script listed above using cron. Enter the
+following from a terminal prompt:</p>
+<div class="highlight-python"><pre>**Note**
+
+Using sudo with the crontab -e command edits the *root* user's
+crontab. This is necessary if you are backing up directories only
+the root user has access to.</pre>
+</div>
+<p>Add the following entry to the <tt class="docutils literal"><span class="pre">crontab</span></tt> file:</p>
+<div class="highlight-python"><pre># m h dom mon dow   command
+0 0 * * * bash /usr/local/bin/backup.sh</pre>
+</div>
+<p>The backup.sh script will now be executed every day at 12:00 am.</p>
+<blockquote>
+<div><p><strong>Note</strong></p>
+<p>The backup.sh script will need to be copied to the
+<tt class="docutils literal"><span class="pre">/usr/local/bin/</span></tt> directory in order for this entry to execute
+properly. The script can reside anywhere on the file system, simply
+change the script path appropriately.</p>
+</div></blockquote>
+<p>For more in-depth crontab options see ?.</p>
+</div>
+</div>
+<div class="section" id="restoring-from-the-archive">
+<h2>Restoring from the Archive<a class="headerlink" href="#restoring-from-the-archive" title="Permalink to this headline">¶</a></h2>
+<p>Once an archive has been created it is important to test the archive.
+The archive can be tested by listing the files it contains, but the best
+test is to <em>restore</em> a file from the archive.</p>
+<ul>
+<li><p class="first">To see a listing of the archive contents. From a terminal prompt
+type:</p>
+</li>
+<li><p class="first">To restore a file from the archive to a different directory enter:</p>
+<p>The <em>-C</em> option to tar redirects the extracted files to the specified
+directory. The above example will extract the <tt class="docutils literal"><span class="pre">/etc/hosts</span></tt> file to
+<tt class="docutils literal"><span class="pre">/tmp/etc/hosts</span></tt>. tar recreates the directory structure that it
+contains.</p>
+<p>Also, notice the leading <em>&#8220;/&#8221;</em> is left off the path of the file to
+restore.</p>
+</li>
+<li><p class="first">To restore all files in the archive enter the following:</p>
+<div class="highlight-python"><pre>**Note**
+
+This will overwrite the files currently on the file system.</pre>
+</div>
+</li>
+</ul>
+</div>
+<div class="section" id="references">
+<h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>For more information on shell scripting see the <a class="reference external" href="http://tldp.org/LDP/abs/html/">Advanced
+Bash-Scripting Guide</a></li>
+<li>The book <a class="reference external" href="http://safari.samspublishing.com/0672323583">Teach Yourself Shell Programming in 24
+Hours</a> is available
+online and a great resource for shell scripting.</li>
+<li>The <a class="reference external" href="https://help.ubuntu.com/community/CronHowto">CronHowto Wiki
+Page</a> contains
+details on advanced cron options.</li>
+<li>See the <a class="reference external" href="http://www.gnu.org/software/tar/manual/index.html">GNU tar
+Manual</a> for
+more tar options.</li>
+<li>The Wikipedia <a class="reference external" href="http://en.wikipedia.org/wiki/Backup_rotation_scheme">Backup Rotation
+Scheme</a>
+article contains information on other backup rotation schemes.</li>
+<li>The shell script uses tar to create the archive, but there many other
+command line utilities that can be used. For example:<ul>
+<li><a class="reference external" href="http://www.gnu.org/software/cpio/">cpio</a>: used to copy files
+to and from archives.</li>
+<li><a class="reference external" href="http://www.gnu.org/software/coreutils/">dd</a>: part of the
+coreutils package. A low level utility that can copy data from one
+format to another.</li>
+<li><a class="reference external" href="http://www.rsnapshot.org/">rsnapshot</a>: a file system snapshot
+utility used to create copies of an entire file system.</li>
+<li><a class="reference external" href="http://www.samba.org/ftp/rsync/rsync.html">rsync</a>: a flexible
+utility used to create incremental copies of files.</li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="archive-rotation">
+<h1>Archive Rotation<a class="headerlink" href="#archive-rotation" title="Permalink to this headline">¶</a></h1>
+<p>The shell script in ? only allows for seven different archives. For a
+server whose data doesn&#8217;t change often, this may be enough. If the
+server has a large amount of data, a more complex rotation scheme should
+be used.</p>
+<div class="section" id="rotating-nfs-archives">
+<h2>Rotating NFS Archives<a class="headerlink" href="#rotating-nfs-archives" title="Permalink to this headline">¶</a></h2>
+<p>In this section, the shell script will be slightly modified to implement
+a grandfather-father-son rotation scheme (monthly-weekly-daily):</p>
+<ul class="simple">
+<li>The rotation will do a <em>daily</em> backup Sunday through Friday.</li>
+<li>On Saturday a <em>weekly</em> backup is done giving you four weekly backups
+a month.</li>
+<li>The <em>monthly</em> backup is done on the first of the month rotating two
+monthly backups based on if the month is odd or even.</li>
+</ul>
+<p>Here is the new script:</p>
+<div class="highlight-python"><pre>#!/bin/bash
+####################################
+#
+# Backup to NFS mount script with
+# grandfather-father-son rotation.
+#
+####################################
+
+# What to backup.
+backup_files="/home /var/spool/mail /etc /root /boot /opt"
+
+# Where to backup to.
+dest="/mnt/backup"
+
+# Setup variables for the archive filename.
+day=$(date +%A)
+hostname=$(hostname -s)
+
+# Find which week of the month 1-4 it is.
+day_num=$(date +%d)
+if (( $day_num &lt;= 7 )); then
+        week_file="$hostname-week1.tgz"
+elif (( $day_num &gt; 7 &amp;&amp; $day_num &lt;= 14 )); then
+        week_file="$hostname-week2.tgz"
+elif (( $day_num &gt; 14 &amp;&amp; $day_num &lt;= 21 )); then
+        week_file="$hostname-week3.tgz"
+elif (( $day_num &gt; 21 &amp;&amp; $day_num &lt; 32 )); then
+        week_file="$hostname-week4.tgz"
+fi
+
+# Find if the Month is odd or even.
+month_num=$(date +%m)
+month=$(expr $month_num % 2)
+if [ $month -eq 0 ]; then
+        month_file="$hostname-month2.tgz"
+else
+        month_file="$hostname-month1.tgz"
+fi
+
+# Create archive filename.
+if [ $day_num == 1 ]; then
+    archive_file=$month_file
+elif [ $day != "Saturday" ]; then
+        archive_file="$hostname-$day.tgz"
+else
+    archive_file=$week_file
+fi
+
+# Print start status message.
+echo "Backing up $backup_files to $dest/$archive_file"
+date
+echo
+
+# Backup the files using tar.
+tar czf $dest/$archive_file $backup_files
+
+# Print end status message.
+echo
+echo "Backup finished"
+date
+
+# Long listing of files in $dest to check file sizes.
+ls -lh $dest/</pre>
+</div>
+<p>The script can be executed using the same methods as in ?.</p>
+<p>It is good practice to take backup media off-site in case of a disaster.
+In the shell script example the backup media is another server providing
+an NFS share. In all likelihood taking the NFS server to another
+location would not be practical. Depending upon connection speeds it may
+be an option to copy the archive file over a WAN link to a server in
+another location.</p>
+<p>Another option is to copy the archive file to an external hard drive
+which can then be taken off-site. Since the price of external hard
+drives continue to decrease, it may be cost-effective to use two drives
+for each archive level. This would allow you to have one external drive
+attached to the backup server and one in another location.</p>
+</div>
+<div class="section" id="tape-drives">
+<h2>Tape Drives<a class="headerlink" href="#tape-drives" title="Permalink to this headline">¶</a></h2>
+<p>A tape drive attached to the server can be used instead of an NFS share.
+Using a tape drive simplifies archive rotation, and makes taking the
+media off-site easier as well.</p>
+<p>When using a tape drive, the filename portions of the script aren&#8217;t
+needed because the data is sent directly to the tape device. Some
+commands to manipulate the tape are needed. This is accomplished using
+mt, a magnetic tape control utility part of the cpio package.</p>
+<p>Here is the shell script modified to use a tape drive:</p>
+<div class="highlight-python"><pre>#!/bin/bash
+####################################
+#
+# Backup to tape drive script.
+#
+####################################
+
+# What to backup.
+backup_files="/home /var/spool/mail /etc /root /boot /opt"
+
+# Where to backup to.
+dest="/dev/st0"
+
+# Print start status message.
+echo "Backing up $backup_files to $dest"
+date
+echo
+
+# Make sure the tape is rewound.
+mt -f $dest rewind
+
+# Backup the files using tar.
+tar czf $dest $backup_files
+
+# Rewind and eject the tape.
+mt -f $dest rewoffl
+
+# Print end status message.
+echo
+echo "Backup finished"
+date
+
+**Note**
+
+The default device name for a SCSI tape drive is ``/dev/st0``. Use
+the appropriate device path for your system.</pre>
+</div>
+<p>Restoring from a tape drive is basically the same as restoring from a
+file. Simply rewind the tape and use the device path instead of a file
+path. For example to restore the <tt class="docutils literal"><span class="pre">/etc/hosts</span></tt> file to
+<tt class="docutils literal"><span class="pre">/tmp/etc/hosts</span></tt>:</p>
+</div>
+</div>
+<div class="section" id="bacula">
+<h1>Bacula<a class="headerlink" href="#bacula" title="Permalink to this headline">¶</a></h1>
+<p>Bacula is a backup program enabling you to backup, restore, and verify
+data across your network. There are Bacula clients for Linux, Windows,
+and Mac OS X - making it a cross-platform network wide solution.</p>
+<div class="section" id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<p>Bacula is made up of several components and services used to manage
+which files to backup and backup locations:</p>
+<ul class="simple">
+<li>Bacula Director: a service that controls all backup, restore, verify,
+and archive operations.</li>
+<li>Bacula Console: an application allowing communication with the
+Director. There are three versions of the Console:<ul>
+<li>Text based command line version.</li>
+<li>Gnome based GTK+ Graphical User Interface (GUI) interface.</li>
+<li>wxWidgets GUI interface.</li>
+</ul>
+</li>
+<li>Bacula File: also known as the Bacula Client program. This
+application is installed on machines to be backed up, and is
+responsible for the data requested by the Director.</li>
+<li>Bacula Storage: the programs that perform the storage and recovery of
+data to the physical media.</li>
+<li>Bacula Catalog: is responsible for maintaining the file indexes and
+volume databases for all files backed up, enabling quick location and
+restoration of archived files. The Catalog supports three different
+databases MySQL, PostgreSQL, and SQLite.</li>
+<li>Bacula Monitor: allows the monitoring of the Director, File daemons,
+and Storage daemons. Currently the Monitor is only available as a
+GTK+ GUI application.</li>
+</ul>
+<p>These services and applications can be run on multiple servers and
+clients, or they can be installed on one machine if backing up a single
+disk or volume.</p>
+</div>
+<div class="section" id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><p><strong>Note</strong></p>
+<p>If using MySQL or PostgreSQL as your database, you should already
+have the services available. Bacula will not install them for you.</p>
+</div></blockquote>
+<p>There are multiple packages containing the different Bacula components.
+To install Bacula, from a terminal prompt enter:</p>
+<p>By default installing the bacula package will use a MySQL database for
+the Catalog. If you want to use SQLite or PostgreSQL, for the Catalog,
+install bacula-director-sqlite3 or bacula-director-pgsql respectively.</p>
+<p>During the install process you will be asked to supply credentials for
+the database <em>administrator</em> and the <em>bacula</em> database <em>owner</em>. The
+database administrator will need to have the appropriate rights to
+create a database, see ? for more information.</p>
+</div>
+<div class="section" id="configuration">
+<h2>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h2>
+<p>Bacula configuration files are formatted based on <em>resources</em> comprising
+of <em>directives</em> surrounded by “{}” braces. Each Bacula component has an
+individual file in the <tt class="docutils literal"><span class="pre">/etc/bacula</span></tt> directory.</p>
+<p>The various Bacula components must authorize themselves to each other.
+This is accomplished using the <em>password</em> directive. For example, the
+<em>Storage</em> resource password in the <tt class="docutils literal"><span class="pre">/etc/bacula/bacula-dir.conf</span></tt> file
+must match the <em>Director</em> resource password in
+<tt class="docutils literal"><span class="pre">/etc/bacula/bacula-sd.conf</span></tt>.</p>
+<p>By default the backup job named <em>Client1</em> is configured to archive the
+Bacula Catalog. If you plan on using the server to backup more than one
+client you should change the name of this job to something more
+descriptive. To change the name edit <tt class="docutils literal"><span class="pre">/etc/bacula/bacula-dir.conf</span></tt>:</p>
+<div class="highlight-python"><pre>#
+# Define the main nightly save backup job
+#   By default, this job will back up to disk in
+Job {
+  Name = "BackupServer"
+  JobDefs = "DefaultJob"
+  Write Bootstrap = "/var/lib/bacula/Client1.bsr"
+}
+
+**Note**
+
+The example above changes the job name to *BackupServer* matching
+the machine's host name. Replace “BackupServer” with your
+appropriate hostname, or other descriptive name.</pre>
+</div>
+<p>The <em>Console</em> can be used to query the <em>Director</em> about jobs, but to use
+the Console with a <em>non-root</em> user, the user needs to be in the <em>bacula</em>
+group. To add a user to the bacula group enter the following from a
+terminal:</p>
+<div class="highlight-python"><pre>**Note**
+
+Replace *$username* with the actual username. Also, if you are
+adding the current user to the group you should log out and back in
+for the new permissions to take effect.</pre>
+</div>
+</div>
+<div class="section" id="localhost-backup">
+<h2>Localhost Backup<a class="headerlink" href="#localhost-backup" title="Permalink to this headline">¶</a></h2>
+<p>This section describes how to backup specified directories on a single
+host to a local tape drive.</p>
+<ul>
+<li><p class="first">First, the <em>Storage</em> device needs to be configured. Edit
+<tt class="docutils literal"><span class="pre">/etc/bacula/bacula-sd.conf</span></tt> add:</p>
+<div class="highlight-python"><pre>Device {
+  Name = "Tape Drive"
+  Device Type = tape
+  Media Type = DDS-4
+  Archive Device = /dev/st0
+  Hardware end of medium = No;
+  AutomaticMount = yes;               # when device opened, read it
+  AlwaysOpen = Yes;
+  RemovableMedia = yes;
+  RandomAccess = no;
+  Alert Command = "sh -c 'tapeinfo -f %c | grep TapeAlert'"
+}</pre>
+</div>
+<p>The example is for a <em>DDS-4</em> tape drive. Adjust the “Media Type” and
+“Archive Device” to match your hardware.</p>
+<p>You could also uncomment one of the other examples in the file.</p>
+</li>
+<li><p class="first">After editing <tt class="docutils literal"><span class="pre">/etc/bacula/bacula-sd.conf</span></tt> the Storage daemon will
+need to be restarted:</p>
+</li>
+<li><p class="first">Now add a <em>Storage</em> resource in <tt class="docutils literal"><span class="pre">/etc/bacula/bacula-dir.conf</span></tt> to
+use the new Device:</p>
+<div class="highlight-python"><pre># Definition of "Tape Drive" storage device
+Storage {
+  Name = TapeDrive
+  # Do not use "localhost" here
+  Address = backupserver               # N.B. Use a fully qualified name here
+  SDPort = 9103
+  Password = "Cv70F6pf1t6pBopT4vQOnigDrR0v3LT3Cgkiyjc"
+  Device = "Tape Drive"
+  Media Type = tape
+}</pre>
+</div>
+<p>The <em>Address</em> directive needs to be the Fully Qualified Domain Name
+(FQDN) of the server. Change <em>backupserver</em> to the actual host name.</p>
+<p>Also, make sure the <em>Password</em> directive matches the password string
+in <tt class="docutils literal"><span class="pre">/etc/bacula/bacula-sd.conf</span></tt>.</p>
+</li>
+<li><p class="first">Create a new <em>FileSet</em>, which will determine what directories to
+backup, by adding:</p>
+<div class="highlight-python"><pre># LocalhostBacup FileSet.
+FileSet {
+  Name = "LocalhostFiles"
+  Include {
+    Options {
+      signature = MD5
+      compression=GZIP
+    }
+    File = /etc
+    File = /home
+  }
+}</pre>
+</div>
+<p>This <em>FileSet</em> will backup the <tt class="docutils literal"><span class="pre">/etc</span></tt> and <tt class="docutils literal"><span class="pre">/home</span></tt> directories.
+The <em>Options</em> resource directives configure the FileSet to create an
+MD5 signature for each file backed up, and to compress the files
+using GZIP.</p>
+</li>
+<li><p class="first">Next, create a new <em>Schedule</em> for the backup job:</p>
+<div class="highlight-python"><pre># LocalhostBackup Schedule -- Daily.
+Schedule {
+  Name = "LocalhostDaily"
+  Run = Full daily at 00:01
+}</pre>
+</div>
+<p>The job will run every day at 00:01 or 12:01 am. There are many other
+scheduling options available.</p>
+</li>
+<li><p class="first">Finally create the <em>Job</em>:</p>
+<div class="highlight-python"><pre># Localhost backup.
+Job {
+  Name = "LocalhostBackup"
+  JobDefs = "DefaultJob"
+  Enabled = yes
+  Level = Full
+  FileSet = "LocalhostFiles"
+  Schedule = "LocalhostDaily"
+  Storage = TapeDrive
+  Write Bootstrap = "/var/lib/bacula/LocalhostBackup.bsr"
+}</pre>
+</div>
+<p>The job will do a <em>Full</em> backup every day to the tape drive.</p>
+</li>
+<li><p class="first">Each tape used will need to have a <em>Label</em>. If the current tape does
+not have a label Bacula will send an email letting you know. To label
+a tape using the Console enter the following from a terminal:</p>
+</li>
+<li><p class="first">At the Bacula Console prompt enter:</p>
+</li>
+<li><p class="first">You will then be prompted for the <em>Storage</em> resource:</p>
+</li>
+<li><p class="first">Enter the new <em>Volume</em> name:</p>
+<p>Replace <em>Sunday</em> with the desired label.</p>
+</li>
+<li><p class="first">Now, select the <em>Pool</em>:</p>
+</li>
+</ul>
+<p>Congratulations, you have now configured <em>Bacula</em> to backup the
+localhost to an attached tape drive.</p>
+</div>
+<div class="section" id="resources">
+<h2>Resources<a class="headerlink" href="#resources" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>For more <em>Bacula</em> configuration options refer to the <a class="reference external" href="http://www.bacula.org/en/rel-manual/index.html">Bacula User&#8217;s
+Manual</a></li>
+<li>The <a class="reference external" href="http://www.bacula.org/">Bacula Home Page</a> contains the latest
+Bacula news and developments.</li>
+<li>Also, see the <a class="reference external" href="https://help.ubuntu.com/community/Bacula">Bacula Ubuntu
+Wiki</a> page.</li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/ubuntu_black-orange_hex_su-medium_cropped.png" alt="Logo"/>
+            </a></p>
+<h3><a href="index.html">Table Of Contents</a></h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="introduction.html#support">Support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html#preparing-to-install">Preparing to Install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html#installing-from-cd">Installing from CD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html#upgrading">Upgrading</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html#advanced-installation">Advanced Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html#kernel-crash-dump">Kernel Crash Dump</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html">Package Management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html#introduction">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html#dpkg">dpkg</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html#apt-get">Apt-Get</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html#aptitude">Aptitude</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html#automatic-updates">Automatic Updates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html#configuration">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html#references">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-config.html">Networking</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-config.html#network-configuration">Network Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-config.html#tcp-ip">TCP/IP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-config.html#dynamic-host-configuration-protocol-dhcp">Dynamic Host Configuration Protocol (DHCP)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-config.html#time-synchronisation-with-ntp">Time Synchronisation with NTP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multipath.html">DMM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multipath.html#device-mapper-multipathing">Device Mapper Multipathing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multipath.html#multipath-devices">Multipath Devices</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multipath.html#setting-up-dmm-overview">Setting up DMM Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multipath.html#the-dmm-configuration-file">The DMM Configuration File</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multipath.html#dmm-administration-and-troubleshooting">DMM Administration and Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="remote-administration.html">Remote Administration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="remote-administration.html#openssh-server">OpenSSH Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="remote-administration.html#puppet">Puppet</a></li>
+<li class="toctree-l1"><a class="reference internal" href="remote-administration.html#zentyal">Zentyal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-auth.html">Network Authentication</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-auth.html#openldap-server">OpenLDAP Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-auth.html#samba-and-ldap">Samba and LDAP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-auth.html#kerberos">Kerberos</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-auth.html#kerberos-and-ldap">Kerberos and LDAP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dns.html">Domain Name Service (DNS)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dns.html#installation">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dns.html#configuration">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dns.html#troubleshooting">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dns.html#references">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html">Security</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html#user-management">User Management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html#console-security">Console Security</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html#firewall">Firewall</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html#apparmor">AppArmor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html#certificates">Certificates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html#ecryptfs">eCryptfs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="monitoring.html">Monitoring</a></li>
+<li class="toctree-l1"><a class="reference internal" href="monitoring.html#overview">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="monitoring.html#nagios">Nagios</a></li>
+<li class="toctree-l1"><a class="reference internal" href="monitoring.html#munin">Munin</a></li>
+<li class="toctree-l1"><a class="reference internal" href="web-servers.html">Web Servers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="web-servers.html#httpd-apache2-web-server">HTTPD - Apache2 Web Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="web-servers.html#php5-scripting-language">PHP5 - Scripting Language</a></li>
+<li class="toctree-l1"><a class="reference internal" href="web-servers.html#squid-proxy-server">Squid - Proxy Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="web-servers.html#ruby-on-rails">Ruby on Rails</a></li>
+<li class="toctree-l1"><a class="reference internal" href="web-servers.html#apache-tomcat">Apache Tomcat</a></li>
+<li class="toctree-l1"><a class="reference internal" href="databases.html">Databases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="databases.html#mysql">MySQL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="databases.html#postgresql">PostgreSQL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lamp-applications.html">LAMP Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lamp-applications.html#overview">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lamp-applications.html#moin-moin">Moin Moin</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lamp-applications.html#mediawiki">MediaWiki</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lamp-applications.html#phpmyadmin">phpMyAdmin</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lamp-applications.html#wordpress">WordPress</a></li>
+<li class="toctree-l1"><a class="reference internal" href="file-server.html">File Servers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="file-server.html#ftp-server">FTP Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="file-server.html#network-file-system-nfs">Network File System (NFS)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="file-server.html#iscsi-initiator">iSCSI Initiator</a></li>
+<li class="toctree-l1"><a class="reference internal" href="file-server.html#cups-print-server">CUPS - Print Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mail.html">Email Services</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mail.html#postfix">Postfix</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mail.html#exim4">Exim4</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mail.html#dovecot-server">Dovecot Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mail.html#mailman">Mailman</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mail.html#mail-filtering">Mail Filtering</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chat.html">Chat Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chat.html#overview">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chat.html#irc-server">IRC Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chat.html#jabber-instant-messaging-server">Jabber Instant Messaging Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vcs.html">Version Control System</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vcs.html#bazaar">Bazaar</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vcs.html#git">Git</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vcs.html#subversion">Subversion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vcs.html#references">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samba.html">Samba</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samba.html#introduction">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samba.html#file-server">File Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samba.html#print-server">Print Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samba.html#securing-file-and-print-server">Securing File and Print Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samba.html#as-a-domain-controller">As a Domain Controller</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samba.html#active-directory-integration">Active Directory Integration</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">Backups</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#shell-scripts">Shell Scripts</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="#archive-rotation">Archive Rotation</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="#bacula">Bacula</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="virtualization.html">Virtualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="virtualization.html#libvirt">libvirt</a></li>
+<li class="toctree-l1"><a class="reference internal" href="virtualization.html#cloud-images-and-vmbuilder">Cloud images and vmbuilder</a></li>
+<li class="toctree-l1"><a class="reference internal" href="virtualization.html#ubuntu-cloud">Ubuntu Cloud</a></li>
+<li class="toctree-l1"><a class="reference internal" href="virtualization.html#lxc">LXC</a></li>
+<li class="toctree-l1"><a class="reference internal" href="clustering.html">Clustering</a></li>
+<li class="toctree-l1"><a class="reference internal" href="clustering.html#drbd">DRBD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vpn.html">VPN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vpn.html#openvpn">OpenVPN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="other-apps.html">Other Useful Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="other-apps.html#pam-motd">pam_motd</a></li>
+<li class="toctree-l1"><a class="reference internal" href="other-apps.html#etckeeper">etckeeper</a></li>
+<li class="toctree-l1"><a class="reference internal" href="other-apps.html#byobu">Byobu</a></li>
+<li class="toctree-l1"><a class="reference internal" href="other-apps.html#references">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reporting-bugs.html">Appendix</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reporting-bugs.html#reporting-bugs-in-ubuntu-server-edition">Reporting Bugs in Ubuntu Server Edition</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="samba.html"
+                        title="previous chapter">Samba</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="virtualization.html"
+                        title="next chapter">Virtualization</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/backups.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="virtualization.html" title="Virtualization"
+             >next</a></li>
+        <li class="right" >
+          <a href="samba.html" title="Samba"
+             >previous</a> |</li>
+        <li><a href="index.html">Ubuntu Server Guide - 14.04 LTS</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Ubuntu Documentation Contributors.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,1301 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>DMM &mdash; Ubuntu Server Guide 14.04 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '14.04',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Ubuntu Server Guide 14.04 documentation" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li><a href="index.html">Ubuntu Server Guide 14.04 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="dmm">
+<h1>DMM<a class="headerlink" href="#dmm" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="device-mapper-multipathing">
+<h1>Device Mapper Multipathing<a class="headerlink" href="#device-mapper-multipathing" title="Permalink to this headline">¶</a></h1>
+<p>Device mapper multipathing (DM-Multipath) allows you to configure
+multiple I/O paths between server nodes and storage arrays into a single
+device. These I/O paths are physical SAN connections that can include
+separate cables, switches, and controllers. Multipathing aggregates the
+I/O paths, creating a new device that consists of the aggregated paths.
+This chapter provides a summary of the features of DM-Multipath that are
+new for the initial release of Ubuntu Server 12.04. Following that, this
+chapter provides a high-level overview of DM Multipath and its
+components, as well as an overview of DM-Multipath setup.</p>
+<div class="section" id="new-and-changed-features-for-ubuntu-server-12-04">
+<h2>New and Changed Features for Ubuntu Server 12.04<a class="headerlink" href="#new-and-changed-features-for-ubuntu-server-12-04" title="Permalink to this headline">¶</a></h2>
+<p>Migrated from multipath-0.4.8 to multipath-0.4.9</p>
+<div class="section" id="migration-from-0-4-8">
+<h3>Migration from 0.4.8<a class="headerlink" href="#migration-from-0-4-8" title="Permalink to this headline">¶</a></h3>
+<p>The priority checkers are no longer run as standalone binaries, but as
+shared libraries. The key value name for this feature has also slightly
+changed. Copy the attribute named <strong>prio_callout</strong> to <strong>prio</strong>, also
+modify the argument the name of the priority checker, a system path is
+no longer necessary. Example conversion:</p>
+<div class="highlight-python"><pre>device {
+        vendor "NEC"
+        product "DISK ARRAY"
+        prio_callout mpath_prio_alua /dev/%n
+        prio    alua
+}</pre>
+</div>
+<p>See Table ? for a complete listing</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="66%" />
+<col width="34%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">v0.4.8</th>
+<th class="head">v0.4.9</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><strong>prio_callout mpath_prio_emc /dev/%n</strong></td>
+<td><strong>prio emc</strong></td>
+</tr>
+<tr class="row-odd"><td><strong>prio_callout mpath_prio_alua /dev/%n</strong></td>
+<td><strong>prio alua</strong></td>
+</tr>
+<tr class="row-even"><td><strong>prio_callout mpath_prio_netapp /dev/%n</strong></td>
+<td><strong>prio netapp</strong></td>
+</tr>
+<tr class="row-odd"><td><strong>prio_callout mpath_prio_rdac /dev/%n</strong></td>
+<td><strong>prio rdac</strong></td>
+</tr>
+<tr class="row-even"><td><strong>prio_callout mpath_prio_hp_sw /dev/%n</strong></td>
+<td><strong>prio hp_sw</strong></td>
+</tr>
+<tr class="row-odd"><td><strong>prio_callout mpath_prio_hds_modular %b</strong></td>
+<td><strong>prio hds</strong></td>
+</tr>
+</tbody>
+</table>
+<p>Table: Priority Checker Conversion</p>
+<p>Since the multipath config file parser essentially parses all key/value
+pairs it finds and then makes use of them, it is safe for both
+<strong>prio_callout</strong> and <strong>prio</strong> to coexist and is recommended that the
+<strong>prio</strong> attribute be inserted before beginning migration. After which
+you can safely delete the legacy <strong>prio_calliout</strong> attribute without
+interrupting service.</p>
+</div>
+</div>
+<div class="section" id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<p>DM-Multipath can be used to provide:</p>
+<ul class="simple">
+<li><em>Redundancy</em> DM-Multipath can provide failover in an active/passive
+configuration. In an active/passive configuration, only half the
+paths are used at any time for I/O. If any element of an I/O path
+(the cable, switch, or controller) fails, DM-Multipath switches to an
+alternate path.</li>
+<li><em>Improved Performance</em> Performance DM-Multipath can be configured in
+active/active mode, where I/O is spread over the paths in a
+round-robin fashion. In some configurations, DM-Multipath can detect
+loading on the I/O paths and dynamically re-balance the load.</li>
+</ul>
+</div>
+<div class="section" id="storage-array-overview">
+<h2>Storage Array Overview<a class="headerlink" href="#storage-array-overview" title="Permalink to this headline">¶</a></h2>
+<p>By default, DM-Multipath includes support for the most common storage
+arrays that support DM-Multipath. The supported devices can be found in
+the multipath.conf.defaults file. If your storage array supports
+DM-Multipath and is not configured by default in this file, you may need
+to add them to the DM-Multipath configuration file, multipath.conf. For
+information on the DM-Multipath configuration file, see Section, <a class="reference external" href="#multipath-dm-multipath-config-file">The
+DM-Multipath Configuration
+File</a>. Some storage arrays
+require special handling of I/O errors and path switching. These require
+separate hardware handler kernel modules.</p>
+</div>
+<div class="section" id="dmm-components">
+<h2>DMM components<a class="headerlink" href="#dmm-components" title="Permalink to this headline">¶</a></h2>
+<p>Table <a class="reference external" href="#multipath-components-table">DM-Multipath Components</a>
+describes the components of the DM-Multipath package.</p>
+</div>
+<div class="section" id="dmm-setup-overview">
+<h2>DMM Setup Overview<a class="headerlink" href="#dmm-setup-overview" title="Permalink to this headline">¶</a></h2>
+<p>DM-Multipath includes compiled-in default settings that are suitable for
+common multipath configurations. Setting up DM-multipath is often a
+simple procedure. The basic procedure for configuring your system with
+DM-Multipath is as follows:</p>
+<ol class="arabic simple">
+<li>Install the <strong>multipath-tools</strong> and <strong>multipath-tools-boot</strong> packages</li>
+<li>Create an empty config file, MULTIPATH-CONF-FULL, that re-defines the
+<a class="reference external" href="#multipath-skel-config">following</a></li>
+<li>If necessary, edit the <strong>multipath.conf</strong> configuration file to
+modify default values and save the updated file.</li>
+<li>Start the multipath daemon</li>
+<li>Update initial ramdisk</li>
+</ol>
+<p>For detailed setup instructions for multipath configuration see Section,
+<a class="reference external" href="#multipath-setup-overview">Setting Up DM-Multipath</a>.</p>
+</div>
+</div>
+<div class="section" id="multipath-devices">
+<h1>Multipath Devices<a class="headerlink" href="#multipath-devices" title="Permalink to this headline">¶</a></h1>
+<p>Without DM-Multipath, each path from a server node to a storage
+controller is treated by the system as a separate device, even when the
+I/O path connects the same server node to the same storage controller.
+DM-Multipath provides a way of organizing the I/O paths logically, by
+creating a single multipath device on top of the underlying devices.</p>
+<div class="section" id="multipath-device-identifiers">
+<h2>Multipath Device Identifiers<a class="headerlink" href="#multipath-device-identifiers" title="Permalink to this headline">¶</a></h2>
+<p>Each multipath device has a World Wide Identifier (WWID), which is
+guaranteed to be globally unique and unchanging. By default, the name of
+a multipath device is set to its WWID. Alternately, you can set the
+<strong>`user_friendly_names &lt;#attribute-user_friendly_names&gt;`__</strong>option
+in the multipath configuration file, which causes DM-Multipath to use a
+node-unique alias of the form <strong>mpathn</strong> as the name. For example, a
+node with two HBAs attached to a storage controller with two ports via a
+single unzoned FC switch sees four devices: <strong>/dev/sda</strong>, <strong>/dev/sdb</strong>,
+<strong>/dev/sdc</strong>, and <strong>/dev/sdd</strong>. DM-Multipath creates a single device
+with a unique WWID that reroutes I/O to those four underlying devices
+according to the multipath configuration. When the
+<strong>`user_friendly_names &lt;#attribute-user_friendly_names&gt;`__</strong>
+configuration option is set to <strong>yes</strong>, the name of the multipath device
+is set to <strong>mpathn</strong>. When new devices are brought under the control of
+DM-Multipath, the new devices may be seen in two different places under
+the <strong>/dev</strong> directory: <strong>/dev/mapper/mpathn</strong> and <strong>/dev/dm-n</strong>.</p>
+<ul class="simple">
+<li>The devices in <strong>/dev/mapper</strong> are created early in the boot process.
+Use these devices to access the multipathed devices, for example when
+creating logical volumes.</li>
+<li>Any devices of the form <strong>/dev/dm-n</strong> are for internal use only and
+should never be used.</li>
+</ul>
+<p>For information on the multipath configuration defaults, including the
+<strong>`user_friendly_names &lt;#attribute-user_friendly_names&gt;`__</strong>
+configuration option, see Section , <a class="reference external" href="#multipath-config-defaults">Configuration File
+Defaults</a>. You can also set the name of a
+multipath device to a name of your choosing by using the
+<strong>`alias &lt;#attribute-alias&gt;`__</strong> option in the <strong>multipaths</strong> section of
+the multipath configuration file. For information on the <strong>multipaths</strong>
+section of the multipath configuration file, see Section, <a class="reference external" href="#multipath-config-multipath">Multipaths
+Device Configuration Attributes</a>.</p>
+</div>
+<div class="section" id="consistent-multipath-device-names-in-a-cluster">
+<h2>Consistent Multipath Device Names in a Cluster<a class="headerlink" href="#consistent-multipath-device-names-in-a-cluster" title="Permalink to this headline">¶</a></h2>
+<p>When the <strong>user_friendly_names</strong> configuration option is set to yes,
+the name of the multipath device is unique to a node, but it is not
+guaranteed to be the same on all nodes using the multipath device.
+Similarly, if you set the <strong>alias</strong> option for a device in the
+<strong>multipaths</strong> section of the MULTIPATH-CONF configuration file, the
+name is not automatically consistent across all nodes in the cluster.
+This should not cause any difficulties if you use LVM to create logical
+devices from the multipath device, but if you require that your
+multipath device names be consistent in every node it is recommended
+that you leave the <strong>user_friendly_names</strong> option set to <strong>no</strong> and
+that you not configure aliases for the devices. By default, if you do
+not set <strong>user_friendly_names</strong> to yes or configure an alias for a
+device, a device name will be the WWID for the device, which is always
+the same. If you want the system-defined user-friendly names to be
+consistent across all nodes in the cluster, however, you can follow this
+procedure:</p>
+<ol class="arabic">
+<li><p class="first">Set up all of the multipath devices on one machine.</p>
+</li>
+<li><p class="first">Disable all of your multipath devices on your other machines by
+running the following commands:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># service multipath-tools stop</span>
+<span class="c"># multipath -F</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">Copy the <tt class="docutils literal"><span class="pre">/etc/multipath/bindings</span></tt> file from the first machine to
+all the other machines in the cluster.</p>
+</li>
+<li><p class="first">Re-enable the multipathd daemon on all the other machines in the
+cluster by running the following command:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># service multipath-tools start</span>
+</pre></div>
+</div>
+</li>
+</ol>
+<p>If you add a new device, you will need to repeat this process.</p>
+<p>Similarly, if you configure an alias for a device that you would like to
+be consistent across the nodes in the cluster, you should ensure that
+the <tt class="docutils literal"><span class="pre">/etc/multipath.conf</span></tt> file is the same for each node in the
+cluster by following the same procedure:</p>
+<ol class="arabic">
+<li><p class="first">Configure the aliases for the multipath devices in the in the
+<tt class="docutils literal"><span class="pre">multipath.conf</span></tt> file on one machine.</p>
+</li>
+<li><p class="first">Disable all of your multipath devices on your other machines by
+running the following commands:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># service multipath-tools stop</span>
+<span class="c"># multipath -F</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">Copy the MULTIPATH-CONF file from the first machine to all the other
+machines in the cluster.</p>
+</li>
+<li><p class="first">Re-enable the multipathd daemon on all the other machines in the
+cluster by running the following command:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># service multipath-tools start</span>
+</pre></div>
+</div>
+</li>
+</ol>
+<p>When you add a new device you will need to repeat this process.</p>
+</div>
+<div class="section" id="multipath-device-attributes">
+<h2>Multipath Device attributes<a class="headerlink" href="#multipath-device-attributes" title="Permalink to this headline">¶</a></h2>
+<p>In addition to the <strong>user_friendly_names</strong> and <strong>alias</strong> options, a
+multipath device has numerous attributes. You can modify these
+attributes for a specific multipath device by creating an entry for that
+device in the <strong>multipaths</strong> section of the <strong>multipath</strong> configuration
+file. For information on the <strong>multipaths</strong> section of the multipath
+configuration file, see Section, &#8220;#multipath-config-multipath&#8221;.</p>
+</div>
+<div class="section" id="multipath-devices-in-logical-volumes">
+<h2>Multipath Devices in Logical Volumes<a class="headerlink" href="#multipath-devices-in-logical-volumes" title="Permalink to this headline">¶</a></h2>
+<p>After creating multipath devices, you can use the multipath device names
+just as you would use a physical device name when creating an LVM
+physical volume. For example, if /dev/mapper/mpatha is the name of a
+multipath device, the following command will mark /dev/mapper/mpatha as
+a physical volume.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># pvcreate /dev/mapper/mpatha</span>
+</pre></div>
+</div>
+<p>You can use the resulting LVM physical device when you create an LVM
+volume group just as you would use any other LVM physical device.</p>
+<blockquote>
+<div><p><strong>Note</strong></p>
+<p>If you attempt to create an LVM physical volume on a whole device on
+which you have configured partitions, the pvcreate command will
+fail.</p>
+</div></blockquote>
+<p>When you create an LVM logical volume that uses active/passive multipath
+arrays as the underlying physical devices, you should include filters in
+the <strong>lvm.conf</strong> to exclude the disks that underlie the multipath
+devices. This is because if the array automatically changes the active
+path to the passive path when it receives I/O, multipath will failover
+and failback whenever LVM scans the passive path if these devices are
+not filtered. For active/passive arrays that require a command to make
+the passive path active, LVM prints a warning message when this occurs.
+To filter all SCSI devices in the LVM configuration file (lvm.conf),
+include the following filter in the devices section of the file.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="nb">filter</span> <span class="o">=</span> <span class="p">[</span> <span class="s">&quot;r/block/&quot;</span><span class="p">,</span> <span class="s">&quot;r/disk/&quot;</span><span class="p">,</span> <span class="s">&quot;r/sd.*/&quot;</span><span class="p">,</span> <span class="s">&quot;a/.*/&quot;</span> <span class="p">]</span>
+</pre></div>
+</div>
+<p>After updating <tt class="docutils literal"><span class="pre">/etc/lvm.conf</span></tt>, it&#8217;s necessary to update the
+<strong>initrd</strong> so that this file will be copied there, where the filter
+matters the most, during boot. Perform:</p>
+<div class="highlight-python"><pre>update-initramfs -u -k all
+
+**Note**
+
+Every time either ``/etc/lvm.conf`` or ``/etc/multipath.conf`` is
+updated, the initrd should be rebuilt to reflect these changes. This
+is imperative when blacklists and filters are necessary to maintain
+a stable storage configuration.</pre>
+</div>
+</div>
+</div>
+<div class="section" id="setting-up-dmm-overview">
+<h1>Setting up DMM Overview<a class="headerlink" href="#setting-up-dmm-overview" title="Permalink to this headline">¶</a></h1>
+<p>This section provides step-by-step example procedures for configuring
+DMM. It includes the following procedures:</p>
+<ul class="simple">
+<li>Basic DMM setup</li>
+<li>Ignoring local disks</li>
+<li>Adding more devices to the configuration file</li>
+</ul>
+<div class="section" id="setting-up-dmm">
+<h2>Setting Up DMM<a class="headerlink" href="#setting-up-dmm" title="Permalink to this headline">¶</a></h2>
+<p>Before setting up DMM on your system, ensure that your system has been
+updated and includes the <strong>multipath-tools</strong> package. If boot from SAN
+is desired, then the <strong>multipath-tools-boot</strong> package is also required.</p>
+<p>A basic <strong>/etc/multipath.conf</strong> need not even exist, when <strong>multpath</strong>
+is run without an accompanying <tt class="docutils literal"><span class="pre">/etc/multipath.conf</span></tt>, it draws from
+it&#8217;s internal database to find a suitable configuration, it also draws
+from it&#8217;s internal blacklist. If after running <strong>multipath -ll</strong> without
+a config file, no multipaths are discovered. One must proceed to
+increase the verbosity to discover why a multipath was not created.
+Consider referencing the SAN vendor&#8217;s documentation, the multipath
+example config files found in
+<tt class="docutils literal"><span class="pre">/usr/share/doc/multipath-tools/examples</span></tt>, and the live multipathd
+database:</p>
+<div class="highlight-python"><pre># echo 'show config' | multipathd -k &gt; multipath.conf-live
+
+**Note**
+
+To work around a quirk in multipathd, when an
+``/etc/multipath.conf`` doesn't exist, the previous command will
+return nothing, as it is the result of a *merge* between the
+``/etc/multipath.conf`` and the database in memory. To remedy this,
+either define an empty ``/etc/multipath.conf``, by using **touch**,
+or create one that redefines a default value like:
+
+::
+
+    defaults {
+            user_friendly_names no
+    }
+
+and restart multipathd:
+
+::
+
+    # service multipath-tools restart
+
+Now the "show config" command will return the live database.</pre>
+</div>
+</div>
+<div class="section" id="installing-with-multipath-support">
+<h2>Installing with Multipath Support<a class="headerlink" href="#installing-with-multipath-support" title="Permalink to this headline">¶</a></h2>
+<p>To enable <a class="reference external" href="http://wiki.debian.org/DebianInstaller/MultipathSupport">multipath support during
+installation</a>
+use</p>
+<div class="highlight-python"><pre>install disk-detect/multipath/enable=true</pre>
+</div>
+<p>at the installer prompt. If multipath devices are found these will show
+up as <strong>/dev/mapper/mpath&lt;X&gt;</strong> during installation.</p>
+</div>
+<div class="section" id="ignoring-local-disks-when-generating-multipath-devices">
+<h2>Ignoring Local Disks When Generating Multipath Devices<a class="headerlink" href="#ignoring-local-disks-when-generating-multipath-devices" title="Permalink to this headline">¶</a></h2>
+<p>Some machines have local SCSI cards for their internal disks.
+DM-Multipath is not recommended for these devices. The following
+procedure shows how to modify the multipath configuration file to ignore
+the local disks when configuring multipath.</p>
+<ol class="arabic">
+<li><p class="first">Determine which disks are the internal disks and mark them as the
+ones to blacklist. In this example, <strong>``/dev/sda``</strong> is the internal
+disk. Note that as originally configured in the default multipath
+configuration file, executing the <strong>multipath -v2</strong> shows the local
+disk, <strong>/dev/sda</strong>, in the multipath map. For further information on
+the <strong>multipath</strong> command output, see Section <a class="reference external" href="#multipath-command-output">Multipath Command
+Output</a>.</p>
+<div class="highlight-python"><pre># multipath -v2
+create: SIBM-ESXSST336732LC____F3ET0EP0Q000072428BX1 undef WINSYS,SF2372
+size=33 GB features="0" hwhandler="0" wp=undef
+`-+- policy='round-robin 0' prio=1 status=undef
+  |- 0:0:0:0 sda 8:0  [---------
+
+device-mapper ioctl cmd 9 failed: Invalid argument
+device-mapper ioctl cmd 14 failed: No such device or address
+create: 3600a0b80001327d80000006d43621677 undef WINSYS,SF2372
+size=12G features='0' hwhandler='0' wp=undef
+`-+- policy='round-robin 0' prio=1 status=undef
+  |- 2:0:0:0 sdb 8:16  undef ready  running
+    `- 3:0:0:0 sdf 8:80 undef ready  running
+
+create: 3600a0b80001327510000009a436215ec undef WINSYS,SF2372
+size=12G features='0' hwhandler='0' wp=undef
+`-+- policy='round-robin 0' prio=1 status=undef
+  |- 2:0:0:1 sdc 8:32 undef ready  running
+    `- 3:0:0:1 sdg 8:96 undef ready  running
+
+create: 3600a0b80001327d800000070436216b3 undef WINSYS,SF2372
+size=12G features='0' hwhandler='0' wp=undef
+`-+- policy='round-robin 0' prio=1 status=undef
+  |- 2:0:0:2 sdd 8:48 undef ready  running
+    `- 3:0:0:2 sdg 8:112 undef ready  running
+
+create: 3600a0b80001327510000009b4362163e undef WINSYS,SF2372
+size=12G features='0' hwhandler='0' wp=undef
+`-+- policy='round-robin 0' prio=1 status=undef
+  |- 2:0:0:3 sdd 8:64 undef ready  running
+    `- 3:0:0:3 sdg 8:128 undef ready  running</pre>
+</div>
+</li>
+<li><p class="first">In order to prevent the device mapper from mapping <strong>/dev/sda</strong> in
+its multipath maps, edit the blacklist section of the
+MULTIPATH-CONF-FULL file to include this device. Although you could
+blacklist the <strong>sda</strong> device using a <strong>devnode</strong> type, that would not
+be safe procedure since <strong>/dev/sda</strong> is not guaranteed to be the same
+on reboot. To blacklist individual devices, you can blacklist using
+the WWID of that device. Note that in the output to the <strong>multipath
+-v2</strong> command, the WWID of the <tt class="docutils literal"><span class="pre">/dev/sda</span></tt> device is
+SIBM-ESXSST336732LC____F3ET0EP0Q000072428BX1. To blacklist this
+device, include the following in the MULTIPATH-CONF-FULL file.</p>
+<div class="highlight-python"><pre>blacklist {
+      wwid SIBM-ESXSST336732LC____F3ET0EP0Q000072428BX1
+}</pre>
+</div>
+</li>
+<li><p class="first">After you have updated the MULTIPATH-CONF-FULL file, you must
+manually tell the <strong>multipathd</strong> daemon to reload the file. The
+following command reloads the updated MULTIPATH-CONF-FULL file.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># service multipath-tools reload</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">Run the following command to remove the multipath device:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># multipath -f SIBM-ESXSST336732LC____F3ET0EP0Q000072428BX1</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">To check whether the device removal worked, you can run the
+<tt class="docutils literal"><span class="pre">multipath</span> <span class="pre">-ll</span></tt> command to display the current multipath
+configuration. For information on the <a href="#id1"><span class="problematic" id="id2">``</span></a>multipath</p>
+<blockquote>
+<div><p>-ll`` command, see Section <a href="#id3"><span class="problematic" id="id4">`</span></a>Multipath Queries with</p>
+</div></blockquote>
+<p>multipath Command &lt;#multipath-queries-and-commands&gt;`__. To check that
+the blacklisted device was not added back, you can run the multipath
+command, as in the following example. The multipath command defaults
+to a verbosity level of <strong>v2</strong> if you do not specify a <strong>-v</strong> option.</p>
+<div class="highlight-python"><pre># multipath
+
+create: 3600a0b80001327d80000006d43621677 undef WINSYS,SF2372
+size=12G features='0' hwhandler='0' wp=undef
+`-+- policy='round-robin 0' prio=1 status=undef
+  |- 2:0:0:0 sdb 8:16  undef ready  running
+    `- 3:0:0:0 sdf 8:80 undef ready  running
+
+create: 3600a0b80001327510000009a436215ec undef WINSYS,SF2372
+size=12G features='0' hwhandler='0' wp=undef
+`-+- policy='round-robin 0' prio=1 status=undef
+  |- 2:0:0:1 sdc 8:32 undef ready  running
+    `- 3:0:0:1 sdg 8:96 undef ready  running
+
+create: 3600a0b80001327d800000070436216b3 undef WINSYS,SF2372
+size=12G features='0' hwhandler='0' wp=undef
+`-+- policy='round-robin 0' prio=1 status=undef
+  |- 2:0:0:2 sdd 8:48 undef ready  running
+    `- 3:0:0:2 sdg 8:112 undef ready  running
+
+create: 3600a0b80001327510000009b4362163e undef WINSYS,SF2372
+size=12G features='0' hwhandler='0' wp=undef
+`-+- policy='round-robin 0' prio=1 status=undef
+  |- 2:0:0:3 sdd 8:64 undef ready  running
+    `- 3:0:0:3 sdg 8:128 undef ready  running</pre>
+</div>
+</li>
+</ol>
+</div>
+<div class="section" id="configuring-storage-devices">
+<h2>Configuring Storage Devices<a class="headerlink" href="#configuring-storage-devices" title="Permalink to this headline">¶</a></h2>
+<p>By default, DM-Multipath includes support for the most common storage
+arrays that support DM-Multipath. The default configuration values,
+including supported devices, can be found in the
+<tt class="docutils literal"><span class="pre">multipath.conf.defaults</span></tt> file.</p>
+<p>If you need to add a storage device that is not supported by default as
+a known multipath device, edit the MULTIPATH-CONF-FULL file and insert
+the appropriate device information.</p>
+<p>For example, to add information about the HP Open-V series the entry
+looks like this, where <strong>%n</strong> is the device name:</p>
+<div class="highlight-python"><pre>devices {
+     device {
+            vendor "HP"
+            product "OPEN-V."
+            getuid_callout "/lib/udev/scsi_id --whitelisted --device=/dev/%n"
+     }
+}</pre>
+</div>
+<p>For more information on the devices section of the configuration file,
+see Section ?.</p>
+</div>
+</div>
+<div class="section" id="the-dmm-configuration-file">
+<h1>The DMM Configuration File<a class="headerlink" href="#the-dmm-configuration-file" title="Permalink to this headline">¶</a></h1>
+<p>By default, DM-Multipath provides configuration values for the most
+common uses of multipathing. In addition, DM-Multipath includes support
+for the most common storage arrays that support DM-Multipath. The
+default configuration values and the supported devices can be found in
+the <tt class="docutils literal"><span class="pre">multipath.conf.defaults</span></tt> file.</p>
+<p>You can override the default configuration values for DM-Multipath by
+editing the MULTIPATH-CONF-FULL configuration file. If necessary, you
+can also add a storage array that is not supported by default to the
+configuration file. This chapter provides information on parsing and
+modifying the MULTIPATH-CONF file. It contains sections on the following
+topics:</p>
+<ul class="simple">
+<li>?</li>
+<li>?</li>
+<li>?</li>
+<li>?</li>
+<li>?</li>
+</ul>
+<p>In the multipath configuration file, you need to specify only the
+sections that you need for your configuration, or that you wish to
+change from the default values specified in the
+<tt class="docutils literal"><span class="pre">multipath.conf.defaults</span></tt> file. If there are sections of the file that
+are not relevant to your environment or for which you do not need to
+override the default values, you can leave them commented out, as they
+are in the initial file.</p>
+<p>The configuration file allows regular expression description syntax.</p>
+<p>An annotated version of the configuration file can be found in <a href="#id5"><span class="problematic" id="id6">``</span></a><a href="#id7"><span class="problematic" id="id8">``</span></a>.</p>
+<div class="section" id="configuration-file-overview">
+<h2>Configuration File Overview<a class="headerlink" href="#configuration-file-overview" title="Permalink to this headline">¶</a></h2>
+<p>The multipath configuration file is divided into the following sections:</p>
+<dl class="docutils">
+<dt><strong>blacklist</strong></dt>
+<dd>Listing of specific devices that will not be considered for
+multipath.</dd>
+<dt><strong>blacklist_exceptions</strong></dt>
+<dd>Listing of multipath candidates that would otherwise be blacklisted
+according to the parameters of the blacklist section.</dd>
+<dt><strong>defaults</strong></dt>
+<dd>General default settings for DM-Multipath.</dd>
+<dt><strong>multipath</strong></dt>
+<dd>Settings for the characteristics of individual multipath devices.
+These values overwrite what is specified in the <strong>defaults</strong> and
+<strong>devices</strong> sections of the configuration file.</dd>
+<dt><strong>devices</strong></dt>
+<dd>Settings for the individual storage controllers. These values
+overwrite what is specified in the <strong>defaults</strong> section of the
+configuration file. If you are using a storage array that is not
+supported by default, you may need to create a devices subsection
+for your array.</dd>
+</dl>
+<p>When the system determines the attributes of a multipath device, first
+it checks the multipath settings, then the per devices settings, then
+the multipath system defaults.</p>
+</div>
+<div class="section" id="configuration-file-blacklist">
+<h2>Configuration File Blacklist<a class="headerlink" href="#configuration-file-blacklist" title="Permalink to this headline">¶</a></h2>
+<p>The blacklist section of the multipath configuration file specifies the
+devices that will not be used when the system configures multipath
+devices. Devices that are blacklisted will not be grouped into a
+multipath device.</p>
+<ul>
+<li><p class="first">If you do need to blacklist devices, you can do so according to the
+following criteria:</p>
+<ul class="simple">
+<li>By WWID, as described ?</li>
+<li>By device name, as described in ?</li>
+<li>By device type, as described in ?</li>
+</ul>
+<p>By default, a variety of device types are blacklisted, even after you
+comment out the initial blacklist section of the configuration file.
+For information, see ?</p>
+</li>
+</ul>
+<div class="section" id="blacklisting-by-wwid">
+<h3>Blacklisting By WWID<a class="headerlink" href="#blacklisting-by-wwid" title="Permalink to this headline">¶</a></h3>
+<p>You can specify individual devices to blacklist by their World-Wide
+IDentification with a <strong>wwid</strong> entry in the <strong>blacklist</strong> section of the
+configuration file.</p>
+<p>The following example shows the lines in the configuration file that
+would blacklist a device with a WWID of 26353900f02796769.</p>
+<div class="highlight-python"><pre>blacklist {
+       wwid 26353900f02796769
+}</pre>
+</div>
+</div>
+<div class="section" id="blacklisting-by-device-name">
+<h3>Blacklisting By Device Name<a class="headerlink" href="#blacklisting-by-device-name" title="Permalink to this headline">¶</a></h3>
+<p>You can blacklist device types by device name so that they will not be
+grouped into a multipath device by specifying a <strong>devnode</strong> entry in the
+<strong>blacklist</strong> section of the configuration file.</p>
+<p>The following example shows the lines in the configuration file that
+would blacklist all SCSI devices, since it blacklists all sd* devices.</p>
+<div class="highlight-python"><pre>blacklist {
+       devnode "^sd[a-z]"
+}</pre>
+</div>
+<p>You can use a <strong>devnode</strong> entry in the <strong>blacklist</strong> section of the
+configuration file to specify individual devices to blacklist rather
+than all devices of a specific type. This is not recommended, however,
+since unless it is statically mapped by udev rules, there is no
+guarantee that a specific device will have the same name on reboot. For
+example, a device name could change from <tt class="docutils literal"><span class="pre">/dev/sda</span></tt> to <tt class="docutils literal"><span class="pre">/dev/sdb</span></tt> on
+reboot.</p>
+<p>By default, the following <strong>devnode</strong> entries are compiled in the
+default blacklist; the devices that these entries blacklist do not
+generally support DM-Multipath. To enable multipathing on any of these
+devices, you would need to specify them in the <strong>blacklist_exceptions</strong>
+section of the configuration file, as described in ?</p>
+<div class="highlight-python"><pre>blacklist {
+       devnode "^(ram|raw|loop|fd|md|dm-|sr|scd|st)[0-9]*"
+       devnode "^hd[a-z]"
+}</pre>
+</div>
+</div>
+<div class="section" id="blacklisting-by-device-type">
+<h3>Blacklisting By Device Type<a class="headerlink" href="#blacklisting-by-device-type" title="Permalink to this headline">¶</a></h3>
+<p>You can specify specific device types in the <strong>blacklist</strong> section of
+the configuration file with a device section. The following example
+blacklists all IBM DS4200 and HP devices.</p>
+<div class="highlight-python"><pre>blacklist {
+       device {
+               vendor  "IBM"
+               product "3S42"       #DS4200 Product 10
+       }
+       device {
+               vendor  "HP"
+               product "*"
+       }
+}</pre>
+</div>
+</div>
+<div class="section" id="blacklist-exceptions">
+<h3>Blacklist Exceptions<a class="headerlink" href="#blacklist-exceptions" title="Permalink to this headline">¶</a></h3>
+<p>You can use the <strong>blacklist_exceptions</strong> section of the configuration
+file to enable multipathing on devices that have been blacklisted by
+default.</p>
+<p>For example, if you have a large number of devices and want to multipath
+only one of them (with the WWID of 3600d0230000000000e13955cc3757803),
+instead of individually blacklisting each of the devices except the one
+you want, you could instead blacklist all of them, and then allow only
+the one you want by adding the following lines to the
+MULTIPATH-CONF-FULL file.</p>
+<div class="highlight-python"><pre>blacklist {
+        wwid "*"
+}
+
+blacklist_exceptions {
+        wwid "3600d0230000000000e13955cc3757803"
+}</pre>
+</div>
+<p>When specifying devices in the <strong>blacklist_exceptions</strong> section of the
+configuration file, you must specify the exceptions in the same way they
+were specified in the <strong>blacklist</strong>. For example, a WWID exception will
+not apply to devices specified by a <strong>devnode</strong> blacklist entry, even if
+the blacklisted device is associated with that WWID. Similarly, devnode
+exceptions apply only to devnode entries, and device exceptions apply
+only to device entries.</p>
+</div>
+</div>
+<div class="section" id="configuration-file-defaults">
+<h2>Configuration File Defaults<a class="headerlink" href="#configuration-file-defaults" title="Permalink to this headline">¶</a></h2>
+<p>The MULTIPATH-CONF-FULL configuration file includes a <strong>defaults</strong>
+section that sets the <strong>user_friendly_names</strong> parameter to <strong>yes</strong>, as
+follows.</p>
+<div class="highlight-python"><pre>defaults {
+        user_friendly_names yes
+}</pre>
+</div>
+<p>This overwrites the default value of the <strong>user_friendly_names</strong>
+parameter.</p>
+<p>The configuration file includes a template of configuration defaults.
+This section is commented out, as follows.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c">#defaults {</span>
+<span class="c">#       udev_dir                /dev</span>
+<span class="c">#       polling_interval        5</span>
+<span class="c">#       selector                &quot;round-robin 0&quot;</span>
+<span class="c">#       path_grouping_policy    failover</span>
+<span class="c">#       getuid_callout          &quot;/lib/dev/scsi_id --whitelisted --device=/dev/%n&quot;</span>
+<span class="c">#   prio            const</span>
+<span class="c">#   path_checker        directio</span>
+<span class="c">#   rr_min_io       1000</span>
+<span class="c">#   rr_weight       uniform</span>
+<span class="c">#   failback        manual</span>
+<span class="c">#   no_path_retry       fail</span>
+<span class="c">#   user_friendly_names no</span>
+<span class="c">#}</span>
+</pre></div>
+</div>
+<p>To overwrite the default value for any of the configuration parameters,
+you can copy the relevant line from this template into the <strong>defaults</strong>
+section and uncomment it. For example, to overwrite the
+<strong>path_grouping_policy</strong> parameter so that it is <strong>multibus</strong> rather
+than the default value of <strong>failover</strong>, copy the appropriate line from
+the template to the initial <strong>defaults</strong> section of the configuration
+file, and uncomment it, as follows.</p>
+<div class="highlight-python"><pre>defaults {
+        user_friendly_names     yes
+        path_grouping_policy    multibus
+}</pre>
+</div>
+<p>Table ? describes the attributes that are set in the <strong>defaults</strong>
+section of the <tt class="docutils literal"><span class="pre">multipath.conf</span></tt> configuration file. These values are
+used by DM-Multipath unless they are overwritten by the attributes
+specified in the <strong>devices</strong> and <strong>multipaths</strong> sections of the
+MULTIPATH-CONF file.</p>
+</div>
+<div class="section" id="configuration-file-multipath-attributes">
+<h2>Configuration File Multipath Attributes<a class="headerlink" href="#configuration-file-multipath-attributes" title="Permalink to this headline">¶</a></h2>
+<p>Table ? shows the attributes that you can set in the <strong>multipaths</strong>
+section of the <tt class="docutils literal"><span class="pre">multipath.conf</span></tt> configuration file for each specific
+multipath device. These attributes apply only to the one specified
+multipath. These defaults are used by DM-Multipath and override
+attributes set in the <strong>defaults</strong> and <strong>devices</strong> sections of the
+multipath.conf file.</p>
+<p>In addition, the following parameters may be overridden in this
+<strong>multipath</strong> section</p>
+<ul class="simple">
+<li><tt class="docutils literal"><span class="pre">`path_grouping_policy</span></tt> &lt;#attribute-path_grouping_policy&gt;`__</li>
+<li><tt class="docutils literal"><span class="pre">`path_selector</span></tt> &lt;#attribute-path_selector&gt;`__</li>
+<li><tt class="docutils literal"><span class="pre">`failback</span></tt> &lt;#attribute-failback&gt;`__</li>
+<li><tt class="docutils literal"><span class="pre">`prio</span></tt> &lt;#attribute-prio&gt;`__</li>
+<li><tt class="docutils literal"><span class="pre">`prio_args</span></tt> &lt;#attribute-prio_args&gt;`__</li>
+<li><tt class="docutils literal"><span class="pre">`no_path_retry</span></tt> &lt;#attribute-no_path_retry&gt;`__</li>
+<li><tt class="docutils literal"><span class="pre">`rr_min_io</span></tt> &lt;#attribute-rr_min_io&gt;`__</li>
+<li><tt class="docutils literal"><span class="pre">`rr_weight</span></tt> &lt;#attribute-rr_weight&gt;`__</li>
+<li><tt class="docutils literal"><span class="pre">`flush_on_last_del</span></tt> &lt;#attribute-flush_on_last_del&gt;`__</li>
+</ul>
+<p>The following example shows multipath attributes specified in the
+configuration file for two specific multipath devices. The first device
+has a WWID of 3600508b4000156d70001200000b0000 and a symbolic name of
+yellow.</p>
+<p>The second multipath device in the example has a WWID of
+1DEC_____321816758474 and a symbolic name of red. In this example,
+the <a class="reference external" href="#attribute-rr_weight">rr_weight</a> attributes are set to
+priorities.</p>
+<div class="highlight-python"><pre>multipaths {
+       multipath {
+              wwid                  3600508b4000156d70001200000b0000
+              alias                 yellow
+              path_grouping_policy  multibus
+              path_selector         "round-robin 0"
+              failback              manual
+              rr_weight             priorities
+              no_path_retry         5
+       }
+       multipath {
+              wwid                  1DEC_____321816758474
+              alias                 red
+              rr_weight             priorities
+        }
+}</pre>
+</div>
+</div>
+<div class="section" id="configuration-file-devices">
+<h2>Configuration File Devices<a class="headerlink" href="#configuration-file-devices" title="Permalink to this headline">¶</a></h2>
+<p>Table ? shows the attributes that you can set for each individual
+storage device in the devices section of the multipath.conf
+configuration file. These attributes are used by DM-Multipath unless
+they are overwritten by the attributes specified in the <strong>multipaths</strong>
+section of the <tt class="docutils literal"><span class="pre">multipath.conf</span></tt> file for paths that contain the
+device. These attributes override the attributes set in the <strong>defaults</strong>
+section of the <tt class="docutils literal"><span class="pre">multipath.conf</span></tt> file.</p>
+<p>Many devices that support multipathing are included by default in a
+multipath configuration. The values for the devices that are supported
+by default are listed in the <tt class="docutils literal"><span class="pre">multipath.conf.defaults</span></tt> file. You
+probably will not need to modify the values for these devices, but if
+you do you can overwrite the default values by including an entry in the
+configuration file for the device that overwrites those values. You can
+copy the device configuration defaults from the
+<tt class="docutils literal"><span class="pre">multipath.conf.annotated.gz</span></tt> or if you wish to have a brief config
+file, <tt class="docutils literal"><span class="pre">multipath.conf.synthetic</span></tt> file for the device and override the
+values that you want to change.</p>
+<p>To add a device to this section of the configuration file that is not
+configured automatically by default, you must set the <strong>vendor</strong> and
+<strong>product</strong> parameters. You can find these values by looking at
+<strong>/sys/block/device_name/device/vendor</strong> and
+<strong>/sys/block/device_name/device/model</strong> where device_name is the
+device to be multipathed, as in the following example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># cat /sys/block/sda/device/vendor</span>
+<span class="n">WINSYS</span>
+<span class="c"># cat /sys/block/sda/device/model</span>
+<span class="n">SF2372</span>
+</pre></div>
+</div>
+<p>The additional parameters to specify depend on your specific device. If
+the device is active/active, you will usually not need to set additional
+parameters. You may want to set
+<a class="reference external" href="#attribute-path_grouping_policy">path_grouping_policy</a> to
+<strong>multibus</strong>. Other parameters you may need to set are
+<a class="reference external" href="#attribute-no_path_retry">no_path_retry</a> and
+<a class="reference external" href="#attribute-rr_min_io">rr_min_io</a>, as described in Table ?.</p>
+<p>If the device is active/passive, but it automatically switches paths
+with I/O to the passive path, you need to change the checker function to
+one that does not send I/O to the path to test if it is working
+(otherwise, your device will keep failing over). This almost always
+means that you set the <a class="reference external" href="#attribute-path_checker">path_checker</a> to
+<strong>tur</strong>; this works for all SCSI devices that support the Test Unit
+Ready command, which most do.</p>
+<p>If the device needs a special command to switch paths, then configuring
+this device for multipath requires a hardware handler kernel module. The
+current available hardware handler is emc. If this is not sufficient for
+your device, you may not be able to configure the device for multipath.</p>
+<p>In addition, the following parameters may be overridden in this
+<strong>device</strong> section</p>
+<ul>
+<li><p class="first"><tt class="docutils literal"><span class="pre">`path_grouping_policy</span></tt> &lt;#attribute-path_grouping_policy&gt;`__</p>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">`getuid_callout</span></tt> &lt;#attribute-getuid_callout&gt;`__</p>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">`path_selector</span></tt> &lt;#attribute-path_selector&gt;`__</p>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">`path_checker</span></tt> &lt;#attribute-path_checker&gt;`__</p>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">`features</span></tt> &lt;#attribute-features&gt;`__</p>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">`failback</span></tt> &lt;#attribute-failback&gt;`__</p>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">`prio</span></tt> &lt;#attribute-prio&gt;`__</p>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">`prio_args</span></tt> &lt;#attribute-prio_args&gt;`__</p>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">`no_path_retry</span></tt> &lt;#attribute-no_path_retry&gt;`__</p>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">`rr_min_io</span></tt> &lt;#attribute-rr_min_io&gt;`__</p>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">`rr_weight</span></tt> &lt;#attribute-rr_weight&gt;`__</p>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">`fast_io_fail_tmo</span></tt> &lt;#attribute-fast_io_fail_tmo&gt;`__</p>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">`dev_loss_tmo</span></tt> &lt;#attribute-dev_loss_tmo&gt;`__</p>
+</li>
+<li><p class="first"><tt class="docutils literal"><span class="pre">`flush_on_last_del</span></tt> &lt;#attribute-flush_on_last_del&gt;`__</p>
+<blockquote>
+<div><p><strong>Note</strong></p>
+<p>Whenever a hardware_handler is specified, it is your responsibility
+to ensure that the appropriate kernel module is loaded to support
+the specified interface. These modules can be found in
+<a href="#id9"><span class="problematic" id="id10">**</span></a><a href="#id11"><span class="problematic" id="id12">``</span></a>/lib/modules/<a href="#id13"><span class="problematic" id="id14">`</span></a>uname</p>
+<blockquote>
+<div><p>-r`/kernel/drivers/scsi/device_handler/ <a href="#id15"><span class="problematic" id="id16">``</span></a><a href="#id17"><span class="problematic" id="id18">**</span></a>. The requisite</p>
+</div></blockquote>
+<p>module should be integrated into the initrd to ensure the necessary
+discovery and failover-failback capacity is available during boot
+time. Example,</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># echo scsi_dh_alua &gt;&gt; /etc/initramfs-tools/modules  ## append module to file</span>
+<span class="c"># update-initramfs -u -k all</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+</ul>
+<p>The following example shows a device entry in the multipath
+configuration file.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c">#devices {</span>
+<span class="c">#   device {</span>
+<span class="c">#       vendor          &quot;COMPAQ  &quot;</span>
+<span class="c">#       product         &quot;MSA1000         &quot;</span>
+<span class="c">#       path_grouping_policy    multibus</span>
+<span class="c">#       path_checker        tur</span>
+<span class="c">#       rr_weight       priorities</span>
+<span class="c">#   }</span>
+<span class="c">#}</span>
+</pre></div>
+</div>
+<p>The spacing reserved in the <strong>vendor</strong>, <strong>product</strong>, and <strong>revision</strong>
+fields are significant as multipath is performing a direct match against
+these attributes, whose format is defined by the SCSI specification,
+specifically the <a class="reference external" href="http://en.wikipedia.org/wiki/SCSI_Inquiry_Command">Standard
+INQUIRY</a> command.
+When quotes are used, the vendor, product, and revision fields will be
+interpreted strictly according to the spec. Regular expressions may be
+integrated into the quoted strings. Should a field be defined without
+the requisite spacing, multipath will copy the string into the properly
+sized buffer and pad with the appropriate number of spaces. The
+specification expects the entire field to be populated by printable
+characters or spaces, as seen in the example above</p>
+<ul class="simple">
+<li>vendor: 8 characters</li>
+<li>product: 16 characters</li>
+<li>revision: 4 characters</li>
+</ul>
+<p>To create a more robust configuration file, regular expressions can also
+be used. Operators include <strong>^ $ [ ] . * ? +</strong>. Examples of functional
+regular expressions can be found by examining the live multipath
+database and <a href="#id19"><span class="problematic" id="id20">``</span></a>multipath.conf</p>
+<blockquote>
+<div><a href="#id21"><span class="problematic" id="id22">``</span></a>example files found in</div></blockquote>
+<p><tt class="docutils literal"><span class="pre">/usr/share/doc/multipath-tools/examples:</span></tt></p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># echo &#39;show config&#39; | multipathd -k</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="dmm-administration-and-troubleshooting">
+<h1>DMM Administration and Troubleshooting<a class="headerlink" href="#dmm-administration-and-troubleshooting" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="resizing-an-online-multipath-device">
+<h2>Resizing an Online Multipath Device<a class="headerlink" href="#resizing-an-online-multipath-device" title="Permalink to this headline">¶</a></h2>
+<p>If you need to resize an online multipath device, use the following
+procedure</p>
+<p>Resize your physical device. This is storage platform specific.</p>
+<p>Use the following command to find the paths to the LUN:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># multipath -l</span>
+</pre></div>
+</div>
+<p>Resize your paths. For SCSI devices, writing 1 to the <tt class="docutils literal"><span class="pre">rescan</span></tt> file
+for the device causes the SCSI driver to rescan, as in the following
+command:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># echo 1 &gt; /sys/block/device_name/device/rescan</span>
+</pre></div>
+</div>
+<p>Resize your multipath device by running the multipathd resize command:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># multipathd -k &#39;resize map mpatha&#39;</span>
+</pre></div>
+</div>
+<p>Resize the file system (assuming no LVM or DOS partitions are used):</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># resize2fs /dev/mapper/mpatha</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="moving-root-file-systems-from-a-single-path-device-to-a-multipath-device">
+<h2>Moving root File Systems from a Single Path Device to a Multipath Device<a class="headerlink" href="#moving-root-file-systems-from-a-single-path-device-to-a-multipath-device" title="Permalink to this headline">¶</a></h2>
+<p>This is dramatically simplified by the use of UUIDs to identify devices
+as an intrinsic label. Simply install <strong>multipath-tools-boot</strong> and
+reboot. This will rebuild the initial ramdisk and afford multipath the
+opportunity to build it&#8217;s paths before the root file system is mounted
+by UUID.</p>
+<blockquote>
+<div><p><strong>Note</strong></p>
+<p>Whenever <tt class="docutils literal"><span class="pre">multipath.conf</span></tt> is updated, so should the initrd by
+executing <a href="#id23"><span class="problematic" id="id24">``</span></a>update-initramfs -u -k</p>
+<blockquote>
+<div>all``. The reason being is <tt class="docutils literal"><span class="pre">multipath.conf</span></tt> is copied to</div></blockquote>
+<p>the ramdisk and is integral to determining the available devices for
+grouping via it&#8217;s blacklist and device sections.</p>
+</div></blockquote>
+</div>
+<div class="section" id="moving-swap-file-systems-from-a-single-path-device-to-a-multipath-device">
+<h2>Moving swap File Systems from a Single Path Device to a Multipath Device<a class="headerlink" href="#moving-swap-file-systems-from-a-single-path-device-to-a-multipath-device" title="Permalink to this headline">¶</a></h2>
+<p>The procedure is exactly the same as illustrated in the previous section
+called <a class="reference external" href="#multipath-moving-rootfs-from-single-path-to-multipath-device">Moving root File Systems from a Single Path to a Multipath
+Device</a>.</p>
+</div>
+<div class="section" id="the-multipath-daemon">
+<h2>The Multipath Daemon<a class="headerlink" href="#the-multipath-daemon" title="Permalink to this headline">¶</a></h2>
+<p>If you find you have trouble implementing a multipath configuration, you
+should ensure the multipath daemon is running as described in <a class="reference external" href="#multipath-setting-up-dm-multipath">&#8220;Setting
+up DM-Multipath&#8221;</a>. The
+MULTIPATHD_C daemon must be running in order to use multipathd devices.
+Also see section <a class="reference external" href="#multipath-interacting-with-multipathd">Troubleshooting with the multipathd interactive
+console</a> concerning
+interacting with MULTIPATHD_C as a debugging aid.</p>
+</div>
+<div class="section" id="issues-with-queue-if-no-path">
+<h2>Issues with queue_if_no_path<a class="headerlink" href="#issues-with-queue-if-no-path" title="Permalink to this headline">¶</a></h2>
+<p>If <strong>features &#8220;1 queue_if_no_path&#8221;</strong> is specified in the
+<tt class="docutils literal"><span class="pre">/etc/multipath.conf</span></tt> file, then any process that uses I/O will hang
+until one or more paths are restored. To avoid this, set the
+<strong>`no_path_retry &lt;#attribute-no_path_retry&gt;`__ N</strong> parameter in the
+<tt class="docutils literal"><span class="pre">/etc/multipath.conf</span></tt>.</p>
+<p>When you set the <strong>no_path_retry</strong> parameter, remove the <strong>features &#8220;1
+queue_if_no_path&#8221;</strong> option from the <tt class="docutils literal"><span class="pre">/etc/multipath.conf</span></tt> file as
+well. If, however, you are using a multipathed device for which the
+<a href="#id25"><span class="problematic" id="id26">``</span></a>features &#8220;1</p>
+<blockquote>
+<div>queue_if_no_path&#8221;`` option is set as a compiled in default, as it</div></blockquote>
+<p>is for many SAN devices, you must add <tt class="docutils literal"><span class="pre">features</span> <span class="pre">&quot;0&quot;</span></tt> to override this
+default. You can do this by copying the existing <strong>devices</strong> section,
+and just that section (not the entire file), from
+<tt class="docutils literal"><span class="pre">/usr/share/doc/multipath-tools/examples/multipath.conf.annotated.gz</span></tt>
+into <tt class="docutils literal"><span class="pre">/etc/multipath.conf</span></tt> and editing to suit your needs.</p>
+<dl class="docutils">
+<dt>If you need to use the <a href="#id27"><span class="problematic" id="id28">``</span></a>features &#8220;1</dt>
+<dd>queue_if_no_path&#8221;`` option and you experience the issue noted</dd>
+</dl>
+<p>here, use the <tt class="docutils literal"><span class="pre">dmsetup</span></tt> command to edit the policy at runtime for a
+particular LUN (that is, for which all the paths are unavailable). For
+example, if you want to change the policy on the multipath device
+<tt class="docutils literal"><span class="pre">mpathc</span></tt> from <tt class="docutils literal"><span class="pre">&quot;queue_if_no_path&quot;</span></tt> to ``</p>
+<blockquote>
+<div>&#8220;fail_if_no_path&#8221;<a href="#id29"><span class="problematic" id="id30">``</span></a>, execute the following command.</div></blockquote>
+<div class="highlight-python"><pre># dmsetup message mpathc 0 "fail_if_no_path"
+
+**Note**
+
+You must specify the ``mpathN`` alias rather than the path</pre>
+</div>
+</div>
+<div class="section" id="multipath-command-output">
+<h2>Multipath Command Output<a class="headerlink" href="#multipath-command-output" title="Permalink to this headline">¶</a></h2>
+<p>When you create, modify, or list a multipath device, you get a printout
+of the current device setup. The format is as follows. For each
+multipath device:</p>
+<div class="highlight-python"><pre>action_if_any: alias (wwid_if_different_from_alias) dm_device_name_if_known vendor,product
+size=size features='features' hwhandler='hardware_handler' wp=write_permission_if_known</pre>
+</div>
+<p>For each path group:</p>
+<div class="highlight-python"><pre>-+- policy='scheduling_policy' prio=prio_if_known
+status=path_group_status_if_known</pre>
+</div>
+<p>For each path:</p>
+<div class="highlight-python"><pre> `- host:channel:id:lun devnode major:minor dm_status_if_known path_status
+online_status</pre>
+</div>
+<p>For example, the output of a multipath command might appear as follows:</p>
+<div class="highlight-python"><pre>3600d0230000000000e13955cc3757800 dm-1 WINSYS,SF2372
+size=269G features='0' hwhandler='0' wp=rw
+|-+- policy='round-robin 0' prio=1 status=active
+| `- 6:0:0:0 sdb 8:16  active ready  running
+`-+- policy='round-robin 0' prio=1 status=enabled
+  `- 7:0:0:0 sdf 8:80  active ready  running</pre>
+</div>
+<p>If the path is up and ready for I/O, the status of the path is <strong>ready</strong>
+or <em>ghost</em>. If the path is down, the status is <strong>faulty</strong> or <strong>shaky</strong>.
+The path status is updated periodically by the MULTIPATHD_C daemon
+based on the polling interval defined in the <tt class="docutils literal"><span class="pre">/etc/multipath.conf</span></tt>
+file.</p>
+<p>The dm status is similar to the path status, but from the kernel&#8217;s point
+of view. The dm status has two states: <strong>failed</strong>, which is analogous to
+<strong>faulty</strong>, and <strong>active</strong> which covers all other path states.
+Occasionally, the path state and the dm state of a device will
+temporarily not agree.</p>
+<p>The possible values for <strong>online_status</strong> are <strong>running</strong> and
+<strong>offline</strong>. A status of <em>offline</em> means that the SCSI device has been
+disabled.</p>
+<blockquote>
+<div><p><strong>Note</strong></p>
+<p>When a multipath device is being created or modified , the path
+group status, the dm device name, the write permissions, and the dm
+status are not known. Also, the features are not always correct</p>
+</div></blockquote>
+</div>
+<div class="section" id="multipath-queries-with-multipath-command">
+<h2>Multipath Queries with multipath Command<a class="headerlink" href="#multipath-queries-with-multipath-command" title="Permalink to this headline">¶</a></h2>
+<p>You can use the <strong>-l</strong>and <strong>-ll</strong> options of the <strong>multipath</strong> command
+to display the current multipath configuration. The <strong>-l</strong> option
+displays multipath topology gathered from information in sysfs and the
+device mapper. The <strong>-ll</strong> option displays the information the <strong>-l</strong>
+displays in addition to all other available components of the system.</p>
+<p>When displaying the multipath configuration, there are three verbosity
+levels you can specify with the <strong>-v</strong> option of the multipath command.
+Specifying <strong>-v0</strong> yields no output. Specifying<strong>-v1</strong> outputs the
+created or updated multipath names only, which you can then feed to
+other tools such as kpartx. Specifying <strong>-v2</strong> prints all detected
+paths, multipaths, and device maps.</p>
+<blockquote>
+<div><p><strong>Note</strong></p>
+<p>The default <strong>verbosity</strong> level of multipath is <strong>2</strong> and can be
+globally modified by defining the <a class="reference external" href="#attribute-verbosity">verbosity
+attribute</a> in the <strong>defaults</strong> section of
+<tt class="docutils literal"><span class="pre">multipath.conf</span></tt>.</p>
+</div></blockquote>
+<p>The following example shows the output of a <strong>multipath -l</strong> command.</p>
+<div class="highlight-python"><pre># multipath -l
+  3600d0230000000000e13955cc3757800 dm-1 WINSYS,SF2372
+  size=269G features='0' hwhandler='0' wp=rw
+  |-+- policy='round-robin 0' prio=1 status=active
+  | `- 6:0:0:0 sdb 8:16  active ready  running
+  `-+- policy='round-robin 0' prio=1 status=enabled
+    `- 7:0:0:0 sdf 8:80  active ready  running</pre>
+</div>
+<p>The following example shows the output of a <strong>multipath -ll</strong> command.</p>
+<div class="highlight-python"><pre># multipath -ll
+  3600d0230000000000e13955cc3757801 dm-10 WINSYS,SF2372
+  size=269G features='0' hwhandler='0' wp=rw
+  |-+- policy='round-robin 0' prio=1 status=enabled
+  | `- 19:0:0:1 sdc 8:32  active ready  running
+  `-+- policy='round-robin 0' prio=1 status=enabled
+    `- 18:0:0:1 sdh 8:112 active ready  running
+    3600d0230000000000e13955cc3757803 dm-2 WINSYS,SF2372
+    size=125G features='0' hwhandler='0' wp=rw
+    `-+- policy='round-robin 0' prio=1 status=active
+      |- 19:0:0:3 sde 8:64  active ready  running
+        `- 18:0:0:3 sdj 8:144 active ready  running</pre>
+</div>
+</div>
+<div class="section" id="multipath-command-options">
+<h2>Multipath Command Options<a class="headerlink" href="#multipath-command-options" title="Permalink to this headline">¶</a></h2>
+<p>Table ? describes some options of the <strong>multipath</strong> command that you
+might find useful.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="31%" />
+<col width="69%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Option</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><strong>-l</strong></td>
+<td>Display the current multipath configuration
+gathered from <strong>sysfs</strong> and the device mapper.</td>
+</tr>
+<tr class="row-odd"><td><strong>-ll</strong></td>
+<td>Display the current multipath configuration
+gathered from <strong>sysfs</strong>, the device mapper, and
+all other available components on the system.</td>
+</tr>
+<tr class="row-even"><td><strong>-f device</strong></td>
+<td>Remove the named multipath device.</td>
+</tr>
+<tr class="row-odd"><td><strong>-F</strong></td>
+<td>Remove all unused multipath devices.</td>
+</tr>
+</tbody>
+</table>
+<p>Table: Useful multipath Command Options</p>
+</div>
+<div class="section" id="determining-device-mapper-entries-with-dmsetup-command">
+<h2>Determining Device Mapper Entries with dmsetup Command<a class="headerlink" href="#determining-device-mapper-entries-with-dmsetup-command" title="Permalink to this headline">¶</a></h2>
+<p>You can use the <strong>dmsetup</strong> command to find out which device mapper
+entries match the <strong>multipathed</strong> devices.</p>
+<p>The following command displays all the device mapper devices and their
+major and minor numbers. The minor numbers determine the name of the dm
+device. For example, a minor number of <strong>3</strong> corresponds to the
+multipathed device <strong>``/dev/dm-3``</strong>.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># dmsetup ls</span>
+<span class="n">mpathd</span>  <span class="p">(</span><span class="mi">253</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+<span class="n">mpathep1</span>        <span class="p">(</span><span class="mi">253</span><span class="p">,</span> <span class="mi">12</span><span class="p">)</span>
+<span class="n">mpathfp1</span>        <span class="p">(</span><span class="mi">253</span><span class="p">,</span> <span class="mi">11</span><span class="p">)</span>
+<span class="n">mpathb</span>  <span class="p">(</span><span class="mi">253</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+<span class="n">mpathgp1</span>        <span class="p">(</span><span class="mi">253</span><span class="p">,</span> <span class="mi">14</span><span class="p">)</span>
+<span class="n">mpathhp1</span>        <span class="p">(</span><span class="mi">253</span><span class="p">,</span> <span class="mi">13</span><span class="p">)</span>
+<span class="n">mpatha</span>  <span class="p">(</span><span class="mi">253</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="n">mpathh</span>  <span class="p">(</span><span class="mi">253</span><span class="p">,</span> <span class="mi">9</span><span class="p">)</span>
+<span class="n">mpathg</span>  <span class="p">(</span><span class="mi">253</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span>
+<span class="n">VolGroup00</span><span class="o">-</span><span class="n">LogVol01</span>     <span class="p">(</span><span class="mi">253</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">mpathf</span>  <span class="p">(</span><span class="mi">253</span><span class="p">,</span> <span class="mi">7</span><span class="p">)</span>
+<span class="n">VolGroup00</span><span class="o">-</span><span class="n">LogVol00</span>     <span class="p">(</span><span class="mi">253</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="n">mpathe</span>  <span class="p">(</span><span class="mi">253</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span>
+<span class="n">mpathbp1</span>        <span class="p">(</span><span class="mi">253</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+<span class="n">mpathd</span>  <span class="p">(</span><span class="mi">253</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="troubleshooting-with-the-multipathd-interactive-console">
+<h2>Troubleshooting with the multipathd interactive console<a class="headerlink" href="#troubleshooting-with-the-multipathd-interactive-console" title="Permalink to this headline">¶</a></h2>
+<p>The <strong>multipathd -k</strong> command is an interactive interface to the
+<strong>multipathd</strong> daemon. Entering this command brings up an interactive
+multipath console. After entering this command, you can enter help to
+get a list of available commands, you can enter a interactive command,
+or you can enter <strong>CTRL-D</strong> to quit.</p>
+<p>The multipathd interactive console can be used to troubleshoot problems
+you may be having with your system. For example, the following command
+sequence displays the multipath configuration, including the defaults,
+before exiting the console. See the IBM article <a class="reference external" href="http://www-01.ibm.com/support/docview.wss?uid=isg3T1011985">&#8220;Tricks with
+Multipathd&#8221;</a>
+for more examples.</p>
+<div class="highlight-python"><pre># multipathd -k
+  &gt; &gt; show config
+  &gt; &gt; CTRL-D</pre>
+</div>
+<p>The following command sequence ensures that multipath has picked up any
+changes to the multipath.conf,</p>
+<div class="highlight-python"><pre># multipathd -k
+&gt; &gt; reconfigure
+&gt; &gt; CTRL-D</pre>
+</div>
+<p>Use the following command sequence to ensure that the path checker is
+working properly.</p>
+<div class="highlight-python"><pre># multipathd -k
+&gt; &gt; show paths
+&gt; &gt; CTRL-D</pre>
+</div>
+<p>Commands can also be streamed into multipathd using stdin like so:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># echo &#39;show config&#39; | multipathd -k</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">DMM</a></li>
+<li><a class="reference internal" href="#device-mapper-multipathing">Device Mapper Multipathing</a><ul>
+<li><a class="reference internal" href="#new-and-changed-features-for-ubuntu-server-12-04">New and Changed Features for Ubuntu Server 12.04</a><ul>
+<li><a class="reference internal" href="#migration-from-0-4-8">Migration from 0.4.8</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#overview">Overview</a></li>
+<li><a class="reference internal" href="#storage-array-overview">Storage Array Overview</a></li>
+<li><a class="reference internal" href="#dmm-components">DMM components</a></li>
+<li><a class="reference internal" href="#dmm-setup-overview">DMM Setup Overview</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#multipath-devices">Multipath Devices</a><ul>
+<li><a class="reference internal" href="#multipath-device-identifiers">Multipath Device Identifiers</a></li>
+<li><a class="reference internal" href="#consistent-multipath-device-names-in-a-cluster">Consistent Multipath Device Names in a Cluster</a></li>
+<li><a class="reference internal" href="#multipath-device-attributes">Multipath Device attributes</a></li>
+<li><a class="reference internal" href="#multipath-devices-in-logical-volumes">Multipath Devices in Logical Volumes</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#setting-up-dmm-overview">Setting up DMM Overview</a><ul>
+<li><a class="reference internal" href="#setting-up-dmm">Setting Up DMM</a></li>
+<li><a class="reference internal" href="#installing-with-multipath-support">Installing with Multipath Support</a></li>
+<li><a class="reference internal" href="#ignoring-local-disks-when-generating-multipath-devices">Ignoring Local Disks When Generating Multipath Devices</a></li>
+<li><a class="reference internal" href="#configuring-storage-devices">Configuring Storage Devices</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#the-dmm-configuration-file">The DMM Configuration File</a><ul>
+<li><a class="reference internal" href="#configuration-file-overview">Configuration File Overview</a></li>
+<li><a class="reference internal" href="#configuration-file-blacklist">Configuration File Blacklist</a><ul>
+<li><a class="reference internal" href="#blacklisting-by-wwid">Blacklisting By WWID</a></li>
+<li><a class="reference internal" href="#blacklisting-by-device-name">Blacklisting By Device Name</a></li>
+<li><a class="reference internal" href="#blacklisting-by-device-type">Blacklisting By Device Type</a></li>
+<li><a class="reference internal" href="#blacklist-exceptions">Blacklist Exceptions</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#configuration-file-defaults">Configuration File Defaults</a></li>
+<li><a class="reference internal" href="#configuration-file-multipath-attributes">Configuration File Multipath Attributes</a></li>
+<li><a class="reference internal" href="#configuration-file-devices">Configuration File Devices</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#dmm-administration-and-troubleshooting">DMM Administration and Troubleshooting</a><ul>
+<li><a class="reference internal" href="#resizing-an-online-multipath-device">Resizing an Online Multipath Device</a></li>
+<li><a class="reference internal" href="#moving-root-file-systems-from-a-single-path-device-to-a-multipath-device">Moving root File Systems from a Single Path Device to a Multipath Device</a></li>
+<li><a class="reference internal" href="#moving-swap-file-systems-from-a-single-path-device-to-a-multipath-device">Moving swap File Systems from a Single Path Device to a Multipath Device</a></li>
+<li><a class="reference internal" href="#the-multipath-daemon">The Multipath Daemon</a></li>
+<li><a class="reference internal" href="#issues-with-queue-if-no-path">Issues with queue_if_no_path</a></li>
+<li><a class="reference internal" href="#multipath-command-output">Multipath Command Output</a></li>
+<li><a class="reference internal" href="#multipath-queries-with-multipath-command">Multipath Queries with multipath Command</a></li>
+<li><a class="reference internal" href="#multipath-command-options">Multipath Command Options</a></li>
+<li><a class="reference internal" href="#determining-device-mapper-entries-with-dmsetup-command">Determining Device Mapper Entries with dmsetup Command</a></li>
+<li><a class="reference internal" href="#troubleshooting-with-the-multipathd-interactive-console">Troubleshooting with the multipathd interactive console</a></li>
+</ul>
+</li>
+</ul>
+
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/dm-multipath.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li><a href="index.html">Ubuntu Server Guide 14.04 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Ubuntu Documentation Contributors.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

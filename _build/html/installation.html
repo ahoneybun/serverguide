@@ -1,0 +1,899 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Installation &mdash; Ubuntu Server Guide - 14.04 LTS</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '14.04',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Ubuntu Server Guide - 14.04 LTS" href="index.html" />
+    <link rel="next" title="Package Management" href="package-management.html" />
+    <link rel="prev" title="Introduction" href="introduction.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="package-management.html" title="Package Management"
+             accesskey="N">next</a></li>
+        <li class="right" >
+          <a href="introduction.html" title="Introduction"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Ubuntu Server Guide - 14.04 LTS</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="installation">
+<h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h1>
+<p>This chapter provides a quick overview of installing Ubuntu DISTRO-REV
+Server Edition. For more detailed instructions, please refer to the
+<a class="reference external" href="https://help.ubuntu.com/&amp;distro-rev-short;/installation-guide/">Ubuntu Installation
+Guide</a>.</p>
+</div>
+<div class="section" id="preparing-to-install">
+<h1>Preparing to Install<a class="headerlink" href="#preparing-to-install" title="Permalink to this headline">¶</a></h1>
+<p>This section explains various aspects to consider before starting the
+installation.</p>
+<div class="section" id="system-requirements">
+<h2>System Requirements<a class="headerlink" href="#system-requirements" title="Permalink to this headline">¶</a></h2>
+<p>Ubuntu DISTRO-REV Server Edition supports three (3) major architectures:
+Intel x86, AMD64 and ARM. The table below lists recommended hardware
+specifications. Depending on your needs, you might manage with less than
+this. However, most users risk being frustrated if they ignore these
+suggestions.</p>
+<p>Table: Recommended Minimum Requirements</p>
+<blockquote>
+<div><p><strong>Note</strong></p>
+<p>A virtual installation requires a minimum of 256 megabytes of RAM
+during the installation phase.</p>
+</div></blockquote>
+<p>The Server Edition provides a common base for all sorts of server
+applications. It is a minimalist design providing a platform for the
+desired services, such as file/print services, web hosting, email
+hosting, etc.</p>
+</div>
+<div class="section" id="server-and-desktop-differences">
+<h2>Server and Desktop Differences<a class="headerlink" href="#server-and-desktop-differences" title="Permalink to this headline">¶</a></h2>
+<p>There are a few differences between the <em>Ubuntu Server Edition</em> and the
+<em>Ubuntu Desktop Edition</em>. It should be noted that both editions use the
+same apt repositories, making it just as easy to install a <em>server</em>
+application on the Desktop Edition as it is on the Server Edition.</p>
+<p>The differences between the two editions are the lack of an X window
+environment in the Server Edition and the installation process.</p>
+<div class="section" id="kernel-differences">
+<h3>Kernel Differences:<a class="headerlink" href="#kernel-differences" title="Permalink to this headline">¶</a></h3>
+<p>Ubuntu version 10.10 and prior, actually had different kernels for the
+server and desktop editions. Ubuntu no longer has separate -server and
+-generic kernel flavors. These have been merged into a single -generic
+kernel flavor to help reduce the maintenance burden over the life of the
+release.</p>
+<blockquote>
+<div><p><strong>Note</strong></p>
+<p>When running a 64-bit version of Ubuntu on 64-bit processors you are
+not limited by memory addressing space.</p>
+</div></blockquote>
+<p>To see all kernel configuration options you can look through
+<tt class="docutils literal"><span class="pre">/boot/config-LINUX-KERNEL-VERSION-server</span></tt>. Also, <a class="reference external" href="http://www.kroah.com/lkn/">Linux Kernel in a
+Nutshell</a> is a great resource on the
+options available.</p>
+</div>
+</div>
+<div class="section" id="backing-up">
+<h2>Backing Up<a class="headerlink" href="#backing-up" title="Permalink to this headline">¶</a></h2>
+<ul>
+<li><p class="first">Before installing Ubuntu Server Edition you should make sure all data
+on the system is backed up. See ? for backup options.</p>
+<p>If this is not the first time an operating system has been installed
+on your computer, it is likely you will need to re-partition your
+disk to make room for Ubuntu.</p>
+<p>Any time you partition your disk, you should be prepared to lose
+everything on the disk should you make a mistake or something goes
+wrong during partitioning. The programs used in installation are
+quite reliable, most have seen years of use, but they also perform
+destructive actions.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="installing-from-cd">
+<h1>Installing from CD<a class="headerlink" href="#installing-from-cd" title="Permalink to this headline">¶</a></h1>
+<p>The basic steps to install Ubuntu Server Edition from CD are the same as
+those for installing any operating system from CD. Unlike the <em>Desktop
+Edition</em>, the <em>Server Edition</em> does not include a graphical installation
+program. The Server Edition uses a console menu based process instead.</p>
+<ul>
+<li><p class="first">First, download and burn the appropriate ISO file from the <a class="reference external" href="http://www.ubuntu.com/download/server/download">Ubuntu
+web site</a>.</p>
+</li>
+<li><p class="first">Boot the system from the CD-ROM drive.</p>
+</li>
+<li><p class="first">At the boot prompt you will be asked to select a language.</p>
+</li>
+<li><p class="first">From the main boot menu there are some additional options to install
+Ubuntu Server Edition. You can install a basic Ubuntu Server, check
+the CD-ROM for defects, check the system&#8217;s RAM, boot from first hard
+disk, or rescue a broken system. The rest of this section will cover
+the basic Ubuntu Server install.</p>
+</li>
+<li><p class="first">The installer asks for which language it should use. Afterwards, you
+are asked to select your location.</p>
+</li>
+<li><p class="first">Next, the installation process begins by asking for your keyboard
+layout. You can ask the installer to attempt auto-detecting it, or
+you can select it manually from a list.</p>
+</li>
+<li><p class="first">The installer then discovers your hardware configuration, and
+configures the network settings using DHCP. If you do not wish to use
+DHCP at the next screen choose &#8220;Go Back&#8221;, and you have the option to
+&#8220;Configure the network manually&#8221;.</p>
+</li>
+<li><p class="first">Next, the installer asks for the system&#8217;s hostname and Time Zone.</p>
+</li>
+<li><p class="first">You can then choose from several options to configure the hard drive
+layout. Afterwards you are asked for which disk to install to. You
+may get confirmation prompts before rewriting the partition table or
+setting up LVM depending on disk layout. If you choose LVM, you will
+be asked for the size of the root logical volume. For advanced disk
+options see ?.</p>
+</li>
+<li><p class="first">The Ubuntu base system is then installed.</p>
+</li>
+<li><p class="first">A new user is set up; this user will have <em>root</em> access through the
+sudo utility.</p>
+</li>
+<li><p class="first">After the user settings have been completed, you will be asked to
+encrypt your <tt class="docutils literal"><span class="pre">home</span></tt> directory.</p>
+</li>
+<li><p class="first">The next step in the installation process is to decide how you want
+to update the system. There are three options:</p>
+<ul class="simple">
+<li><em>No automatic updates</em>: this requires an administrator to log into
+the machine and manually install updates.</li>
+<li><em>Install security updates automatically</em>: this will install the
+unattended-upgrades package, which will install security updates
+without the intervention of an administrator. For more details see
+?.</li>
+<li><em>Manage the system with Landscape</em>: Landscape is a paid service
+provided by Canonical to help manage your Ubuntu machines. See the
+<a class="reference external" href="http://www.canonical.com/projects/landscape">Landscape</a> site
+for details.</li>
+</ul>
+</li>
+<li><p class="first">You now have the option to install, or not install, several package
+tasks. See ? for details. Also, there is an option to launch aptitude
+to choose specific packages to install. For more information see ?.</p>
+</li>
+<li><p class="first">Finally, the last step before rebooting is to set the clock to UTC.</p>
+<blockquote>
+<div><p><strong>Note</strong></p>
+<p>If at any point during installation you are not satisfied by the
+default setting, use the &#8220;Go Back&#8221; function at any prompt to be
+brought to a detailed installation menu that will allow you to
+modify the default settings.</p>
+</div></blockquote>
+</li>
+</ul>
+<p>At some point during the installation process you may want to read the
+help screen provided by the installation system. To do this, press F1.</p>
+<p>Once again, for detailed instructions see the <a class="reference external" href="https://help.ubuntu.com/&amp;distro-rev-short;/installation-guide/">Ubuntu Installation
+Guide</a>.</p>
+<div class="section" id="package-tasks">
+<h2>Package Tasks<a class="headerlink" href="#package-tasks" title="Permalink to this headline">¶</a></h2>
+<p>During the Server Edition installation you have the option of installing
+additional packages from the CD. The packages are grouped by the type of
+service they provide.</p>
+<ul class="simple">
+<li>DNS server: Selects the BIND DNS server and its documentation.</li>
+<li>LAMP server: Selects a ready-made Linux/Apache/MySQL/PHP server.</li>
+<li>Mail server: This task selects a variety of packages useful for a
+general purpose mail server system.</li>
+<li>OpenSSH server: Selects packages needed for an OpenSSH server.</li>
+<li>PostgreSQL database: This task selects client and server packages for
+the PostgreSQL database.</li>
+<li>Print server: This task sets up your system to be a print server.</li>
+<li>Samba File server: This task sets up your system to be a Samba file
+server, which is especially suitable in networks with both Windows
+and Linux systems.</li>
+<li>Tomcat Java server: Installs Apache Tomcat and needed dependencies.</li>
+<li>Virtual Machine host: Includes packages needed to run KVM virtual
+machines.</li>
+<li>Manually select packages: Executes aptitude allowing you to
+individually select packages.</li>
+</ul>
+<p>Installing the package groups is accomplished using the tasksel utility.
+One of the important differences between Ubuntu (or Debian) and other
+GNU/Linux distribution is that, when installed, a package is also
+configured to reasonable defaults, eventually prompting you for
+additional required information. Likewise, when installing a task, the
+packages are not only installed, but also configured to provided a fully
+integrated service.</p>
+<p>Once the installation process has finished you can view a list of
+available tasks by entering the following from a terminal prompt:</p>
+<div class="highlight-python"><pre>**Note**
+
+The output will list tasks from other Ubuntu based distributions
+such as Kubuntu and Edubuntu. Note that you can also invoke the
+``tasksel`` command by itself, which will bring up a menu of the
+different tasks available.</pre>
+</div>
+<p>You can view a list of which packages are installed with each task using
+the <em>&#8211;task-packages</em> option. For example, to list the packages
+installed with the <em>DNS Server</em> task enter the following:</p>
+<p>The output of the command should list:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">bind9</span><span class="o">-</span><span class="n">doc</span>
+<span class="n">bind9utils</span>
+<span class="n">bind9</span>
+</pre></div>
+</div>
+<p>If you did not install one of the tasks during the installation process,
+but for example you decide to make your new LAMP server a DNS server as
+well, simply insert the installation CD and from a terminal:</p>
+</div>
+</div>
+<div class="section" id="upgrading">
+<h1>Upgrading<a class="headerlink" href="#upgrading" title="Permalink to this headline">¶</a></h1>
+<p>There are several ways to upgrade from one Ubuntu release to another.
+This section gives an overview of the recommended upgrade method.</p>
+<div class="section" id="do-release-upgrade">
+<h2>do-release-upgrade<a class="headerlink" href="#do-release-upgrade" title="Permalink to this headline">¶</a></h2>
+<p>The recommended way to upgrade a Server Edition installation is to use
+the do-release-upgrade utility. Part of the <em>update-manager-core</em>
+package, it does not have any graphical dependencies and is installed by
+default.</p>
+<p>Debian based systems can also be upgraded by using
+<tt class="docutils literal"><span class="pre">apt-get</span> <span class="pre">dist-upgrade</span></tt>. However, using do-release-upgrade is
+recommended because it has the ability to handle system configuration
+changes sometimes needed between releases.</p>
+<p>To upgrade to a newer release, from a terminal prompt enter:</p>
+<p>It is also possible to use do-release-upgrade to upgrade to a
+development version of Ubuntu. To accomplish this use the <em>-d</em> switch:</p>
+<div class="highlight-python"><pre>**Warning**
+
+Upgrading to a development release is *not* recommended for
+production environments.</pre>
+</div>
+</div>
+</div>
+<div class="section" id="advanced-installation">
+<h1>Advanced Installation<a class="headerlink" href="#advanced-installation" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="software-raid">
+<h2>Software RAID<a class="headerlink" href="#software-raid" title="Permalink to this headline">¶</a></h2>
+<p>Redundant Array of Independent Disks &#8220;RAID&#8221; is a method of using
+multiple disks to provide different balances of increasing data
+reliability and/or increasing input/output performance, depending on the
+RAID level being used. RAID is implemented in either software (where the
+operating system knows about both drives and actively maintains both of
+them) or hardware (where a special controller makes the OS think there&#8217;s
+only one drive and maintains the drives &#8216;invisibly&#8217;).</p>
+<p>The RAID software included with current versions of Linux (and Ubuntu)
+is based on the &#8216;mdadm&#8217; driver and works very well, better even than
+many so-called &#8216;hardware&#8217; RAID controllers. This section will guide you
+through installing Ubuntu Server Edition using two RAID1 partitions on
+two physical hard drives, one for <em>/</em> and another for <em>swap</em>.</p>
+<div class="section" id="partitioning">
+<h3>Partitioning<a class="headerlink" href="#partitioning" title="Permalink to this headline">¶</a></h3>
+<p>Follow the installation steps until you get to the <em>Partition disks</em>
+step, then:</p>
+<p>Select <em>Manual</em> as the partition method.</p>
+<p>Select the first hard drive, and agree to <em>&#8220;Create a new empty partition
+table on this device?&#8221;</em>.</p>
+<p>Repeat this step for each drive you wish to be part of the RAID array.</p>
+<p>Select the <em>&#8220;FREE SPACE&#8221;</em> on the first drive then select <em>&#8220;Create a new
+partition&#8221;</em>.</p>
+<p>Next, select the <em>Size</em> of the partition. This partition will be the
+<em>swap</em> partition, and a general rule for swap size is twice that of RAM.
+Enter the partition size, then choose <em>Primary</em>, then <em>Beginning</em>.</p>
+<blockquote>
+<div><p><strong>Note</strong></p>
+<p>A swap partition size of twice the available RAM capacity may not
+always be desirable, especially on systems with large amounts of
+RAM. Calculating the swap partition size for servers is highly
+dependent on how the system is going to be used.</p>
+</div></blockquote>
+<p>Select the <em>&#8220;Use as:&#8221;</em> line at the top. By default this is <em>&#8220;Ext4
+journaling file system&#8221;</em>, change that to <em>&#8220;physical volume for RAID&#8221;</em>
+then <em>&#8220;Done setting up partition&#8221;</em>.</p>
+<p>For the <em>/</em> partition once again select <em>&#8220;Free Space&#8221;</em> on the first
+drive then <em>&#8220;Create a new partition&#8221;</em>.</p>
+<p>Use the rest of the free space on the drive and choose <em>Continue</em>, then
+<em>Primary</em>.</p>
+<p>As with the swap partition, select the <em>&#8220;Use as:&#8221;</em> line at the top,
+changing it to <em>&#8220;physical volume for RAID&#8221;</em>. Also select the <em>&#8220;Bootable
+flag:&#8221;</em> line to change the value to <em>&#8220;on&#8221;</em>. Then choose <em>&#8220;Done setting
+up partition&#8221;</em>.</p>
+<p>Repeat steps three through eight for the other disk and partitions.</p>
+</div>
+<div class="section" id="raid-configuration">
+<h3>RAID Configuration<a class="headerlink" href="#raid-configuration" title="Permalink to this headline">¶</a></h3>
+<p>With the partitions setup the arrays are ready to be configured:</p>
+<p>Back in the main &#8220;Partition Disks&#8221; page, select <em>&#8220;Configure Software
+RAID&#8221;</em> at the top.</p>
+<p>Select <em>&#8220;yes&#8221;</em> to write the changes to disk.</p>
+<p>Choose <em>&#8220;Create MD device&#8221;</em>.</p>
+<p>For this example, select <em>&#8220;RAID1&#8221;</em>, but if you are using a different
+setup choose the appropriate type (RAID0 RAID1 RAID5).</p>
+<blockquote>
+<div><p><strong>Note</strong></p>
+<p>In order to use <em>RAID5</em> you need at least <em>three</em> drives. Using
+RAID0 or RAID1 only <em>two</em> drives are required.</p>
+</div></blockquote>
+<p>Enter the number of active devices <em>&#8220;2&#8221;</em>, or the amount of hard drives
+you have, for the array. Then select <em>&#8220;Continue&#8221;</em>.</p>
+<p>Next, enter the number of spare devices <em>&#8220;0&#8221;</em> by default, then choose
+<em>&#8220;Continue&#8221;</em>.</p>
+<p>Choose which partitions to use. Generally they will be sda1, sdb1, sdc1,
+etc. The numbers will usually match and the different letters correspond
+to different hard drives.</p>
+<p>For the <em>swap</em> partition choose <em>sda1</em> and <em>sdb1</em>. Select <em>&#8220;Continue&#8221;</em>
+to go to the next step.</p>
+<p>Repeat steps <em>three</em> through <em>seven</em> for the <em>/</em> partition choosing
+<em>sda2</em> and <em>sdb2</em>.</p>
+<p>Once done select <em>&#8220;Finish&#8221;</em>.</p>
+</div>
+<div class="section" id="formatting">
+<h3>Formatting<a class="headerlink" href="#formatting" title="Permalink to this headline">¶</a></h3>
+<p>There should now be a list of hard drives and RAID devices. The next
+step is to format and set the mount point for the RAID devices. Treat
+the RAID device as a local hard drive, format and mount accordingly.</p>
+<p>Select <em>&#8220;#1&#8221;</em> under the <em>&#8220;RAID1 device #0&#8221;</em> partition.</p>
+<p>Choose <em>&#8220;Use as:&#8221;</em>. Then select <em>&#8220;swap area&#8221;</em>, then <em>&#8220;Done setting up
+partition&#8221;</em>.</p>
+<p>Next, select <em>&#8220;#1&#8221;</em> under the <em>&#8220;RAID1 device #1&#8221;</em> partition.</p>
+<p>Choose <em>&#8220;Use as:&#8221;</em>. Then select <em>&#8220;Ext4 journaling file system&#8221;</em>.</p>
+<p>Then select the <em>&#8220;Mount point&#8221;</em> and choose <em>&#8220;/ - the root file system&#8221;</em>.
+Change any of the other options as appropriate, then select <em>&#8220;Done
+setting up partition&#8221;</em>.</p>
+<p>Finally, select <em>&#8220;Finish partitioning and write changes to disk&#8221;</em>.</p>
+<p>If you choose to place the root partition on a RAID array, the installer
+will then ask if you would like to boot in a <em>degraded</em> state. See ? for
+further details.</p>
+<p>The installation process will then continue normally.</p>
+</div>
+<div class="section" id="degraded-raid">
+<h3>Degraded RAID<a class="headerlink" href="#degraded-raid" title="Permalink to this headline">¶</a></h3>
+<p>At some point in the life of the computer a disk failure event may
+occur. When this happens, using Software RAID, the operating system will
+place the array into what is known as a <em>degraded</em> state.</p>
+<p>If the array has become degraded, due to the chance of data corruption,
+by default Ubuntu Server Edition will boot to <em>initramfs</em> after thirty
+seconds. Once the initramfs has booted there is a fifteen second prompt
+giving you the option to go ahead and boot the system, or attempt manual
+recover. Booting to the initramfs prompt may or may not be the desired
+behavior, especially if the machine is in a remote location. Booting to
+a degraded array can be configured several ways:</p>
+<ul>
+<li><p class="first">The dpkg-reconfigure utility can be used to configure the default
+behavior, and during the process you will be queried about additional
+settings related to the array. Such as monitoring, email alerts, etc.
+To reconfigure mdadm enter the following:</p>
+</li>
+<li><p class="first">The <tt class="docutils literal"><span class="pre">dpkg-reconfigure</span> <span class="pre">mdadm</span></tt> process will change the
+<tt class="docutils literal"><span class="pre">/etc/initramfs-tools/conf.d/mdadm</span></tt> configuration file. The file
+has the advantage of being able to pre-configure the system&#8217;s
+behavior, and can also be manually edited:</p>
+<div class="highlight-python"><pre>BOOT_DEGRADED=true
+
+**Note**
+
+The configuration file can be overridden by using a Kernel
+argument.</pre>
+</div>
+</li>
+<li><p class="first">Using a Kernel argument will allow the system to boot to a degraded
+array as well:</p>
+<ul class="simple">
+<li>When the server is booting press Shift to open the Grub menu.</li>
+<li>Press e to edit your kernel command options.</li>
+<li>Press the down arrow to highlight the kernel line.</li>
+<li>Add <em>&#8220;bootdegraded=true&#8221;</em> (without the quotes) to the end of the
+line.</li>
+<li>Press Ctrlx to boot the system.</li>
+</ul>
+</li>
+</ul>
+<p>Once the system has booted you can either repair the array see ? for
+details, or copy important data to another machine due to major hardware
+failure.</p>
+</div>
+<div class="section" id="raid-maintenance">
+<h3>RAID Maintenance<a class="headerlink" href="#raid-maintenance" title="Permalink to this headline">¶</a></h3>
+<p>The mdadm utility can be used to view the status of an array, add disks
+to an array, remove disks, etc:</p>
+<ul>
+<li><p class="first">To view the status of an array, from a terminal prompt enter:</p>
+<p>The <em>-D</em> tells mdadm to display <em>detailed</em> information about the
+<tt class="docutils literal"><span class="pre">/dev/md0</span></tt> device. Replace <tt class="docutils literal"><span class="pre">/dev/md0</span></tt> with the appropriate RAID
+device.</p>
+</li>
+<li><p class="first">To view the status of a disk in an array:</p>
+<p>The output if very similar to the <tt class="docutils literal"><span class="pre">mdadm</span> <span class="pre">-D</span></tt> command, adjust
+<tt class="docutils literal"><span class="pre">/dev/sda1</span></tt> for each disk.</p>
+</li>
+<li><p class="first">If a disk fails and needs to be removed from an array enter:</p>
+<p>Change <tt class="docutils literal"><span class="pre">/dev/md0</span></tt> and <tt class="docutils literal"><span class="pre">/dev/sda1</span></tt> to the appropriate RAID device
+and disk.</p>
+</li>
+<li><p class="first">Similarly, to add a new disk:</p>
+</li>
+</ul>
+<p>Sometimes a disk can change to a <em>faulty</em> state even though there is
+nothing physically wrong with the drive. It is usually worthwhile to
+remove the drive from the array then re-add it. This will cause the
+drive to re-sync with the array. If the drive will not sync with the
+array, it is a good indication of hardware failure.</p>
+<p>The <tt class="docutils literal"><span class="pre">/proc/mdstat</span></tt> file also contains useful information about the
+system&#8217;s RAID devices:</p>
+<p>The following command is great for watching the status of a syncing
+drive:</p>
+<p>Press <em>Ctrl+c</em> to stop the watch command.</p>
+<p>If you do need to replace a faulty drive, after the drive has been
+replaced and synced, grub will need to be installed. To install grub on
+the new drive, enter the following:</p>
+<p>Replace <tt class="docutils literal"><span class="pre">/dev/md0</span></tt> with the appropriate array device name.</p>
+</div>
+<div class="section" id="resources">
+<h3>Resources<a class="headerlink" href="#resources" title="Permalink to this headline">¶</a></h3>
+<p>The topic of RAID arrays is a complex one due to the plethora of ways
+RAID can be configured. Please see the following links for more
+information:</p>
+<ul class="simple">
+<li><a class="reference external" href="https://help.ubuntu.com/community/Installation#raid">Ubuntu Wiki Articles on
+RAID</a>.</li>
+<li><a class="reference external" href="http://www.faqs.org/docs/Linux-HOWTO/Software-RAID-HOWTO.html">Software RAID
+HOWTO</a></li>
+<li><a class="reference external" href="http://oreilly.com/catalog/9781565927308/">Managing RAID on
+Linux</a></li>
+</ul>
+</div>
+</div>
+<div class="section" id="logical-volume-manager-lvm">
+<h2>Logical Volume Manager (LVM)<a class="headerlink" href="#logical-volume-manager-lvm" title="Permalink to this headline">¶</a></h2>
+<p>Logical Volume Manger, or <em>LVM</em>, allows administrators to create
+<em>logical</em> volumes out of one or multiple physical hard disks. LVM
+volumes can be created on both software RAID partitions and standard
+partitions residing on a single disk. Volumes can also be extended,
+giving greater flexibility to systems as requirements change.</p>
+<div class="section" id="overview">
+<h3>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h3>
+<p>A side effect of LVM&#8217;s power and flexibility is a greater degree of
+complication. Before diving into the LVM installation process, it is
+best to get familiar with some terms.</p>
+<ul class="simple">
+<li><em>Physical Volume (PV):</em> physical hard disk, disk partition or
+software RAID partition formatted as LVM PV.</li>
+<li><em>Volume Group (VG):</em> is made from one or more physical volumes. A VG
+can can be extended by adding more PVs. A VG is like a virtual disk
+drive, from which one or more logical volumes are carved.</li>
+<li><em>Logical Volume (LV):</em> is similar to a partition in a non-LVM system.
+A LV is formatted with the desired file system (EXT3, XFS, JFS, etc),
+it is then available for mounting and data storage.</li>
+</ul>
+</div>
+<div class="section" id="id1">
+<h3>Installation<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<p>As an example this section covers installing Ubuntu Server Edition with
+<tt class="docutils literal"><span class="pre">/srv</span></tt> mounted on a LVM volume. During the initial install only one
+Physical Volume (PV) will be part of the Volume Group (VG). Another PV
+will be added after install to demonstrate how a VG can be extended.</p>
+<p>There are several installation options for LVM, <em>&#8220;Guided - use the
+entire disk and setup LVM&#8221;</em> which will also allow you to assign a
+portion of the available space to LVM, <em>&#8220;Guided - use entire and setup
+encrypted LVM&#8221;</em>, or <em>Manually</em> setup the partitions and configure LVM.
+At this time the only way to configure a system with both LVM and
+standard partitions, during installation, is to use the Manual approach.</p>
+<p>Follow the installation steps until you get to the <em>Partition disks</em>
+step, then:</p>
+<p>At the <em>&#8220;Partition Disks</em> screen choose <em>&#8220;Manual&#8221;</em>.</p>
+<p>Select the hard disk and on the next screen choose &#8220;yes&#8221; to <em>&#8220;Create a
+new empty partition table on this device&#8221;</em>.</p>
+<p>Next, create standard <em>/boot</em>, <em>swap</em>, and <em>/</em> partitions with whichever
+filesystem you prefer.</p>
+<p>For the LVM <em>/srv</em>, create a new <em>Logical</em> partition. Then change <em>&#8220;Use
+as&#8221;</em> to <em>&#8220;physical volume for LVM&#8221;</em> then <em>&#8220;Done setting up the
+partition&#8221;</em>.</p>
+<p>Now select <em>&#8220;Configure the Logical Volume Manager&#8221;</em> at the top, and
+choose <em>&#8220;Yes&#8221;</em> to write the changes to disk.</p>
+<p>For the <em>&#8220;LVM configuration action&#8221;</em> on the next screen, choose <em>&#8220;Create
+volume group&#8221;</em>. Enter a name for the VG such as <em>vg01</em>, or something
+more descriptive. After entering a name, select the partition configured
+for LVM, and choose <em>&#8220;Continue&#8221;</em>.</p>
+<p>Back at the <em>&#8220;LVM configuration action&#8221;</em> screen, select <em>&#8220;Create logical
+volume&#8221;</em>. Select the newly created volume group, and enter a name for
+the new LV, for example <em>srv</em> since that is the intended mount point.
+Then choose a size, which may be the full partition because it can
+always be extended later. Choose <em>&#8220;Finish&#8221;</em> and you should be back at
+the main <em>&#8220;Partition Disks&#8221;</em> screen.</p>
+<p>Now add a filesystem to the new LVM. Select the partition under <em>&#8220;LVM VG
+vg01, LV srv&#8221;</em>, or whatever name you have chosen, the choose <em>Use as</em>.
+Setup a file system as normal selecting <em>/srv</em> as the mount point. Once
+done, select <em>&#8220;Done setting up the partition&#8221;</em>.</p>
+<p>Finally, select <em>&#8220;Finish partitioning and write changes to disk&#8221;</em>. Then
+confirm the changes and continue with the rest of the installation.</p>
+<p>There are some useful utilities to view information about LVM:</p>
+<ul class="simple">
+<li><em>pvdisplay:</em> shows information about Physical Volumes.</li>
+<li><em>vgdisplay:</em> shows information about Volume Groups.</li>
+<li><em>lvdisplay:</em> shows information about Logical Volumes.</li>
+</ul>
+</div>
+<div class="section" id="extending-volume-groups">
+<h3>Extending Volume Groups<a class="headerlink" href="#extending-volume-groups" title="Permalink to this headline">¶</a></h3>
+<p>Continuing with <em>srv</em> as an LVM volume example, this section covers
+adding a second hard disk, creating a Physical Volume (PV), adding it to
+the volume group (VG), extending the logical volume <tt class="docutils literal"><span class="pre">srv</span></tt> and finally
+extending the filesystem. This example assumes a second hard disk has
+been added to the system. In this example, this hard disk will be named
+<tt class="docutils literal"><span class="pre">/dev/sdb</span></tt> and we will use the entire disk as a physical volume (you
+could choose to create partitions and use them as different physical
+volumes)</p>
+<blockquote>
+<div><p><strong>Warning</strong></p>
+<p>Make sure you don&#8217;t already have an existing <tt class="docutils literal"><span class="pre">/dev/sdb</span></tt> before
+issuing the commands below. You could lose some data if you issue
+those commands on a non-empty disk.</p>
+</div></blockquote>
+<p>First, create the physical volume, in a terminal execute:</p>
+<p>Now extend the Volume Group (VG):</p>
+<p>Use vgdisplay to find out the free physical extents - Free PE / size
+(the size you can allocate). We will assume a free size of 511 PE
+(equivalent to 2GB with a PE size of 4MB) and we will use the whole free
+space available. Use your own PE and/or free space.</p>
+<p>The Logical Volume (LV) can now be extended by different methods, we
+will only see how to use the PE to extend the LV:</p>
+<p>The <em>-l</em> option allows the LV to be extended using PE. The <em>-L</em> option
+allows the LV to be extended using Meg, Gig, Tera, etc bytes.</p>
+<p>Even though you are supposed to be able to <em>expand</em> an ext3 or ext4
+filesystem without unmounting it first, it may be a good practice to
+unmount it anyway and check the filesystem, so that you don&#8217;t mess up
+the day you want to reduce a logical volume (in that case unmounting
+first is compulsory).</p>
+<p>The following commands are for an <em>EXT3</em> or <em>EXT4</em> filesystem. If you
+are using another filesystem there may be other utilities available.</p>
+<p>The <em>-f</em> option of e2fsck forces checking even if the system seems
+clean.</p>
+<p>Finally, resize the filesystem:</p>
+<p>Now mount the partition and check its size.</p>
+</div>
+<div class="section" id="id2">
+<h3>Resources<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>See the <a class="reference external" href="https://help.ubuntu.com/community/Installation#lvm">Ubuntu Wiki LVM
+Articles</a>.</li>
+<li>See the <a class="reference external" href="http://tldp.org/HOWTO/LVM-HOWTO/index.html">LVM HOWTO</a>
+for more information.</li>
+<li>Another good article is <a class="reference external" href="http://www.linuxdevcenter.com/pub/a/linux/2006/04/27/managing-disk-space-with-lvm.html">Managing Disk Space with
+LVM</a>
+on O&#8217;Reilly&#8217;s linuxdevcenter.com site.</li>
+<li>For more information on fdisk see the <a class="reference external" href="http://manpages.ubuntu.com/manpages/&amp;distro-short-codename;/en/man8/fdisk.8.html">fdisk man
+page</a>.</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="section" id="kernel-crash-dump">
+<h1>Kernel Crash Dump<a class="headerlink" href="#kernel-crash-dump" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p>A Kernel Crash Dump refers to a portion of the contents of volatile
+memory (RAM) that is copied to disk whenever the execution of the kernel
+is disrupted. The following events can cause a kernel disruption :</p>
+<ul class="simple">
+<li>Kernel Panic</li>
+<li>Non Maskable Interrupts (NMI)</li>
+<li>Machine Check Exceptions (MCE)</li>
+<li>Hardware failure</li>
+<li>Manual intervention</li>
+</ul>
+<p>For some of those events (panic, NMI) the kernel will react
+automatically and trigger the crash dump mechanism through <em>kexec</em>. In
+other situations a manual intervention is required in order to capture
+the memory. Whenever one of the above events occurs, it is important to
+find out the root cause in order to prevent it from happening again. The
+cause can be determined by inspecting the copied memory contents.</p>
+</div>
+<div class="section" id="kernel-crash-dump-mechanism">
+<h2>Kernel Crash Dump Mechanism<a class="headerlink" href="#kernel-crash-dump-mechanism" title="Permalink to this headline">¶</a></h2>
+<p>When a kernel panic occurs, the kernel relies on the <em>kexec</em> mechanism
+to quickly reboot a new instance of the kernel in a pre-reserved section
+of memory that had been allocated when the system booted (see below).
+This permits the existing memory area to remain untouched in order to
+safely copy its contents to storage.</p>
+</div>
+<div class="section" id="id3">
+<h2>Installation<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<p>The kernel crash dump utility is installed with the following command:</p>
+<p>A reboot is then needed.</p>
+</div>
+<div class="section" id="configuration">
+<h2>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h2>
+<p>No further configuration is required in order to have the kernel dump
+mechanism enabled.</p>
+</div>
+<div class="section" id="verification">
+<h2>Verification<a class="headerlink" href="#verification" title="Permalink to this headline">¶</a></h2>
+<p>To confirm that the kernel dump mechanism is enabled, there are a few
+things to verify. First, confirm that the <em>crashkernel</em> boot parameter
+is present (note: The following line has been split into two to fit the
+format of this document:</p>
+<p>The <em>crashkernel</em> parameter has the following syntax:</p>
+<div class="highlight-python"><pre>crashkernel=&lt;range1&gt;:&lt;size1&gt;[,&lt;range2&gt;:&lt;size2&gt;,...][@offset]
+    range=start-[end] 'start' is inclusive and 'end' is exclusive.</pre>
+</div>
+<p>So for the crashkernel parameter found in <tt class="docutils literal"><span class="pre">/proc/cmdline</span></tt> we would
+have :</p>
+<div class="highlight-python"><pre>crashkernel=384M-2G:64M,2G-:128M</pre>
+</div>
+<p>The above value means:</p>
+<ul class="simple">
+<li>if the RAM is smaller than 384M, then don&#8217;t reserve anything (this is
+the &#8220;rescue&#8221; case)</li>
+<li>if the RAM size is between 386M and 2G (exclusive), then reserve 64M</li>
+<li>if the RAM size is larger than 2G, then reserve 128M</li>
+</ul>
+<p>Second, verify that the kernel has reserved the requested memory area
+for the kdump kernel by doing:</p>
+</div>
+<div class="section" id="testing-the-crash-dump-mechanism">
+<h2>Testing the Crash Dump Mechanism<a class="headerlink" href="#testing-the-crash-dump-mechanism" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><p><strong>Warning</strong></p>
+<p>Testing the Crash Dump Mechanism will cause <em>a system reboot.</em> In
+certain situations, this can cause data loss if the system is under
+heavy load. If you want to test the mechanism, make sure that the
+system is idle or under very light load.</p>
+</div></blockquote>
+<p>Verify that the <em>SysRQ</em> mechanism is enabled by looking at the value of
+the <tt class="docutils literal"><span class="pre">/proc/sys/kernel/sysrq</span></tt> kernel parameter :</p>
+<p>If a value of <em>0</em> is returned the feature is disabled. Enable it with
+the following command :</p>
+<p>Once this is done, you must become root, as just using <tt class="docutils literal"><span class="pre">sudo</span></tt> will not
+be sufficient. As the <em>root</em> user, you will have to issue the command
+<tt class="docutils literal"><span class="pre">echo</span> <span class="pre">c</span> <span class="pre">&gt;</span> <span class="pre">/proc/sysrq-trigger</span></tt>. If you are using a network connection,
+you will lose contact with the system. This is why it is better to do
+the test while being connected to the system console. This has the
+advantage of making the kernel dump process visible.</p>
+<p>A typical test output should look like the following :</p>
+<div class="highlight-python"><pre>[sudo] password for ubuntu:
+#
+[   31.659002] SysRq : Trigger a crash
+[   31.659749] BUG: unable to handle kernel NULL pointer dereference at           (null)
+[   31.662668] IP: [&lt;ffffffff8139f166&gt;] sysrq_handle_crash+0x16/0x20
+[   31.662668] PGD 3bfb9067 PUD 368a7067 PMD 0
+[   31.662668] Oops: 0002 [#1] SMP
+[   31.662668] CPU 1
+....</pre>
+</div>
+<p>The rest of the output is truncated, but you should see the system
+rebooting and somewhere in the log, you will see the following line :</p>
+<div class="highlight-python"><pre>Begin: Saving vmcore from kernel crash ...</pre>
+</div>
+<p>Once completed, the system will reboot to its normal operational mode.
+You will then find Kernel Crash Dump file in the <tt class="docutils literal"><span class="pre">/var/crash</span></tt>
+directory :</p>
+<div class="highlight-python"><pre>linux-image-3.0.0-12-server.0.crash</pre>
+</div>
+</div>
+<div class="section" id="id4">
+<h2>Resources<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
+<p>Kernel Crash Dump is a vast topic that requires good knowledge of the
+linux kernel. You can find more information on the topic here :</p>
+<ul class="simple">
+<li><a class="reference external" href="http://www.kernel.org/doc/Documentation/kdump/kdump.txt">Kdump kernel
+documentation</a>.</li>
+<li><a class="reference external" href="http://people.redhat.com/~anderson/">The crash tool</a></li>
+<li><a class="reference external" href="http://www.dedoimedo.com/computers/crash-analyze.html">Analyzing Linux Kernel
+Crash</a>
+(Based on Fedora, it still gives a good walkthrough of kernel dump
+analysis)</li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/ubuntu_black-orange_hex_su-medium_cropped.png" alt="Logo"/>
+            </a></p>
+<h3><a href="index.html">Table Of Contents</a></h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="introduction.html#support">Support</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#preparing-to-install">Preparing to Install</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="#installing-from-cd">Installing from CD</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="#upgrading">Upgrading</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="#advanced-installation">Advanced Installation</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="#kernel-crash-dump">Kernel Crash Dump</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html">Package Management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html#introduction">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html#dpkg">dpkg</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html#apt-get">Apt-Get</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html#aptitude">Aptitude</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html#automatic-updates">Automatic Updates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html#configuration">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html#references">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-config.html">Networking</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-config.html#network-configuration">Network Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-config.html#tcp-ip">TCP/IP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-config.html#dynamic-host-configuration-protocol-dhcp">Dynamic Host Configuration Protocol (DHCP)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-config.html#time-synchronisation-with-ntp">Time Synchronisation with NTP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multipath.html">DMM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multipath.html#device-mapper-multipathing">Device Mapper Multipathing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multipath.html#multipath-devices">Multipath Devices</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multipath.html#setting-up-dmm-overview">Setting up DMM Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multipath.html#the-dmm-configuration-file">The DMM Configuration File</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multipath.html#dmm-administration-and-troubleshooting">DMM Administration and Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="remote-administration.html">Remote Administration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="remote-administration.html#openssh-server">OpenSSH Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="remote-administration.html#puppet">Puppet</a></li>
+<li class="toctree-l1"><a class="reference internal" href="remote-administration.html#zentyal">Zentyal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-auth.html">Network Authentication</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-auth.html#openldap-server">OpenLDAP Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-auth.html#samba-and-ldap">Samba and LDAP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-auth.html#kerberos">Kerberos</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-auth.html#kerberos-and-ldap">Kerberos and LDAP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dns.html">Domain Name Service (DNS)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dns.html#installation">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dns.html#configuration">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dns.html#troubleshooting">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dns.html#references">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html">Security</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html#user-management">User Management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html#console-security">Console Security</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html#firewall">Firewall</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html#apparmor">AppArmor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html#certificates">Certificates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html#ecryptfs">eCryptfs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="monitoring.html">Monitoring</a></li>
+<li class="toctree-l1"><a class="reference internal" href="monitoring.html#overview">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="monitoring.html#nagios">Nagios</a></li>
+<li class="toctree-l1"><a class="reference internal" href="monitoring.html#munin">Munin</a></li>
+<li class="toctree-l1"><a class="reference internal" href="web-servers.html">Web Servers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="web-servers.html#httpd-apache2-web-server">HTTPD - Apache2 Web Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="web-servers.html#php5-scripting-language">PHP5 - Scripting Language</a></li>
+<li class="toctree-l1"><a class="reference internal" href="web-servers.html#squid-proxy-server">Squid - Proxy Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="web-servers.html#ruby-on-rails">Ruby on Rails</a></li>
+<li class="toctree-l1"><a class="reference internal" href="web-servers.html#apache-tomcat">Apache Tomcat</a></li>
+<li class="toctree-l1"><a class="reference internal" href="databases.html">Databases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="databases.html#mysql">MySQL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="databases.html#postgresql">PostgreSQL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lamp-applications.html">LAMP Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lamp-applications.html#overview">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lamp-applications.html#moin-moin">Moin Moin</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lamp-applications.html#mediawiki">MediaWiki</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lamp-applications.html#phpmyadmin">phpMyAdmin</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lamp-applications.html#wordpress">WordPress</a></li>
+<li class="toctree-l1"><a class="reference internal" href="file-server.html">File Servers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="file-server.html#ftp-server">FTP Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="file-server.html#network-file-system-nfs">Network File System (NFS)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="file-server.html#iscsi-initiator">iSCSI Initiator</a></li>
+<li class="toctree-l1"><a class="reference internal" href="file-server.html#cups-print-server">CUPS - Print Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mail.html">Email Services</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mail.html#postfix">Postfix</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mail.html#exim4">Exim4</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mail.html#dovecot-server">Dovecot Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mail.html#mailman">Mailman</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mail.html#mail-filtering">Mail Filtering</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chat.html">Chat Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chat.html#overview">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chat.html#irc-server">IRC Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chat.html#jabber-instant-messaging-server">Jabber Instant Messaging Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vcs.html">Version Control System</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vcs.html#bazaar">Bazaar</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vcs.html#git">Git</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vcs.html#subversion">Subversion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vcs.html#references">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samba.html">Samba</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samba.html#introduction">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samba.html#file-server">File Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samba.html#print-server">Print Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samba.html#securing-file-and-print-server">Securing File and Print Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samba.html#as-a-domain-controller">As a Domain Controller</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samba.html#active-directory-integration">Active Directory Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backups.html">Backups</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backups.html#shell-scripts">Shell Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backups.html#archive-rotation">Archive Rotation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backups.html#bacula">Bacula</a></li>
+<li class="toctree-l1"><a class="reference internal" href="virtualization.html">Virtualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="virtualization.html#libvirt">libvirt</a></li>
+<li class="toctree-l1"><a class="reference internal" href="virtualization.html#cloud-images-and-vmbuilder">Cloud images and vmbuilder</a></li>
+<li class="toctree-l1"><a class="reference internal" href="virtualization.html#ubuntu-cloud">Ubuntu Cloud</a></li>
+<li class="toctree-l1"><a class="reference internal" href="virtualization.html#lxc">LXC</a></li>
+<li class="toctree-l1"><a class="reference internal" href="clustering.html">Clustering</a></li>
+<li class="toctree-l1"><a class="reference internal" href="clustering.html#drbd">DRBD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vpn.html">VPN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vpn.html#openvpn">OpenVPN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="other-apps.html">Other Useful Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="other-apps.html#pam-motd">pam_motd</a></li>
+<li class="toctree-l1"><a class="reference internal" href="other-apps.html#etckeeper">etckeeper</a></li>
+<li class="toctree-l1"><a class="reference internal" href="other-apps.html#byobu">Byobu</a></li>
+<li class="toctree-l1"><a class="reference internal" href="other-apps.html#references">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reporting-bugs.html">Appendix</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reporting-bugs.html#reporting-bugs-in-ubuntu-server-edition">Reporting Bugs in Ubuntu Server Edition</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="introduction.html"
+                        title="previous chapter">Introduction</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="package-management.html"
+                        title="next chapter">Package Management</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/installation.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="package-management.html" title="Package Management"
+             >next</a></li>
+        <li class="right" >
+          <a href="introduction.html" title="Introduction"
+             >previous</a> |</li>
+        <li><a href="index.html">Ubuntu Server Guide - 14.04 LTS</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Ubuntu Documentation Contributors.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

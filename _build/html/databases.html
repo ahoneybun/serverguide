@@ -1,0 +1,525 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Databases &mdash; Ubuntu Server Guide - 14.04 LTS</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '14.04',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Ubuntu Server Guide - 14.04 LTS" href="index.html" />
+    <link rel="next" title="LAMP Applications" href="lamp-applications.html" />
+    <link rel="prev" title="Web Servers" href="web-servers.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="lamp-applications.html" title="LAMP Applications"
+             accesskey="N">next</a></li>
+        <li class="right" >
+          <a href="web-servers.html" title="Web Servers"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Ubuntu Server Guide - 14.04 LTS</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="databases">
+<h1>Databases<a class="headerlink" href="#databases" title="Permalink to this headline">¶</a></h1>
+<p>Ubuntu provides two popular database servers. They are:</p>
+<ul class="simple">
+<li>MySQL</li>
+<li>PostgreSQL</li>
+</ul>
+<p>They are available in the main repository. This section explains how to
+install and configure these database servers.</p>
+</div>
+<div class="section" id="mysql">
+<h1>MySQL<a class="headerlink" href="#mysql" title="Permalink to this headline">¶</a></h1>
+<p>MySQL is a fast, multi-threaded, multi-user, and robust SQL database
+server. It is intended for mission-critical, heavy-load production
+systems as well as for embedding into mass-deployed software.</p>
+<div class="section" id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
+<p>To install MySQL, run the following command from a terminal prompt:</p>
+<p>During the installation process you will be prompted to enter a password
+for the MySQL root user.</p>
+<p>Once the installation is complete, the MySQL server should be started
+automatically. You can run the following command from a terminal prompt
+to check whether the MySQL server is running:</p>
+<p>When you run this command, you should see the following line or
+something similar:</p>
+<div class="highlight-python"><pre>tcp        0      0 localhost:mysql         *:*                LISTEN      2556/mysqld</pre>
+</div>
+<p>If the server is not running correctly, you can type the following
+command to start it:</p>
+</div>
+<div class="section" id="configuration">
+<h2>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h2>
+<p>You can edit the <tt class="docutils literal"><span class="pre">/etc/mysql/my.cnf</span></tt> file to configure the basic
+settings &#8211; log file, port number, etc. For example, to configure MySQL
+to listen for connections from network hosts, change the <em>bind-address</em>
+directive to the server&#8217;s IP address:</p>
+<div class="highlight-python"><pre>bind-address            = 192.168.0.5
+
+**Note**
+
+Replace 192.168.0.5 with the appropriate address.</pre>
+</div>
+<p>After making a change to <tt class="docutils literal"><span class="pre">/etc/mysql/my.cnf</span></tt> the MySQL daemon will
+need to be restarted:</p>
+<p>If you would like to change the MySQL <em>root</em> password, in a terminal
+enter:</p>
+<p>The MySQL daemon will be stopped, and you will be prompted to enter a
+new password.</p>
+</div>
+<div class="section" id="database-engines">
+<h2>Database Engines<a class="headerlink" href="#database-engines" title="Permalink to this headline">¶</a></h2>
+<p>Whilst the default configuration of MySQL provided by the Ubuntu
+packages is perfectly functional and performs well there are things you
+may wish to consider before you proceed.</p>
+<p>MySQL is designed to allow data to be stored in different ways. These
+methods are referred to as either database or storage engines. There are
+two main engines that you&#8217;ll be interested in: InnoDB and MyISAM.
+Storage engines are transparent to the end user. MySQL will handle
+things differently under the surface, but regardless of which storage
+engine is in use, you will interact with the database in the same way.</p>
+<p>Each engine has its own advantages and disadvantages.</p>
+<p>While it is possible, and may be advantageous to mix and match database
+engines on a table level, doing so reduces the effectiveness of the
+performance tuning you can do as you&#8217;ll be splitting the resources
+between two engines instead of dedicating them to one.</p>
+<ul class="simple">
+<li>MyISAM is the older of the two. It can be faster than InnoDB under
+certain circumstances and favours a read only workload. Some web
+applications have been tuned around MyISAM (though that&#8217;s not to
+imply that they will slow under InnoDB). MyISAM also supports the
+FULLTEXT data type, which allows very fast searches of large
+quantities of text data. However MyISAM is only capable of locking an
+entire table for writing. This means only one process can update a
+table at a time. As any application that uses the table scales this
+may prove to be a hindrance. It also lacks journaling, which makes it
+harder for data to be recovered after a crash. The following link
+provides some points for consideration about using <a class="reference external" href="http://www.mysqlperformanceblog.com/2006/06/17/using-myisam-in-production/">MyISAM on a
+production
+database</a>.</li>
+<li>InnoDB is a more modern database engine, designed to be <a class="reference external" href="http://en.wikipedia.org/wiki/ACID">ACID
+compliant</a> which guarantees
+database transactions are processed reliably. Write locking can occur
+on a row level basis within a table. That means multiple updates can
+occur on a single table simultaneously. Data caching is also handled
+in memory within the database engine, allowing caching on a more
+efficient row level basis rather than file block. To meet ACID
+compliance all transactions are journaled independently of the main
+tables. This allows for much more reliable data recovery as data
+consistency can be checked.</li>
+</ul>
+<p>As of MySQL 5.5 InnoDB is the default engine, and is highly recommended
+over MyISAM unless you have specific need for features unique to the
+engine.</p>
+</div>
+<div class="section" id="advanced-configuration">
+<h2>Advanced configuration<a class="headerlink" href="#advanced-configuration" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="creating-a-tuned-my-cnf-file">
+<h3>Creating a tuned my.cnf file<a class="headerlink" href="#creating-a-tuned-my-cnf-file" title="Permalink to this headline">¶</a></h3>
+<p>There are a number of parameters that can be adjusted within MySQL&#8217;s
+configuration file that will allow you to improve the performance of the
+server over time. For initial set-up you may find <a class="reference external" href="http://tools.percona.com/members/wizard">Percona&#8217;s my.cnf
+generating tool</a> useful.
+This tool will help generate a my.cnf file that will be much more
+optimised for your specific server capabilities and your requirements.</p>
+<p><em>Do not</em> replace your existing my.cnf file with Percona&#8217;s one if you
+have already loaded data into the database. Some of the changes that
+will be in the file will be incompatible as they alter how data is
+stored on the hard disk and you&#8217;ll be unable to start MySQL. If you do
+wish to use it and you have existing data, you will need to carry out a
+mysqldump and reload:</p>
+<div class="highlight-python"><pre>mysqldump --all-databases --routines -u root -p &gt; ~/fulldump.sql</pre>
+</div>
+<p>This will then prompt you for the root password before creating a copy
+of the data. It is advisable to make sure there are no other users or
+processes using the database whilst this takes place. Depending on how
+much data you&#8217;ve got in your database, this may take a while. You won&#8217;t
+see anything on the screen during this process.</p>
+<p>Once the dump has been completed, shut down MySQL:</p>
+<p>Now backup the original my.cnf file and replace with the new one:</p>
+<p>Then delete and re-initialise the database space and make sure ownership
+is correct before restarting MySQL:</p>
+<p>Finally all that&#8217;s left is to re-import your data. To give us an idea of
+how far the import process has got you may find the &#8216;Pipe Viewer&#8217;
+utility, pv, useful. The following shows how to install and use pv for
+this case, but if you&#8217;d rather not use it just replace pv with cat in
+the following command. Ignore any ETA times produced by pv, they&#8217;re
+based on the average time taken to handle each row of the file, but the
+speed of inserting can vary wildly from row to row with mysqldumps:</p>
+<p>Once that is complete all is good to go!</p>
+<blockquote>
+<div><p><strong>Note</strong></p>
+<p>This is not necessary for all my.cnf changes. Most of the variables
+you may wish to change to improve performance are adjustable even
+whilst the server is running. As with anything, make sure to have a
+good backup copy of config files and data before making changes.</p>
+</div></blockquote>
+</div>
+<div class="section" id="mysql-tuner">
+<h3>MySQL Tuner<a class="headerlink" href="#mysql-tuner" title="Permalink to this headline">¶</a></h3>
+<p>MySQL Tuner is a useful tool that will connect to a running MySQL
+instance and offer suggestions for how it can be best configured for
+your workload. The longer the server has been running for, the better
+the advice mysqltuner can provide. In a production environment, consider
+waiting for at least 24 hours before running the tool. You can get
+install mysqltuner from the Ubuntu repositories:</p>
+<p>Then once its been installed, run it:</p>
+<p>and wait for its final report. The top section provides general
+information about the database server, and the bottom section provides
+tuning suggestions to alter in your my.cnf. Most of these can be altered
+live on the server without restarting, look through the official MySQL
+documentation (link in Resources section) for the relevant variables to
+change in production. The following is part of an example report from a
+production database which shows there may be some benefit from
+increasing the amount of query cache:</p>
+<div class="highlight-python"><pre>-------- Recommendations -----------------------------------------------------
+General recommendations:
+    Run OPTIMIZE TABLE to defragment tables for better performance
+    Increase table_cache gradually to avoid file descriptor limits
+Variables to adjust:
+    key_buffer_size (&gt; 1.4G)
+    query_cache_size (&gt; 32M)
+    table_cache (&gt; 64)
+    innodb_buffer_pool_size (&gt;= 22G)</pre>
+</div>
+<p>One final comment on tuning databases: Whilst we can broadly say that
+certain settings are the best, performance can vary from application to
+application. For example, what works best for Wordpress might not be the
+best for Drupal, Joomla or proprietary applications. Performance is
+dependent on the types of queries, use of indexes, how efficient the
+database design is and so on. You may find it useful to spend some time
+searching for database tuning tips based on what applications you&#8217;re
+using it for. Once you get past a certain point any adjustments you make
+will only result in minor improvements, and you&#8217;ll be better off either
+improving the application, or looking at scaling up your database
+environment through either using more powerful hardware or by adding
+slave servers.</p>
+</div>
+</div>
+<div class="section" id="resources">
+<h2>Resources<a class="headerlink" href="#resources" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>See the <a class="reference external" href="http://www.mysql.com/">MySQL Home Page</a> for more
+information.</li>
+<li>Full documentation is available in both online and offline formats
+from the <a class="reference external" href="http://dev.mysql.com/doc/">MySQL Developers portal</a></li>
+<li>For general SQL information see <a class="reference external" href="http://www.informit.com/store/product.aspx?isbn=0768664128">Using SQL Special
+Edition</a>
+by Rafe Colburn.</li>
+<li>The <a class="reference external" href="https://help.ubuntu.com/community/ApacheMySQLPHP">Apache MySQL PHP Ubuntu
+Wiki</a> page also
+has useful information.</li>
+</ul>
+</div>
+</div>
+<div class="section" id="postgresql">
+<h1>PostgreSQL<a class="headerlink" href="#postgresql" title="Permalink to this headline">¶</a></h1>
+<p>PostgreSQL is an object-relational database system that has the features
+of traditional commercial database systems with enhancements to be found
+in next-generation DBMS systems.</p>
+<div class="section" id="id1">
+<h2>Installation<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<p>To install PostgreSQL, run the following command in the command prompt:</p>
+<p>Once the installation is complete, you should configure the PostgreSQL
+server based on your needs, although the default configuration is
+viable.</p>
+</div>
+<div class="section" id="id2">
+<h2>Configuration<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<p>PostgreSQL supports multiple client authentication methods. IDENT
+authentication method is used for postgres and local users, unless
+otherwise configured. Please refer to <a class="reference external" href="http://www.postgresql.org/docs/9.1/static/admin.html">the PostgreSQL Administrator&#8217;s
+Guide</a> if you
+would like to configure alternatives like Kerberos.</p>
+<p>The following discussion assumes that you wish to enable TCP/IP
+connections and use the MD5 method for client authentication.
+PostgreSQLconfiguration files are stored in the
+<tt class="docutils literal"><span class="pre">/etc/postgresql/&lt;version&gt;/main</span></tt> directory. For example, if you
+install PostgreSQL 9.1, the configuration files are stored in the
+<tt class="docutils literal"><span class="pre">/etc/postgresql/9.1/main</span></tt> directory.</p>
+<blockquote>
+<div><p><strong>Tip</strong></p>
+<p>To configure <em>ident</em> authentication, add entries to the
+<tt class="docutils literal"><span class="pre">/etc/postgresql/9.1/main/pg_ident.conf</span></tt> file. There are detailed
+comments in the file to guide you.</p>
+</div></blockquote>
+<p>To enable other computers to connect to your PostgreSQL server, edit the
+file <tt class="docutils literal"><span class="pre">/etc/postgresql/9.1/main/postgresql.conf</span></tt></p>
+<p>Locate the line <em>#listen_addresses = &#8216;localhost&#8217;</em> and change it to:</p>
+<div class="highlight-python"><pre>listen_addresses = '*'
+
+**Note**
+
+To allow both IPv4 and IPv6 connections replace 'localhost' with
+'::'</pre>
+</div>
+<p>You may also edit all other parameters, if you know what you are doing!
+For details, refer to the configuration file or to the PostgreSQL
+documentation.</p>
+<p>Now that we can connect to our PostgreSQL server, the next step is to
+set a password for the <em>postgres</em> user. Run the following command at a
+terminal prompt to connect to the default PostgreSQL template database:</p>
+<p>The above command connects to PostgreSQL database <em>template1</em> as user
+<em>postgres</em>. Once you connect to the PostgreSQL server, you will be at a
+SQL prompt. You can run the following SQL command at the psql prompt to
+configure the password for the user <em>postgres</em>.</p>
+<p>After configuring the password, edit the file
+<tt class="docutils literal"><span class="pre">/etc/postgresql/9.1/main/pg_hba.conf</span></tt> to use <em>MD5</em> authentication
+with the <em>postgres</em> user:</p>
+<div class="highlight-python"><pre>local   all         postgres                          md5</pre>
+</div>
+<p>Finally, you should restart the PostgreSQL service to initialize the new
+configuration. From a terminal prompt enter the following to restart
+PostgreSQL:</p>
+<div class="highlight-python"><pre>**Warning**
+
+The above configuration is not complete by any means. Please refer
+`the PostgreSQL Administrator's
+Guide &lt;http://www.postgresql.org/docs/9.1/static/admin.html&gt;`__ to
+configure more parameters.</pre>
+</div>
+<p>You can test server connections from other machines by using the
+PostgreSQL client.</p>
+<div class="highlight-python"><pre>**Note**
+
+Replace the domain name with your actual server domain name.</pre>
+</div>
+</div>
+<div class="section" id="backups">
+<h2>Backups<a class="headerlink" href="#backups" title="Permalink to this headline">¶</a></h2>
+<p>PostgreSQL databases should be backed up regularly. Refer to the <a class="reference external" href="http://www.postgresql.org/docs/9.1/static/backup.html">the
+PostgreSQL Administrator&#8217;s
+Guide</a> for
+different approaches.</p>
+</div>
+<div class="section" id="id3">
+<h2>Resources<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<ul>
+<li><p class="first">As mentioned above the <a class="reference external" href="http://www.postgresql.org/docs/9.1/static/admin.html">the PostgreSQL Administrator&#8217;s
+Guide</a> is an
+excellent resource. The guide is also available in the
+postgresql-doc-9.1 package. Execute the following in a terminal to
+install the package:</p>
+<p>To view the guide enter
+<tt class="docutils literal"><span class="pre">file:///usr/share/doc/postgresql-doc-9.1/html/index.html</span></tt> into the
+address bar of your browser.</p>
+</li>
+<li><p class="first">For general SQL information see <a class="reference external" href="http://www.informit.com/store/product.aspx?isbn=0768664128">Using SQL Special
+Edition</a>
+by Rafe Colburn.</p>
+</li>
+<li><p class="first">Also, see the <a class="reference external" href="https://help.ubuntu.com/community/PostgreSQL">PostgreSQL Ubuntu
+Wiki</a> page for more
+information.</p>
+</li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/ubuntu_black-orange_hex_su-medium_cropped.png" alt="Logo"/>
+            </a></p>
+<h3><a href="index.html">Table Of Contents</a></h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="introduction.html#support">Support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html#preparing-to-install">Preparing to Install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html#installing-from-cd">Installing from CD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html#upgrading">Upgrading</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html#advanced-installation">Advanced Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html#kernel-crash-dump">Kernel Crash Dump</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html">Package Management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html#introduction">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html#dpkg">dpkg</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html#apt-get">Apt-Get</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html#aptitude">Aptitude</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html#automatic-updates">Automatic Updates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html#configuration">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html#references">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-config.html">Networking</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-config.html#network-configuration">Network Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-config.html#tcp-ip">TCP/IP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-config.html#dynamic-host-configuration-protocol-dhcp">Dynamic Host Configuration Protocol (DHCP)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-config.html#time-synchronisation-with-ntp">Time Synchronisation with NTP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multipath.html">DMM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multipath.html#device-mapper-multipathing">Device Mapper Multipathing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multipath.html#multipath-devices">Multipath Devices</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multipath.html#setting-up-dmm-overview">Setting up DMM Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multipath.html#the-dmm-configuration-file">The DMM Configuration File</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multipath.html#dmm-administration-and-troubleshooting">DMM Administration and Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="remote-administration.html">Remote Administration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="remote-administration.html#openssh-server">OpenSSH Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="remote-administration.html#puppet">Puppet</a></li>
+<li class="toctree-l1"><a class="reference internal" href="remote-administration.html#zentyal">Zentyal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-auth.html">Network Authentication</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-auth.html#openldap-server">OpenLDAP Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-auth.html#samba-and-ldap">Samba and LDAP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-auth.html#kerberos">Kerberos</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-auth.html#kerberos-and-ldap">Kerberos and LDAP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dns.html">Domain Name Service (DNS)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dns.html#installation">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dns.html#configuration">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dns.html#troubleshooting">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dns.html#references">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html">Security</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html#user-management">User Management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html#console-security">Console Security</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html#firewall">Firewall</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html#apparmor">AppArmor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html#certificates">Certificates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html#ecryptfs">eCryptfs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="monitoring.html">Monitoring</a></li>
+<li class="toctree-l1"><a class="reference internal" href="monitoring.html#overview">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="monitoring.html#nagios">Nagios</a></li>
+<li class="toctree-l1"><a class="reference internal" href="monitoring.html#munin">Munin</a></li>
+<li class="toctree-l1"><a class="reference internal" href="web-servers.html">Web Servers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="web-servers.html#httpd-apache2-web-server">HTTPD - Apache2 Web Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="web-servers.html#php5-scripting-language">PHP5 - Scripting Language</a></li>
+<li class="toctree-l1"><a class="reference internal" href="web-servers.html#squid-proxy-server">Squid - Proxy Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="web-servers.html#ruby-on-rails">Ruby on Rails</a></li>
+<li class="toctree-l1"><a class="reference internal" href="web-servers.html#apache-tomcat">Apache Tomcat</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">Databases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#mysql">MySQL</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="#postgresql">PostgreSQL</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="lamp-applications.html">LAMP Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lamp-applications.html#overview">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lamp-applications.html#moin-moin">Moin Moin</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lamp-applications.html#mediawiki">MediaWiki</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lamp-applications.html#phpmyadmin">phpMyAdmin</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lamp-applications.html#wordpress">WordPress</a></li>
+<li class="toctree-l1"><a class="reference internal" href="file-server.html">File Servers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="file-server.html#ftp-server">FTP Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="file-server.html#network-file-system-nfs">Network File System (NFS)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="file-server.html#iscsi-initiator">iSCSI Initiator</a></li>
+<li class="toctree-l1"><a class="reference internal" href="file-server.html#cups-print-server">CUPS - Print Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mail.html">Email Services</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mail.html#postfix">Postfix</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mail.html#exim4">Exim4</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mail.html#dovecot-server">Dovecot Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mail.html#mailman">Mailman</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mail.html#mail-filtering">Mail Filtering</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chat.html">Chat Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chat.html#overview">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chat.html#irc-server">IRC Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chat.html#jabber-instant-messaging-server">Jabber Instant Messaging Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vcs.html">Version Control System</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vcs.html#bazaar">Bazaar</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vcs.html#git">Git</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vcs.html#subversion">Subversion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vcs.html#references">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samba.html">Samba</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samba.html#introduction">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samba.html#file-server">File Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samba.html#print-server">Print Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samba.html#securing-file-and-print-server">Securing File and Print Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samba.html#as-a-domain-controller">As a Domain Controller</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samba.html#active-directory-integration">Active Directory Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backups.html">Backups</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backups.html#shell-scripts">Shell Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backups.html#archive-rotation">Archive Rotation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backups.html#bacula">Bacula</a></li>
+<li class="toctree-l1"><a class="reference internal" href="virtualization.html">Virtualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="virtualization.html#libvirt">libvirt</a></li>
+<li class="toctree-l1"><a class="reference internal" href="virtualization.html#cloud-images-and-vmbuilder">Cloud images and vmbuilder</a></li>
+<li class="toctree-l1"><a class="reference internal" href="virtualization.html#ubuntu-cloud">Ubuntu Cloud</a></li>
+<li class="toctree-l1"><a class="reference internal" href="virtualization.html#lxc">LXC</a></li>
+<li class="toctree-l1"><a class="reference internal" href="clustering.html">Clustering</a></li>
+<li class="toctree-l1"><a class="reference internal" href="clustering.html#drbd">DRBD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vpn.html">VPN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vpn.html#openvpn">OpenVPN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="other-apps.html">Other Useful Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="other-apps.html#pam-motd">pam_motd</a></li>
+<li class="toctree-l1"><a class="reference internal" href="other-apps.html#etckeeper">etckeeper</a></li>
+<li class="toctree-l1"><a class="reference internal" href="other-apps.html#byobu">Byobu</a></li>
+<li class="toctree-l1"><a class="reference internal" href="other-apps.html#references">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reporting-bugs.html">Appendix</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reporting-bugs.html#reporting-bugs-in-ubuntu-server-edition">Reporting Bugs in Ubuntu Server Edition</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="web-servers.html"
+                        title="previous chapter">Web Servers</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="lamp-applications.html"
+                        title="next chapter">LAMP Applications</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/databases.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="lamp-applications.html" title="LAMP Applications"
+             >next</a></li>
+        <li class="right" >
+          <a href="web-servers.html" title="Web Servers"
+             >previous</a> |</li>
+        <li><a href="index.html">Ubuntu Server Guide - 14.04 LTS</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Ubuntu Documentation Contributors.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

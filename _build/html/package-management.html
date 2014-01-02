@@ -1,0 +1,585 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Package Management &mdash; Ubuntu Server Guide - 14.04 LTS</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '14.04',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Ubuntu Server Guide - 14.04 LTS" href="index.html" />
+    <link rel="next" title="Networking" href="network-config.html" />
+    <link rel="prev" title="Installation" href="installation.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="network-config.html" title="Networking"
+             accesskey="N">next</a></li>
+        <li class="right" >
+          <a href="installation.html" title="Installation"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Ubuntu Server Guide - 14.04 LTS</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="package-management">
+<h1>Package Management<a class="headerlink" href="#package-management" title="Permalink to this headline">¶</a></h1>
+<p>Ubuntu features a comprehensive package management system for
+installing, upgrading, configuring, and removing software. In addition
+to providing access to an organized base of over 35,000 software
+packages for your Ubuntu computer, the package management facilities
+also feature dependency resolution capabilities and software update
+checking.</p>
+<p>Several tools are available for interacting with Ubuntu&#8217;s package
+management system, from simple command-line utilities which may be
+easily automated by system administrators, to a simple graphical
+interface which is easy to use by those new to Ubuntu.</p>
+</div>
+<div class="section" id="introduction">
+<h1>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h1>
+<p>Ubuntu&#8217;s package management system is derived from the same system used
+by the Debian GNU/Linux distribution. The package files contain all of
+the necessary files, meta-data, and instructions to implement a
+particular functionality or software application on your Ubuntu
+computer.</p>
+<p>Debian package files typically have the extension &#8216;.deb&#8217;, and usually
+exist in <em>repositories</em> which are collections of packages found on
+various media, such as CD-ROM discs, or online. Packages are normally in
+a pre-compiled binary format; thus installation is quick, and requires
+no compiling of software.</p>
+<p>Many complex packages use the concept of <em>dependencies</em>. Dependencies
+are additional packages required by the principal package in order to
+function properly. For example, the speech synthesis package festival
+depends upon the package libasound2, which is a package supplying the
+ALSA sound library needed for audio playback. In order for festival to
+function, it and all of its dependencies must be installed. The software
+management tools in Ubuntu will do this automatically.</p>
+</div>
+<div class="section" id="dpkg">
+<h1>dpkg<a class="headerlink" href="#dpkg" title="Permalink to this headline">¶</a></h1>
+<p>dpkg is a package manager for <em>Debian</em>-based systems. It can install,
+remove, and build packages, but unlike other package management systems,
+it cannot automatically download and install packages or their
+dependencies. This section covers using dpkg to manage locally installed
+packages:</p>
+<ul>
+<li><p class="first">To list all packages installed on the system, from a terminal prompt
+type:</p>
+</li>
+<li><p class="first">Depending on the amount of packages on your system, this can generate
+a large amount of output. Pipe the output through grep to see if a
+specific package is installed:</p>
+<p>Replace <em>apache2</em> with any package name, part of a package name, or
+other regular expression.</p>
+</li>
+<li><p class="first">To list the files installed by a package, in this case the ufw
+package, enter:</p>
+</li>
+<li><p class="first">If you are not sure which package installed a file, dpkg -S may be
+able to tell you. For example:</p>
+<p>The output shows that the <tt class="docutils literal"><span class="pre">/etc/host.conf</span></tt> belongs to the
+base-files package.</p>
+<blockquote>
+<div><p><strong>Note</strong></p>
+<p>Many files are automatically generated during the package install
+process, and even though they are on the filesystem, <tt class="docutils literal"><span class="pre">dpkg</span> <span class="pre">-S</span></tt>
+may not know which package they belong to.</p>
+</div></blockquote>
+</li>
+<li><p class="first">You can install a local <em>.deb</em> file by entering:</p>
+<p>Change <tt class="docutils literal"><span class="pre">zip_3.0-4_i386.deb</span></tt> to the actual file name of the local
+.deb file you wish to install.</p>
+</li>
+<li><p class="first">Uninstalling a package can be accomplished by:</p>
+<div class="highlight-python"><pre>**Caution**
+
+Uninstalling packages using dpkg, in most cases, is *NOT*
+recommended. It is better to use a package manager that handles
+dependencies to ensure that the system is in a consistent state.
+For example using ``dpkg -r zip`` will remove the zip package,
+but any packages that depend on it will still be installed and
+may no longer function correctly.</pre>
+</div>
+</li>
+</ul>
+<p>For more dpkg options see the man page: <tt class="docutils literal"><span class="pre">man</span> <span class="pre">dpkg</span></tt>.</p>
+</div>
+<div class="section" id="apt-get">
+<h1>Apt-Get<a class="headerlink" href="#apt-get" title="Permalink to this headline">¶</a></h1>
+<p>The apt-get command is a powerful command-line tool, which works with
+Ubuntu&#8217;s <em>Advanced Packaging Tool</em> (APT) performing such functions as
+installation of new software packages, upgrade of existing software
+packages, updating of the package list index, and even upgrading the
+entire Ubuntu system.</p>
+<p>Being a simple command-line tool, apt-get has numerous advantages over
+other package management tools available in Ubuntu for server
+administrators. Some of these advantages include ease of use over simple
+terminal connections (SSH), and the ability to be used in system
+administration scripts, which can in turn be automated by the cron
+scheduling utility.</p>
+<p>Some examples of popular uses for the apt-get utility:</p>
+<ul>
+<li><p class="first"><strong>Install a Package</strong>: Installation of packages using the apt-get
+tool is quite simple. For example, to install the network scanner
+nmap, type the following:</p>
+</li>
+<li><p class="first"><strong>Remove a Package</strong>: Removal of a package (or packages) is also
+straightforward. To remove the package installed in the previous
+example, type the following:</p>
+<div class="highlight-python"><pre>**Tip**
+
+**Multiple Packages**: You may specify multiple packages to be
+installed or removed, separated by spaces.</pre>
+</div>
+<p>Also, adding the <em>&#8211;purge</em> option to <tt class="docutils literal"><span class="pre">apt-get</span> <span class="pre">remove</span></tt> will remove
+the package configuration files as well. This may or may not be the
+desired effect, so use with caution.</p>
+</li>
+<li><p class="first"><strong>Update the Package Index</strong>: The APT package index is essentially a
+database of available packages from the repositories defined in the
+<tt class="docutils literal"><span class="pre">/etc/apt/sources.list</span></tt> file and in the <tt class="docutils literal"><span class="pre">/etc/apt/sources.list.d</span></tt>
+directory. To update the local package index with the latest changes
+made in the repositories, type the following:</p>
+</li>
+<li><p class="first"><strong>Upgrade Packages</strong>: Over time, updated versions of packages
+currently installed on your computer may become available from the
+package repositories (for example security updates). To upgrade your
+system, first update your package index as outlined above, and then
+type:</p>
+<p>For information on upgrading to a new Ubuntu release see ?.</p>
+</li>
+</ul>
+<p>Actions of the apt-get command, such as installation and removal of
+packages, are logged in the /var/log/dpkg.log log file.</p>
+<p>For further information about the use of APT, read the comprehensive
+<a class="reference external" href="&amp;debian-apt;">Debian APT User Manual</a> or type:</p>
+</div>
+<div class="section" id="aptitude">
+<h1>Aptitude<a class="headerlink" href="#aptitude" title="Permalink to this headline">¶</a></h1>
+<p>Launching Aptitude with no command-line options, will give you a
+menu-driven, text-based front-end to the <em>Advanced Packaging Tool</em> (APT)
+system. Many of the common package management functions, such as
+installation, removal, and upgrade, can be performed in Aptitude with
+single-key commands, which are typically lowercase letters.</p>
+<p>Aptitude is best suited for use in a non-graphical terminal environment
+to ensure proper functioning of the command keys. You may start the
+menu-driven interface of Aptitude as a normal user by typing the
+following command at a terminal prompt:</p>
+<p>When Aptitude starts, you will see a menu bar at the top of the screen
+and two panes below the menu bar. The top pane contains package
+categories, such as <em>New Packages</em> and <em>Not Installed Packages</em>. The
+bottom pane contains information related to the packages and package
+categories.</p>
+<p>Using Aptitude for package management is relatively straightforward, and
+the user interface makes common tasks simple to perform. The following
+are examples of common package management functions as performed in
+Aptitude:</p>
+<ul class="simple">
+<li><strong>Install Packages</strong>: To install a package, locate the package via
+the <em>Not Installed Packages</em> package category, by using the keyboard
+arrow keys and the ENTER key. Highlight the desired package, then
+press the + key. The package entry should turn <em>green</em>, indicating
+that it has been marked for installation. Now press g to be presented
+with a summary of package actions. Press g again, and downloading and
+installation of the package will commence. When finished, press
+ENTER, to return to the menu.</li>
+<li><strong>Remove Packages</strong>: To remove a package, locate the package via the
+<em>Installed Packages</em> package category, by using the keyboard arrow
+keys and the ENTER key. Highlight the desired package you wish to
+remove, then press the - key. The package entry should turn <em>pink</em>,
+indicating it has been marked for removal. Now press g to be
+presented with a summary of package actions. Press g again, and
+removal of the package will commence. When finished, press ENTER, to
+return to the menu.</li>
+<li><strong>Update Package Index</strong>: To update the package index, simply press
+the u key. Updating of the package index will commence.</li>
+<li><strong>Upgrade Packages</strong>: To upgrade packages, perform the update of the
+package index as detailed above, and then press the U key to mark all
+packages with updates. Now press g whereby you&#8217;ll be presented with a
+summary of package actions. Press g again, and the download and
+installation will commence. When finished, press ENTER, to return to
+the menu.</li>
+</ul>
+<p>The first column of information displayed in the package list in the top
+pane, when actually viewing packages lists the current state of the
+package, and uses the following key to describe the state of the
+package:</p>
+<ul class="simple">
+<li><strong>i</strong>: Installed package</li>
+<li><strong>c</strong>: Package not installed, but package configuration remains on
+system</li>
+<li><strong>p</strong>: Purged from system</li>
+<li><strong>v</strong>: Virtual package</li>
+<li><strong>B</strong>: Broken package</li>
+<li><strong>u</strong>: Unpacked files, but package not yet configured</li>
+<li><strong>C</strong>: Half-configured - Configuration failed and requires fix</li>
+<li><strong>H</strong>: Half-installed - Removal failed and requires fix</li>
+</ul>
+<p>To exit Aptitude, simply press the q key and confirm you wish to exit.
+Many other functions are available from the Aptitude menu by pressing
+the F10 key.</p>
+<div class="section" id="command-line-aptitude">
+<h2>Command Line Aptitude<a class="headerlink" href="#command-line-aptitude" title="Permalink to this headline">¶</a></h2>
+<p>You can also use Aptitude as a command-line tool, similar to apt-get. To
+install the nmap package with all necessary dependencies, as in the
+apt-get example, you would use the following command:</p>
+<p>To remove the same package, you would use the command:</p>
+<p>Consult the man pages for more details of command line options for
+Aptitude.</p>
+</div>
+</div>
+<div class="section" id="automatic-updates">
+<h1>Automatic Updates<a class="headerlink" href="#automatic-updates" title="Permalink to this headline">¶</a></h1>
+<p>The unattended-upgrades package can be used to automatically install
+updated packages, and can be configured to update all packages or just
+install security updates. First, install the package by entering the
+following in a terminal:</p>
+<p>To configure unattended-upgrades, edit
+<tt class="docutils literal"><span class="pre">/etc/apt/apt.conf.d/50unattended-upgrades</span></tt> and adjust the following
+to fit your needs:</p>
+<div class="highlight-python"><pre>Unattended-Upgrade::Allowed-Origins {
+        "Ubuntu DISTRO-SHORT-CODENAME-security";
+//      "Ubuntu DISTRO-SHORT-CODENAME-updates";
+};</pre>
+</div>
+<p>Certain packages can also be <em>blacklisted</em> and therefore will not be
+automatically updated. To blacklist a package, add it to the list:</p>
+<div class="highlight-python"><pre>Unattended-Upgrade::Package-Blacklist {
+//      "vim";
+//      "libc6";
+//      "libc6-dev";
+//      "libc6-i686";
+};
+
+**Note**
+
+The double *“//”* serve as comments, so whatever follows "//" will
+not be evaluated.</pre>
+</div>
+<p>To enable automatic updates, edit <tt class="docutils literal"><span class="pre">/etc/apt/apt.conf.d/10periodic</span></tt> and
+set the appropriate apt configuration options:</p>
+<div class="highlight-python"><pre>APT::Periodic::Update-Package-Lists "1";
+APT::Periodic::Download-Upgradeable-Packages "1";
+APT::Periodic::AutocleanInterval "7";
+APT::Periodic::Unattended-Upgrade "1";</pre>
+</div>
+<p>The above configuration updates the package list, downloads, and
+installs available upgrades every day. The local download archive is
+cleaned every week.</p>
+<blockquote>
+<div><p><strong>Note</strong></p>
+<p>You can read more about apt Periodic configuration options in the
+<tt class="docutils literal"><span class="pre">/etc/cron.daily/apt</span></tt> script header.</p>
+</div></blockquote>
+<p>The results of unattended-upgrades will be logged to
+<tt class="docutils literal"><span class="pre">/var/log/unattended-upgrades</span></tt>.</p>
+<div class="section" id="notifications">
+<h2>Notifications<a class="headerlink" href="#notifications" title="Permalink to this headline">¶</a></h2>
+<p>Configuring <em>Unattended-Upgrade::Mail</em> in
+<tt class="docutils literal"><span class="pre">/etc/apt/apt.conf.d/50unattended-upgrades</span></tt> will enable
+unattended-upgrades to email an administrator detailing any packages
+that need upgrading or have problems.</p>
+<p>Another useful package is apticron. apticron will configure a cron job
+to email an administrator information about any packages on the system
+that have updates available, as well as a summary of changes in each
+package.</p>
+<p>To install the apticron package, in a terminal enter:</p>
+<p>Once the package is installed edit <tt class="docutils literal"><span class="pre">/etc/apticron/apticron.conf</span></tt>, to
+set the email address and other options:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">EMAIL</span><span class="o">=</span><span class="s">&quot;root@example.com&quot;</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="configuration">
+<h1>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h1>
+<p>Configuration of the <em>Advanced Packaging Tool</em> (APT) system repositories
+is stored in the <tt class="docutils literal"><span class="pre">/etc/apt/sources.list</span></tt> file and the
+<tt class="docutils literal"><span class="pre">/etc/apt/sources.list.d</span></tt> directory. An example of this file is
+referenced here, along with information on adding or removing repository
+references from the file.</p>
+<p>You may edit the file to enable repositories or disable them. For
+example, to disable the requirement of inserting the Ubuntu CD-ROM
+whenever package operations occur, simply comment out the appropriate
+line for the CD-ROM, which appears at the top of the file:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># no more prompting for CD-ROM please</span>
+<span class="c"># deb cdrom:[DISTRO-APT-CD-NAME - Release i386 (20111013.1)]/ DISTRO-SHORT-CODENAME main restricted</span>
+</pre></div>
+</div>
+<div class="section" id="extra-repositories">
+<h2>Extra Repositories<a class="headerlink" href="#extra-repositories" title="Permalink to this headline">¶</a></h2>
+<p>In addition to the officially supported package repositories available
+for Ubuntu, there exist additional community-maintained repositories
+which add thousands more packages for potential installation. Two of the
+most popular are the <em>Universe</em> and <em>Multiverse</em> repositories. These
+repositories are not officially supported by Ubuntu, but because they
+are maintained by the community they generally provide packages which
+are safe for use with your Ubuntu computer.</p>
+<blockquote>
+<div><p><strong>Note</strong></p>
+<p>Packages in the <em>Multiverse</em> repository often have licensing issues
+that prevent them from being distributed with a free operating
+system, and they may be illegal in your locality.</p>
+<p><strong>Warning</strong></p>
+<p>Be advised that neither the <em>Universe</em> or <em>Multiverse</em> repositories
+contain officially supported packages. In particular, there may not
+be security updates for these packages.</p>
+</div></blockquote>
+<p>Many other package sources are available, sometimes even offering only
+one package, as in the case of package sources provided by the developer
+of a single application. You should always be very careful and cautious
+when using non-standard package sources, however. Research the source
+and packages carefully before performing any installation, as some
+package sources and their packages could render your system unstable or
+non-functional in some respects.</p>
+<p>By default, the <em>Universe</em> and <em>Multiverse</em> repositories are enabled but
+if you would like to disable them edit <tt class="docutils literal"><span class="pre">/etc/apt/sources.list</span></tt> and
+comment the following lines:</p>
+<div class="highlight-python"><pre>deb http://archive.ubuntu.com/ubuntu DISTRO-SHORT-CODENAME universe multiverse
+deb-src http://archive.ubuntu.com/ubuntu DISTRO-SHORT-CODENAME universe multiverse
+
+deb http://us.archive.ubuntu.com/ubuntu/ DISTRO-SHORT-CODENAME universe
+deb-src http://us.archive.ubuntu.com/ubuntu/ DISTRO-SHORT-CODENAME universe
+deb http://us.archive.ubuntu.com/ubuntu/ DISTRO-SHORT-CODENAME-updates universe
+deb-src http://us.archive.ubuntu.com/ubuntu/ DISTRO-SHORT-CODENAME-updates universe
+
+deb http://us.archive.ubuntu.com/ubuntu/ DISTRO-SHORT-CODENAME multiverse
+deb-src http://us.archive.ubuntu.com/ubuntu/ DISTRO-SHORT-CODENAME multiverse
+deb http://us.archive.ubuntu.com/ubuntu/ DISTRO-SHORT-CODENAME-updates multiverse
+deb-src http://us.archive.ubuntu.com/ubuntu/ DISTRO-SHORT-CODENAME-updates multiverse
+
+deb http://security.ubuntu.com/ubuntu DISTRO-SHORT-CODENAME-security universe
+deb-src http://security.ubuntu.com/ubuntu DISTRO-SHORT-CODENAME-security universe
+deb http://security.ubuntu.com/ubuntu DISTRO-SHORT-CODENAME-security multiverse
+deb-src http://security.ubuntu.com/ubuntu DISTRO-SHORT-CODENAME-security multiverse</pre>
+</div>
+</div>
+</div>
+<div class="section" id="references">
+<h1>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h1>
+<p>Most of the material covered in this chapter is available in man pages,
+many of which are available online.</p>
+<ul class="simple">
+<li>The
+<a class="reference external" href="https://help.ubuntu.com/community/InstallingSoftware">InstallingSoftware</a>
+Ubuntu wiki page has more information.</li>
+<li>For more dpkg details see the <a class="reference external" href="http://manpages.ubuntu.com/manpages/&amp;distro-short-codename;/en/man1/dpkg.1.html">dpkg man
+page</a>.</li>
+<li>The <a class="reference external" href="http://www.debian.org/doc/manuals/apt-howto/">APT HOWTO</a> and
+<a class="reference external" href="http://manpages.ubuntu.com/manpages/&amp;distro-short-codename;/en/man8/apt-get.8.html">apt-get man
+page</a>
+contain useful information regarding apt-get usage.</li>
+<li>See the <a class="reference external" href="http://manpages.ubuntu.com/manpages/&amp;distro-short-codename;/man8/aptitude.8.html">aptitude man
+page</a>
+for more aptitude options.</li>
+<li>The <a class="reference external" href="https://help.ubuntu.com/community/Repositories/Ubuntu">Adding Repositories HOWTO (Ubuntu
+Wiki)</a> page
+contains more details on adding repositories.</li>
+</ul>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/ubuntu_black-orange_hex_su-medium_cropped.png" alt="Logo"/>
+            </a></p>
+<h3><a href="index.html">Table Of Contents</a></h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="introduction.html#support">Support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html#preparing-to-install">Preparing to Install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html#installing-from-cd">Installing from CD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html#upgrading">Upgrading</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html#advanced-installation">Advanced Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html#kernel-crash-dump">Kernel Crash Dump</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">Package Management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#introduction">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#dpkg">dpkg</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#apt-get">Apt-Get</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#aptitude">Aptitude</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="#automatic-updates">Automatic Updates</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="#configuration">Configuration</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="#references">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-config.html">Networking</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-config.html#network-configuration">Network Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-config.html#tcp-ip">TCP/IP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-config.html#dynamic-host-configuration-protocol-dhcp">Dynamic Host Configuration Protocol (DHCP)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-config.html#time-synchronisation-with-ntp">Time Synchronisation with NTP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multipath.html">DMM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multipath.html#device-mapper-multipathing">Device Mapper Multipathing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multipath.html#multipath-devices">Multipath Devices</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multipath.html#setting-up-dmm-overview">Setting up DMM Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multipath.html#the-dmm-configuration-file">The DMM Configuration File</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multipath.html#dmm-administration-and-troubleshooting">DMM Administration and Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="remote-administration.html">Remote Administration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="remote-administration.html#openssh-server">OpenSSH Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="remote-administration.html#puppet">Puppet</a></li>
+<li class="toctree-l1"><a class="reference internal" href="remote-administration.html#zentyal">Zentyal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-auth.html">Network Authentication</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-auth.html#openldap-server">OpenLDAP Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-auth.html#samba-and-ldap">Samba and LDAP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-auth.html#kerberos">Kerberos</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-auth.html#kerberos-and-ldap">Kerberos and LDAP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dns.html">Domain Name Service (DNS)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dns.html#installation">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dns.html#configuration">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dns.html#troubleshooting">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dns.html#references">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html">Security</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html#user-management">User Management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html#console-security">Console Security</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html#firewall">Firewall</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html#apparmor">AppArmor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html#certificates">Certificates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html#ecryptfs">eCryptfs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="monitoring.html">Monitoring</a></li>
+<li class="toctree-l1"><a class="reference internal" href="monitoring.html#overview">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="monitoring.html#nagios">Nagios</a></li>
+<li class="toctree-l1"><a class="reference internal" href="monitoring.html#munin">Munin</a></li>
+<li class="toctree-l1"><a class="reference internal" href="web-servers.html">Web Servers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="web-servers.html#httpd-apache2-web-server">HTTPD - Apache2 Web Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="web-servers.html#php5-scripting-language">PHP5 - Scripting Language</a></li>
+<li class="toctree-l1"><a class="reference internal" href="web-servers.html#squid-proxy-server">Squid - Proxy Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="web-servers.html#ruby-on-rails">Ruby on Rails</a></li>
+<li class="toctree-l1"><a class="reference internal" href="web-servers.html#apache-tomcat">Apache Tomcat</a></li>
+<li class="toctree-l1"><a class="reference internal" href="databases.html">Databases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="databases.html#mysql">MySQL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="databases.html#postgresql">PostgreSQL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lamp-applications.html">LAMP Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lamp-applications.html#overview">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lamp-applications.html#moin-moin">Moin Moin</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lamp-applications.html#mediawiki">MediaWiki</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lamp-applications.html#phpmyadmin">phpMyAdmin</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lamp-applications.html#wordpress">WordPress</a></li>
+<li class="toctree-l1"><a class="reference internal" href="file-server.html">File Servers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="file-server.html#ftp-server">FTP Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="file-server.html#network-file-system-nfs">Network File System (NFS)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="file-server.html#iscsi-initiator">iSCSI Initiator</a></li>
+<li class="toctree-l1"><a class="reference internal" href="file-server.html#cups-print-server">CUPS - Print Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mail.html">Email Services</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mail.html#postfix">Postfix</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mail.html#exim4">Exim4</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mail.html#dovecot-server">Dovecot Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mail.html#mailman">Mailman</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mail.html#mail-filtering">Mail Filtering</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chat.html">Chat Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chat.html#overview">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chat.html#irc-server">IRC Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chat.html#jabber-instant-messaging-server">Jabber Instant Messaging Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vcs.html">Version Control System</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vcs.html#bazaar">Bazaar</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vcs.html#git">Git</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vcs.html#subversion">Subversion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vcs.html#references">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samba.html">Samba</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samba.html#introduction">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samba.html#file-server">File Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samba.html#print-server">Print Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samba.html#securing-file-and-print-server">Securing File and Print Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samba.html#as-a-domain-controller">As a Domain Controller</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samba.html#active-directory-integration">Active Directory Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backups.html">Backups</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backups.html#shell-scripts">Shell Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backups.html#archive-rotation">Archive Rotation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backups.html#bacula">Bacula</a></li>
+<li class="toctree-l1"><a class="reference internal" href="virtualization.html">Virtualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="virtualization.html#libvirt">libvirt</a></li>
+<li class="toctree-l1"><a class="reference internal" href="virtualization.html#cloud-images-and-vmbuilder">Cloud images and vmbuilder</a></li>
+<li class="toctree-l1"><a class="reference internal" href="virtualization.html#ubuntu-cloud">Ubuntu Cloud</a></li>
+<li class="toctree-l1"><a class="reference internal" href="virtualization.html#lxc">LXC</a></li>
+<li class="toctree-l1"><a class="reference internal" href="clustering.html">Clustering</a></li>
+<li class="toctree-l1"><a class="reference internal" href="clustering.html#drbd">DRBD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vpn.html">VPN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vpn.html#openvpn">OpenVPN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="other-apps.html">Other Useful Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="other-apps.html#pam-motd">pam_motd</a></li>
+<li class="toctree-l1"><a class="reference internal" href="other-apps.html#etckeeper">etckeeper</a></li>
+<li class="toctree-l1"><a class="reference internal" href="other-apps.html#byobu">Byobu</a></li>
+<li class="toctree-l1"><a class="reference internal" href="other-apps.html#references">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reporting-bugs.html">Appendix</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reporting-bugs.html#reporting-bugs-in-ubuntu-server-edition">Reporting Bugs in Ubuntu Server Edition</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="installation.html"
+                        title="previous chapter">Installation</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="network-config.html"
+                        title="next chapter">Networking</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/package-management.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="network-config.html" title="Networking"
+             >next</a></li>
+        <li class="right" >
+          <a href="installation.html" title="Installation"
+             >previous</a> |</li>
+        <li><a href="index.html">Ubuntu Server Guide - 14.04 LTS</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Ubuntu Documentation Contributors.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

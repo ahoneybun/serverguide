@@ -1,0 +1,1360 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Email Services &mdash; Ubuntu Server Guide - 14.04 LTS</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '14.04',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Ubuntu Server Guide - 14.04 LTS" href="index.html" />
+    <link rel="next" title="Chat Applications" href="chat.html" />
+    <link rel="prev" title="File Servers" href="file-server.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="chat.html" title="Chat Applications"
+             accesskey="N">next</a></li>
+        <li class="right" >
+          <a href="file-server.html" title="File Servers"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Ubuntu Server Guide - 14.04 LTS</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="email-services">
+<h1>Email Services<a class="headerlink" href="#email-services" title="Permalink to this headline">¶</a></h1>
+<p>The process of getting an email from one person to another over a
+network or the Internet involves many systems working together. Each of
+these systems must be correctly configured for the process to work. The
+sender uses a <em>Mail User Agent</em> (MUA), or email client, to send the
+message through one or more <em>Mail Transfer Agents</em> (MTA), the last of
+which will hand it off to a <em>Mail Delivery Agent</em> (MDA) for delivery to
+the recipient&#8217;s mailbox, from which it will be retrieved by the
+recipient&#8217;s email client, usually via a POP3 or IMAP server.</p>
+</div>
+<div class="section" id="postfix">
+<h1>Postfix<a class="headerlink" href="#postfix" title="Permalink to this headline">¶</a></h1>
+<p>Postfix is the default Mail Transfer Agent (MTA) in Ubuntu. It attempts
+to be fast and easy to administer and secure. It is compatible with the
+MTA sendmail. This section explains how to install and configure
+postfix. It also explains how to set it up as an SMTP server using a
+secure connection (for sending emails securely).</p>
+<blockquote>
+<div><p><strong>Note</strong></p>
+<p>This guide does not cover setting up Postfix <em>Virtual Domains</em>, for
+information on Virtual Domains and other advanced configurations see
+?.</p>
+</div></blockquote>
+<div class="section" id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
+<p>To install postfix run the following command:</p>
+<p>Simply press return when the installation process asks questions, the
+configuration will be done in greater detail in the next stage.</p>
+</div>
+<div class="section" id="basic-configuration">
+<h2>Basic Configuration<a class="headerlink" href="#basic-configuration" title="Permalink to this headline">¶</a></h2>
+<p>To configure postfix, run the following command:</p>
+<p>The user interface will be displayed. On each screen, select the
+following values:</p>
+<ul>
+<li><p class="first">Internet Site</p>
+</li>
+<li><p class="first">mail.example.com</p>
+</li>
+<li><p class="first">steve</p>
+</li>
+<li><p class="first">mail.example.com, localhost.localdomain, localhost</p>
+</li>
+<li><p class="first">No</p>
+</li>
+<li><p class="first">127.0.0.0/8 [::ffff:127.0.0.0]/104 [::1]/128 192.168.0.0/24</p>
+</li>
+<li><p class="first">0</p>
+</li>
+<li><ul class="first simple">
+<li></li>
+</ul>
+</li>
+<li><p class="first">all</p>
+<blockquote>
+<div><p><strong>Note</strong></p>
+<p>Replace mail.example.com with the domain for which you&#8217;ll accept
+email, 192.168.0.0/24 with the actual network and class range of
+your mail server, and steve with the appropriate username.</p>
+</div></blockquote>
+</li>
+</ul>
+<p>Now is a good time to decide which mailbox format you want to use. By
+default Postfix will use <strong>mbox</strong> for the mailbox format. Rather than
+editing the configuration file directly, you can use the <tt class="docutils literal"><span class="pre">postconf</span></tt>
+command to configure all postfix parameters. The configuration
+parameters will be stored in <tt class="docutils literal"><span class="pre">/etc/postfix/main.cf</span></tt> file. Later if you
+wish to re-configure a particular parameter, you can either run the
+command or change it manually in the file.</p>
+<p>To configure the mailbox format for <strong>Maildir:</strong></p>
+<div class="highlight-python"><pre>**Note**
+
+This will place new mail in /home/*username*/Maildir so you will
+need to configure your Mail Delivery Agent (MDA) to use the same
+path.</pre>
+</div>
+</div>
+<div class="section" id="smtp-authentication">
+<h2>SMTP Authentication<a class="headerlink" href="#smtp-authentication" title="Permalink to this headline">¶</a></h2>
+<p>SMTP-AUTH allows a client to identify itself through an authentication
+mechanism (SASL). Transport Layer Security (TLS) should be used to
+encrypt the authentication process. Once authenticated the SMTP server
+will allow the client to relay mail.</p>
+<p>Configure Postfix for SMTP-AUTH using SASL (Dovecot SASL):</p>
+<div class="highlight-python"><pre>sudo postconf -e 'smtpd_sasl_type = dovecot'
+sudo postconf -e 'smtpd_sasl_path = private/auth-client'
+sudo postconf -e 'smtpd_sasl_local_domain ='
+sudo postconf -e 'smtpd_sasl_security_options = noanonymous'
+sudo postconf -e 'broken_sasl_auth_clients = yes'
+sudo postconf -e 'smtpd_sasl_auth_enable = yes'
+sudo postconf -e 'smtpd_recipient_restrictions = \
+permit_sasl_authenticated,permit_mynetworks,reject_unauth_destination'
+
+**Note**
+
+The *smtpd\_sasl\_path* configuration is a path relative to the
+Postfix queue directory.</pre>
+</div>
+<p>Next, generate or obtain a digital certificate for TLS. See ? for
+details. This example also uses a Certificate Authority (CA). For
+information on generating a CA certificate see ?.</p>
+<blockquote>
+<div><p><strong>Note</strong></p>
+<p>MUAs connecting to your mail server via TLS will need to recognize
+the certificate used for TLS. This can either be done using a
+certificate from a commercial CA or with a self-signed certificate
+that users manually install/accept. For MTA to MTA TLS certficates
+are never validated without advance agreement from the affected
+organizations. For MTA to MTA TLS, unless local policy requires it,
+there is no reason not to use a self-signed certificate. Refer to ?
+for more details.</p>
+</div></blockquote>
+<p>Once you have a certificate, configure Postfix to provide TLS encryption
+for both incoming and outgoing mail:</p>
+<div class="highlight-python"><pre>sudo postconf -e 'smtp_tls_security_level = may'
+sudo postconf -e 'smtpd_tls_security_level = may'
+sudo postconf -e 'smtp_tls_note_starttls_offer = yes'
+sudo postconf -e 'smtpd_tls_key_file = /etc/ssl/private/server.key'
+sudo postconf -e 'smtpd_tls_cert_file = /etc/ssl/certs/server.crt'
+sudo postconf -e 'smtpd_tls_loglevel = 1'
+sudo postconf -e 'smtpd_tls_received_header = yes'
+sudo postconf -e 'myhostname = mail.example.com'</pre>
+</div>
+<p>If you are using your own <em>Certificate Authority</em> to sign the
+certificate enter:</p>
+<p>Again, for more details about certificates see ?.</p>
+<blockquote>
+<div><p><strong>Note</strong></p>
+<p>After running all the commands, Postfix is configured for SMTP-AUTH
+and a self-signed certificate has been created for TLS encryption.</p>
+</div></blockquote>
+<p>Now, the file <tt class="docutils literal"><span class="pre">/etc/postfix/main.cf</span></tt> should look like this:</p>
+<div class="highlight-python"><pre># See /usr/share/postfix/main.cf.dist for a commented, more complete
+# version
+
+smtpd_banner = $myhostname ESMTP $mail_name (Ubuntu)
+biff = no
+
+# appending .domain is the MUA's job.
+append_dot_mydomain = no
+
+# Uncomment the next line to generate "delayed mail" warnings
+#delay_warning_time = 4h
+
+myhostname = server1.example.com
+alias_maps = hash:/etc/aliases
+alias_database = hash:/etc/aliases
+myorigin = /etc/mailname
+mydestination = server1.example.com, localhost.example.com, localhost
+relayhost =
+mynetworks = 127.0.0.0/8
+mailbox_command = procmail -a "$EXTENSION"
+mailbox_size_limit = 0
+recipient_delimiter = +
+inet_interfaces = all
+smtpd_sasl_local_domain =
+smtpd_sasl_auth_enable = yes
+smtpd_sasl_security_options = noanonymous
+broken_sasl_auth_clients = yes
+smtpd_recipient_restrictions =
+permit_sasl_authenticated,permit_mynetworks,reject _unauth_destination
+smtpd_tls_auth_only = no
+smtp_tls_security_level = may
+smtpd_tls_security_level = may
+smtp_tls_note_starttls_offer = yes
+smtpd_tls_key_file = /etc/ssl/private/smtpd.key
+smtpd_tls_cert_file = /etc/ssl/certs/smtpd.crt
+smtpd_tls_CAfile = /etc/ssl/certs/cacert.pem
+smtpd_tls_loglevel = 1
+smtpd_tls_received_header = yes
+smtpd_tls_session_cache_timeout = 3600s
+tls_random_source = dev:/dev/urandom</pre>
+</div>
+<p>The postfix initial configuration is complete. Run the following command
+to restart the postfix daemon:</p>
+<p>Postfix supports SMTP-AUTH as defined in
+<a class="reference external" href="http://www.ietf.org/rfc/rfc2554.txt">RFC2554</a>. It is based on
+<a class="reference external" href="http://www.ietf.org/rfc/rfc2222.txt">SASL</a>. However it is still
+necessary to set up SASL authentication before you can use SMTP-AUTH.</p>
+</div>
+<div class="section" id="configuring-sasl">
+<h2>Configuring SASL<a class="headerlink" href="#configuring-sasl" title="Permalink to this headline">¶</a></h2>
+<p>Postfix supports two SASL implementations Cyrus SASL and Dovecot SASL.
+To enable Dovecot SASL the dovecot-common package will need to be
+installed. From a terminal prompt enter the following:</p>
+<p>Next you will need to edit <tt class="docutils literal"><span class="pre">/etc/dovecot/conf.d/10-master.conf</span></tt>.
+Change the following:</p>
+<div class="highlight-python"><pre>service auth {
+  # auth_socket_path points to this userdb socket by default. It's typically
+  # used by dovecot-lda, doveadm, possibly imap process, etc. Its default
+  # permissions make it readable only by root, but you may need to relax these
+  # permissions. Users that have access to this socket are able to get a list
+  # of all usernames and get results of everyone's userdb lookups.
+  unix_listener auth-userdb {
+    #mode = 0600
+    #user =
+    #group =
+  }
+
+  # Postfix smtp-auth
+  unix_listener /var/spool/postfix/private/auth {
+    mode = 0660
+    user = postfix
+    group = postfix
+  }</pre>
+</div>
+<p>In order to let Outlook clients use SMTP-AUTH, in the <em>authentication
+mechanisms</em> section of /etc/dovecot/conf.d/10-auth.conf change this
+line:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">auth_mechanisms</span> <span class="o">=</span> <span class="n">plain</span>
+</pre></div>
+</div>
+<p>To this:</p>
+<div class="highlight-python"><pre>auth_mechanisms = plain login</pre>
+</div>
+<p>Once you have Dovecot configured restart it with:</p>
+</div>
+<div class="section" id="mail-stack-delivery">
+<h2>Mail-Stack Delivery<a class="headerlink" href="#mail-stack-delivery" title="Permalink to this headline">¶</a></h2>
+<p>Another option for configuring Postfix for SMTP-AUTH is using the
+mail-stack-delivery package (previously packaged as dovecot-postfix).
+This package will install Dovecot and configure Postfix to use it for
+both SASL authentication and as a Mail Delivery Agent (MDA). The package
+also configures Dovecot for IMAP, IMAPS, POP3, and POP3S.</p>
+<blockquote>
+<div><p><strong>Note</strong></p>
+<p>You may or may not want to run IMAP, IMAPS, POP3, or POP3S on your
+mail server. For example, if you are configuring your server to be a
+mail gateway, spam/virus filter, etc. If this is the case it may be
+easier to use the above commands to configure Postfix for SMTP-AUTH.</p>
+</div></blockquote>
+<p>To install the package, from a terminal prompt enter:</p>
+<p>You should now have a working mail server, but there are a few options
+that you may wish to further customize. For example, the package uses
+the certificate and key from the ssl-cert package, and in a production
+environment you should use a certificate and key generated for the host.
+See ? for more details.</p>
+<p>Once you have a customized certificate and key for the host, change the
+following options in <tt class="docutils literal"><span class="pre">/etc/postfix/main.cf</span></tt>:</p>
+<div class="highlight-python"><pre>smtpd_tls_cert_file = /etc/ssl/certs/ssl-mail.pem
+smtpd_tls_key_file = /etc/ssl/private/ssl-mail.key</pre>
+</div>
+<p>Then restart Postfix:</p>
+</div>
+<div class="section" id="testing">
+<h2>Testing<a class="headerlink" href="#testing" title="Permalink to this headline">¶</a></h2>
+<p>SMTP-AUTH configuration is complete. Now it is time to test the setup.</p>
+<p>To see if SMTP-AUTH and TLS work properly, run the following command:</p>
+<p>After you have established the connection to the postfix mail server,
+type:</p>
+<div class="highlight-python"><pre>ehlo mail.example.com</pre>
+</div>
+<p>If you see the following lines among others, then everything is working
+perfectly. Type <tt class="docutils literal"><span class="pre">quit</span></tt> to exit.</p>
+<div class="highlight-python"><pre>250-STARTTLS
+250-AUTH LOGIN PLAIN
+250-AUTH=LOGIN PLAIN
+250 8BITMIME</pre>
+</div>
+</div>
+<div class="section" id="troubleshooting">
+<h2>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permalink to this headline">¶</a></h2>
+<p>This section introduces some common ways to determine the cause if
+problems arise.</p>
+<div class="section" id="escaping-chroot">
+<h3>Escaping chroot<a class="headerlink" href="#escaping-chroot" title="Permalink to this headline">¶</a></h3>
+<p>The Ubuntu postfix package will by default install into a <em>chroot</em>
+environment for security reasons. This can add greater complexity when
+troubleshooting problems.</p>
+<p>To turn off the chroot operation locate for the following line in the
+<tt class="docutils literal"><span class="pre">/etc/postfix/master.cf</span></tt> configuration file:</p>
+<div class="highlight-python"><pre>smtp      inet  n       -       -       -       -       smtpd</pre>
+</div>
+<p>and modify it as follows:</p>
+<div class="highlight-python"><pre>smtp      inet  n       -       n       -       -       smtpd</pre>
+</div>
+<p>You will then need to restart Postfix to use the new configuration. From
+a terminal prompt enter:</p>
+</div>
+<div class="section" id="smtps">
+<h3>Smtps<a class="headerlink" href="#smtps" title="Permalink to this headline">¶</a></h3>
+<p>If you need smtps, edit <tt class="docutils literal"><span class="pre">/etc/postfix/master.cf</span></tt> and uncomment the
+following line:</p>
+<div class="highlight-python"><pre>smtps     inet  n       -       -       -       -       smtpd
+  -o smtpd_tls_wrappermode=yes
+  -o smtpd_sasl_auth_enable=yes
+  -o smtpd_client_restrictions=permit_sasl_authenticated,reject
+  -o milter_macro_daemon_name=ORIGINATING</pre>
+</div>
+</div>
+<div class="section" id="log-files">
+<h3>Log Files<a class="headerlink" href="#log-files" title="Permalink to this headline">¶</a></h3>
+<p>Postfix sends all log messages to <tt class="docutils literal"><span class="pre">/var/log/mail.log</span></tt>. However error
+and warning messages can sometimes get lost in the normal log output so
+they are also logged to <tt class="docutils literal"><span class="pre">/var/log/mail.err</span></tt> and <tt class="docutils literal"><span class="pre">/var/log/mail.warn</span></tt>
+respectively.</p>
+<p>To see messages entered into the logs in real time you can use the tail
+-f command:</p>
+<p>The amount of detail that is recorded in the logs can be increased.
+Below are some configuration options for increasing the log level for
+some of the areas covered above.</p>
+<ul>
+<li><p class="first">To increase <em>TLS</em> activity logging set the <em>smtpd_tls_loglevel</em>
+option to a value from 1 to 4.</p>
+</li>
+<li><p class="first">If you are having trouble sending or receiving mail from a specific
+domain you can add the domain to the <em>debug_peer_list</em> parameter.</p>
+</li>
+<li><p class="first">You can increase the verbosity of any Postfix daemon process by
+editing the <tt class="docutils literal"><span class="pre">/etc/postfix/master.cf</span></tt> and adding a <em>-v</em> after the
+entry. For example edit the <em>smtp</em> entry:</p>
+<div class="highlight-python"><pre>   smtp      unix  -       -       -       -       -       smtp -v
+
+**Note**
+
+It is important to note that after making one of the logging changes
+above the Postfix process will need to be reloaded in order to
+recognize the new configuration: ``sudo service postfix reload``</pre>
+</div>
+</li>
+<li><p class="first">To increase the amount of information logged when troubleshooting
+<em>SASL</em> issues you can set the following options in
+<tt class="docutils literal"><span class="pre">/etc/dovecot/conf.d/10-logging.conf</span></tt></p>
+<div class="highlight-python"><pre>   auth_debug=yes
+   auth_debug_passwords=yes
+
+**Note**
+
+Just like Postfix if you change a Dovecot configuration the process
+will need to be reloaded: ``sudo service dovecot reload``.
+
+**Note**
+
+Some of the options above can drastically increase the amount of
+information sent to the log files. Remember to return the log level
+back to normal after you have corrected the problem. Then reload the
+appropriate daemon for the new configuration to take affect.</pre>
+</div>
+</li>
+</ul>
+</div>
+<div class="section" id="references">
+<h3>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h3>
+<p>Administering a Postfix server can be a very complicated task. At some
+point you may need to turn to the Ubuntu community for more experienced
+help.</p>
+<p>A great place to ask for Postfix assistance, and get involved with the
+Ubuntu Server community, is the <em>#ubuntu-server</em> IRC channel on
+<a class="reference external" href="http://freenode.net">freenode</a>. You can also post a message to one
+of the <a class="reference external" href="http://www.ubuntu.com/support/community/webforums">Web
+Forums</a>.</p>
+<p>For in depth Postfix information Ubuntu developers highly recommend:
+<a class="reference external" href="http://www.postfix-book.com/">The Book of Postfix</a>.</p>
+<p>Finally, the <a class="reference external" href="http://www.postfix.org/documentation.html">Postfix</a>
+website also has great documentation on all the different configuration
+options available.</p>
+<p>Also, the <a class="reference external" href="https://help.ubuntu.com/community/Postfix">Ubuntu Wiki
+Postfix</a> page has more
+information.</p>
+</div>
+</div>
+</div>
+<div class="section" id="exim4">
+<h1>Exim4<a class="headerlink" href="#exim4" title="Permalink to this headline">¶</a></h1>
+<p>Exim4 is another Message Transfer Agent (MTA) developed at the
+University of Cambridge for use on Unix systems connected to the
+Internet. Exim can be installed in place of sendmail, although the
+configuration of exim is quite different to that of sendmail.</p>
+<div class="section" id="id1">
+<h2>Installation<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<p>To install exim4, run the following command:</p>
+</div>
+<div class="section" id="configuration">
+<h2>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h2>
+<p>To configure Exim4, run the following command:</p>
+<p>The user interface will be displayed. The user interface lets you
+configure many parameters. For example, In Exim4 the configuration files
+are split among multiple files. If you wish to have them in one file you
+can configure accordingly in this user interface.</p>
+<p>All the parameters you configure in the user interface are stored in
+<tt class="docutils literal"><span class="pre">/etc/exim4/update-exim4.conf</span></tt> file. If you wish to re-configure,
+either you re-run the configuration wizard or manually edit this file
+using your favorite editor. Once you configure, you can run the
+following command to generate the master configuration file:</p>
+<p>The master configuration file, is generated and it is stored in
+<tt class="docutils literal"><span class="pre">/var/lib/exim4/config.autogenerated</span></tt>.</p>
+<blockquote>
+<div><p><strong>Warning</strong></p>
+<p>At any time, you should not edit the master configuration file,
+<tt class="docutils literal"><span class="pre">/var/lib/exim4/config.autogenerated</span></tt> manually. It is updated
+automatically every time you run <tt class="docutils literal"><span class="pre">update-exim4.conf</span></tt></p>
+</div></blockquote>
+<p>You can run the following command to start Exim4 daemon.</p>
+</div>
+<div class="section" id="id2">
+<h2>SMTP Authentication<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<p>This section covers configuring Exim4 to use SMTP-AUTH with TLS and
+SASL.</p>
+<p>The first step is to create a certificate for use with TLS. Enter the
+following into a terminal prompt:</p>
+<p>Now Exim4 needs to be configured for TLS by editing
+<tt class="docutils literal"><span class="pre">/etc/exim4/conf.d/main/03_exim4-config_tlsoptions</span></tt> add the following:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">MAIN_TLS_ENABLE</span> <span class="o">=</span> <span class="n">yes</span>
+</pre></div>
+</div>
+<p>Next you need to configure Exim4 to use the saslauthd for
+authentication. Edit <tt class="docutils literal"><span class="pre">/etc/exim4/conf.d/auth/30_exim4-config_examples</span></tt>
+and uncomment the <em>plain_saslauthd_server</em> and
+<em>login_saslauthd_server</em> sections:</p>
+<div class="highlight-python"><pre> plain_saslauthd_server:
+   driver = plaintext
+   public_name = PLAIN
+   server_condition = ${if saslauthd{{$auth2}{$auth3}}{1}{0}}
+   server_set_id = $auth2
+   server_prompts = :
+   .ifndef AUTH_SERVER_ALLOW_NOTLS_PASSWORDS
+   server_advertise_condition = ${if eq{$tls_cipher}{}{}{*}}
+   .endif
+#
+ login_saslauthd_server:
+   driver = plaintext
+   public_name = LOGIN
+   server_prompts = "Username:: : Password::"
+   # don't send system passwords over unencrypted connections
+   server_condition = ${if saslauthd{{$auth1}{$auth2}}{1}{0}}
+   server_set_id = $auth1
+   .ifndef AUTH_SERVER_ALLOW_NOTLS_PASSWORDS
+   server_advertise_condition = ${if eq{$tls_cipher}{}{}{*}}
+   .endif</pre>
+</div>
+<p>Additionally, in order for outside mail client to be able to connect to
+new exim server, new user needs to be added into exim by using the
+following commands.</p>
+<p>Users should protect the new exim password files with the following
+commands.</p>
+<p>Finally, update the Exim4 configuration and restart the service:</p>
+</div>
+<div class="section" id="id3">
+<h2>Configuring SASL<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
+<p>This section provides details on configuring the saslauthd to provide
+authentication for Exim4.</p>
+<p>The first step is to install the sasl2-bin package. From a terminal
+prompt enter the following:</p>
+<p>To configure saslauthd edit the /etc/default/saslauthd configuration
+file and set START=no to:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">START</span><span class="o">=</span><span class="n">yes</span>
+</pre></div>
+</div>
+<p>Next the <em>Debian-exim</em> user needs to be part of the <em>sasl</em> group in
+order for Exim4 to use the saslauthd service:</p>
+<p>Now start the saslauthd service:</p>
+<p>Exim4 is now configured with SMTP-AUTH using TLS and SASL
+authentication.</p>
+</div>
+<div class="section" id="id4">
+<h2>References<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>See <a class="reference external" href="http://www.exim.org/">exim.org</a> for more information.</li>
+<li>There is also an <a class="reference external" href="http://www.uit.co.uk/content/exim-smtp-mail-server">Exim4
+Book</a>
+available.</li>
+<li>Another resource is the <a class="reference external" href="https://help.ubuntu.com/community/Exim4">Exim4 Ubuntu
+Wiki</a> page.</li>
+</ul>
+</div>
+</div>
+<div class="section" id="dovecot-server">
+<h1>Dovecot Server<a class="headerlink" href="#dovecot-server" title="Permalink to this headline">¶</a></h1>
+<p>Dovecot is a Mail Delivery Agent, written with security primarily in
+mind. It supports the major mailbox formats: mbox or Maildir. This
+section explain how to set it up as an imap or pop3 server.</p>
+<div class="section" id="id5">
+<h2>Installation<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
+<p>To install dovecot, run the following command in the command prompt:</p>
+</div>
+<div class="section" id="id6">
+<h2>Configuration<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h2>
+<p>To configure dovecot, you can edit the file
+<tt class="docutils literal"><span class="pre">/etc/dovecot/dovecot.conf</span></tt>. You can choose the protocol you use. It
+could be pop3, pop3s (pop3 secure), imap and imaps (imap secure). A
+description of these protocols is beyond the scope of this guide. For
+further information, refer to the Wikipedia articles on
+<a class="reference external" href="http://en.wikipedia.org/wiki/POP3">POP3</a> and
+<a class="reference external" href="http://en.wikipedia.org/wiki/Internet_Message_Access_Protocol">IMAP</a>.</p>
+<p>IMAPS and POP3S are more secure that the simple IMAP and POP3 because
+they use SSL encryption to connect. Once you have chosen the protocol,
+amend the following line in the file <tt class="docutils literal"><span class="pre">/etc/dovecot/dovecot.conf</span></tt>:</p>
+<div class="highlight-python"><pre>protocols = pop3 pop3s imap imaps</pre>
+</div>
+<p>Next, choose the mailbox you would like to use. Dovecot supports
+<strong>maildir</strong> and <strong>mbox</strong> formats. These are the most commonly used
+mailbox formats. They both have their own benefits and are discussed on
+<a class="reference external" href="http://wiki2.dovecot.org/MailboxFormat">the Dovecot web site</a>.</p>
+<p>Once you have chosen your mailbox type, edit the file
+<tt class="docutils literal"><span class="pre">/etc/dovecot/conf.d/10-mail.conf</span></tt> and change the following line:</p>
+<div class="highlight-python"><pre>mail_location = maildir:~/Maildir # (for maildir)
+or
+mail_location = mbox:~/mail:INBOX=/var/spool/mail/%u # (for mbox)
+
+**Note**
+
+You should configure your Mail Transport Agent (MTA) to transfer the
+incoming mail to this type of mailbox if it is different from the
+one you have configured.</pre>
+</div>
+<p>Once you have configured dovecot, restart the dovecot daemon in order to
+test your setup:</p>
+<p>If you have enabled imap, or pop3, you can also try to log in with the
+commands <tt class="docutils literal"><span class="pre">telnet</span> <span class="pre">localhost</span> <span class="pre">pop3</span></tt> or <tt class="docutils literal"><span class="pre">telnet</span> <span class="pre">localhost</span> <span class="pre">imap2</span></tt>. If you
+see something like the following, the installation has been successful:</p>
+<div class="highlight-python"><pre>bhuvan@rainbow:~$ telnet localhost pop3
+Trying 127.0.0.1...
+Connected to localhost.localdomain.
+Escape character is '^]'.
++OK Dovecot ready.</pre>
+</div>
+</div>
+<div class="section" id="dovecot-ssl-configuration">
+<h2>Dovecot SSL Configuration<a class="headerlink" href="#dovecot-ssl-configuration" title="Permalink to this headline">¶</a></h2>
+<p>To configure dovecot to use SSL, you can edit the file
+<tt class="docutils literal"><span class="pre">/etc/dovecot/conf.d/10-ssl.conf</span></tt> and amend following lines:</p>
+<div class="highlight-python"><pre>ssl = yes
+ssl_cert = &lt;/etc/ssl/certs/dovecot.pem
+ssl_key = &lt;/etc/ssl/private/dovecot.pem</pre>
+</div>
+<p>You can get the SSL certificate from a Certificate Issuing Authority or
+you can create self signed SSL certificate. The latter is a good option
+for email, because SMTP clients rarely complain about &#8220;self-signed
+certificates&#8221;. Please refer to ? for details about how to create self
+signed SSL certificate. Once you create the certificate, you will have a
+key file and a certificate file. Please copy them to the location
+pointed in the <tt class="docutils literal"><span class="pre">/etc/dovecot/conf.d/10-ssl.conf</span></tt> configuration file.</p>
+</div>
+<div class="section" id="firewall-configuration-for-an-email-server">
+<h2>Firewall Configuration for an Email Server<a class="headerlink" href="#firewall-configuration-for-an-email-server" title="Permalink to this headline">¶</a></h2>
+<p>To access your mail server from another computer, you must configure
+your firewall to allow connections to the server on the necessary ports.</p>
+<ul class="simple">
+<li>IMAP - 143</li>
+<li>IMAPS - 993</li>
+<li>POP3 - 110</li>
+<li>POP3S - 995</li>
+</ul>
+</div>
+<div class="section" id="id7">
+<h2>References<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>See the <a class="reference external" href="http://www.dovecot.org/">Dovecot website</a> for more
+information.</li>
+<li>Also, the <a class="reference external" href="https://help.ubuntu.com/community/Dovecot">Dovecot Ubuntu
+Wiki</a> page has more
+details.</li>
+</ul>
+</div>
+</div>
+<div class="section" id="mailman">
+<h1>Mailman<a class="headerlink" href="#mailman" title="Permalink to this headline">¶</a></h1>
+<p>Mailman is an open source program for managing electronic mail
+discussions and e-newsletter lists. Many open source mailing lists
+(including all the <a class="reference external" href="http://lists.ubuntu.com">Ubuntu mailing lists</a>)
+use Mailman as their mailing list software. It is powerful and easy to
+install and maintain.</p>
+<div class="section" id="id8">
+<h2>Installation<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h2>
+<p>Mailman provides a web interface for the administrators and users, using
+an external mail server to send and receive emails. It works perfectly
+with the following mail servers:</p>
+<ul class="simple">
+<li>Postfix</li>
+<li>Exim</li>
+<li>Sendmail</li>
+<li>Qmail</li>
+</ul>
+<p>We will see how to install and configure Mailman with, the Apache web
+server, and either the Postfix or Exim mail server. If you wish to
+install Mailman with a different mail server, please refer to the
+references section.</p>
+<blockquote>
+<div><p><strong>Note</strong></p>
+<p>You only need to install one mail server and Postfix is the default
+Ubuntu Mail Transfer Agent.</p>
+</div></blockquote>
+<div class="section" id="apache2">
+<h3>Apache2<a class="headerlink" href="#apache2" title="Permalink to this headline">¶</a></h3>
+<p>To install apache2 you refer to ? for details.</p>
+</div>
+<div class="section" id="id9">
+<h3>Postfix<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
+<p>For instructions on installing and configuring Postfix refer to ?</p>
+</div>
+<div class="section" id="id10">
+<h3>Exim4<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h3>
+<p>To install Exim4 refer to ?.</p>
+<p>Once exim4 is installed, the configuration files are stored in the
+<tt class="docutils literal"><span class="pre">/etc/exim4</span></tt> directory. In Ubuntu, by default, the exim4 configuration
+files are split across different files. You can change this behavior by
+changing the following variable in the <tt class="docutils literal"><span class="pre">/etc/exim4/update-exim4.conf</span></tt>
+file:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">dc_use_split_config</span><span class="o">=</span><span class="s">&#39;true&#39;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id11">
+<h3>Mailman<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h3>
+<p>To install Mailman, run following command at a terminal prompt:</p>
+<p>It copies the installation files in /var/lib/mailman directory. It
+installs the CGI scripts in /usr/lib/cgi-bin/mailman directory. It
+creates <em>list</em> linux user. It creates the <em>list</em> linux group. The
+mailman process will be owned by this user.</p>
+</div>
+</div>
+<div class="section" id="id12">
+<h2>Configuration<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h2>
+<p>This section assumes you have successfully installed mailman, apache2,
+and postfix or exim4. Now you just need to configure them.</p>
+<div class="section" id="id13">
+<h3>Apache2<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h3>
+<p>An example Apache configuration file comes with Mailman and is placed in
+<tt class="docutils literal"><span class="pre">/etc/mailman/apache.conf</span></tt>. In order for Apache to use the config file
+it needs to be copied to <tt class="docutils literal"><span class="pre">/etc/apache2/sites-available</span></tt>:</p>
+<p>This will setup a new Apache <em>VirtualHost</em> for the Mailman
+administration site. Now enable the new configuration and restart
+Apache:</p>
+<p>Mailman uses apache2 to render its CGI scripts. The mailman CGI scripts
+are installed in the /usr/lib/cgi-bin/mailman directory. So, the mailman
+url will be <a class="reference external" href="http://hostname/cgi-bin/mailman/">http://hostname/cgi-bin/mailman/</a>. You can make changes to
+the <tt class="docutils literal"><span class="pre">/etc/apache2/sites-available/mailman.conf</span></tt> file if you wish to
+change this behavior.</p>
+</div>
+<div class="section" id="id14">
+<h3>Postfix<a class="headerlink" href="#id14" title="Permalink to this headline">¶</a></h3>
+<p>For Postfix integration, we will associate the domain lists.example.com
+with the mailing lists. Please replace <em>lists.example.com</em> with the
+domain of your choosing.</p>
+<p>You can use the postconf command to add the necessary configuration to
+<tt class="docutils literal"><span class="pre">/etc/postfix/main.cf</span></tt>:</p>
+<p>In <tt class="docutils literal"><span class="pre">/etc/postfix/master.cf</span></tt> double check that you have the following
+transport:</p>
+<div class="highlight-python"><pre>mailman   unix  -       n       n       -       -       pipe
+  flags=FR user=list argv=/usr/lib/mailman/bin/postfix-to-mailman.py
+  ${nexthop} ${user}</pre>
+</div>
+<p>It calls the <em>postfix-to-mailman.py</em> script when a mail is delivered to
+a list.</p>
+<p>Associate the domain lists.example.com to the Mailman transport with the
+transport map. Edit the file <tt class="docutils literal"><span class="pre">/etc/postfix/transport</span></tt>:</p>
+<div class="highlight-python"><pre>lists.example.com      mailman:</pre>
+</div>
+<p>Now have Postfix build the transport map by entering the following from
+a terminal prompt:</p>
+<p>Then restart Postfix to enable the new configurations:</p>
+</div>
+<div class="section" id="id15">
+<h3>Exim4<a class="headerlink" href="#id15" title="Permalink to this headline">¶</a></h3>
+<p>Once Exim4 is installed, you can start the Exim server using the
+following command from a terminal prompt:</p>
+<p>In order to make mailman work with Exim4, you need to configure Exim4.
+As mentioned earlier, by default, Exim4 uses multiple configuration
+files of different types. For details, please refer to the
+<a class="reference external" href="http://www.exim.org">Exim</a> web site. To run mailman, we should add
+new a configuration file to the following configuration types:</p>
+<ul class="simple">
+<li>Main</li>
+<li>Transport</li>
+<li>Router</li>
+</ul>
+<p>Exim creates a master configuration file by sorting all these mini
+configuration files. So, the order of these configuration files is very
+important.</p>
+</div>
+<div class="section" id="main">
+<h3>Main<a class="headerlink" href="#main" title="Permalink to this headline">¶</a></h3>
+<p>All the configuration files belonging to the main type are stored in the
+<tt class="docutils literal"><span class="pre">/etc/exim4/conf.d/main/</span></tt> directory. You can add the following content
+to a new file, named <tt class="docutils literal"><span class="pre">04_exim4-config_mailman</span></tt>:</p>
+<div class="highlight-python"><pre># start
+# Home dir for your Mailman installation -- aka Mailman's prefix
+# directory.
+# On Ubuntu this should be "/var/lib/mailman"
+# This is normally the same as ~mailman
+MM_HOME=/var/lib/mailman
+#
+# User and group for Mailman, should match your --with-mail-gid
+# switch to Mailman's configure script.  Value is normally "mailman"
+MM_UID=list
+MM_GID=list
+#
+# Domains that your lists are in - colon separated list
+# you may wish to add these into local_domains as well
+domainlist mm_domains=hostname.com
+#
+# -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+#
+# These values are derived from the ones above and should not need
+# editing unless you have munged your mailman installation
+#
+# The path of the Mailman mail wrapper script
+MM_WRAP=MM_HOME/mail/mailman
+#
+# The path of the list config file (used as a required file when
+# verifying list addresses)
+MM_LISTCHK=MM_HOME/lists/${lc::$local_part}/config.pck
+# end</pre>
+</div>
+</div>
+<div class="section" id="transport">
+<h3>Transport<a class="headerlink" href="#transport" title="Permalink to this headline">¶</a></h3>
+<p>All the configuration files belonging to transport type are stored in
+the <tt class="docutils literal"><span class="pre">/etc/exim4/conf.d/transport/</span></tt> directory. You can add the
+following content to a new file named ``
+40_exim4-config_mailman``:</p>
+<div class="highlight-python"><pre>mailman_transport:
+ driver = pipe
+ command = MM_WRAP \
+             '${if def:local_part_suffix \
+                   {${sg{$local_part_suffix}{-(\\w+)(\\+.*)?}{\$1}}} \
+                   {post}}' \
+             $local_part
+  current_directory = MM_HOME
+  home_directory = MM_HOME
+  user = MM_UID
+  group = MM_GID</pre>
+</div>
+</div>
+<div class="section" id="router">
+<h3>Router<a class="headerlink" href="#router" title="Permalink to this headline">¶</a></h3>
+<p>All the configuration files belonging to router type are stored in the
+<tt class="docutils literal"><span class="pre">/etc/exim4/conf.d/router/</span></tt> directory. You can add the following
+content in to a new file named <tt class="docutils literal"><span class="pre">101_exim4-config_mailman</span></tt>:</p>
+<div class="highlight-python"><pre>  mailman_router:
+   driver = accept
+   require_files = MM_HOME/lists/$local_part/config.pck
+   local_part_suffix_optional
+   local_part_suffix = -bounces : -bounces+* : \
+                       -confirm+* : -join : -leave : \
+                       -owner : -request : -admin
+   transport = mailman_transport
+
+**Warning**
+
+The order of main and transport configuration files can be in any
+order. But, the order of router configuration files must be the
+same. This particular file must appear before the
+200\_exim4-config\_primary file. These two configuration files
+contain same type of information. The first file takes the
+precedence. For more details, please refer to the references
+section.</pre>
+</div>
+</div>
+<div class="section" id="id16">
+<h3>Mailman<a class="headerlink" href="#id16" title="Permalink to this headline">¶</a></h3>
+<p>Once mailman is installed, you can run it using the following command:</p>
+<p>Once mailman is installed, you should create the default mailing list.
+Run the following command to create the mailing list:</p>
+<div class="highlight-python"><pre>::</pre>
+</div>
+<blockquote>
+<div><p>Enter the email address of the person running the list: bhuvan at ubuntu.com
+Initial mailman password:
+To finish creating your mailing list, you must edit your  (or
+equivalent) file by adding the following lines, and possibly running the
+<a href="#id17"><span class="problematic" id="id18">`</span></a>newaliases&#8217; program:</p>
+<p>## mailman mailing list
+mailman:              &#8220;<a href="#id26"><span class="problematic" id="id27">|/var/lib/mailman/mail/mailman post mailman&#8221;
+mailman-admin:        &#8220;|</span></a>/var/lib/mailman/mail/mailman admin mailman&#8221;
+mailman-bounces:      &#8220;<a href="#id28"><span class="problematic" id="id29">|/var/lib/mailman/mail/mailman bounces mailman&#8221;
+mailman-confirm:      &#8220;|</span></a>/var/lib/mailman/mail/mailman confirm mailman&#8221;
+mailman-join:         &#8220;<a href="#id30"><span class="problematic" id="id31">|/var/lib/mailman/mail/mailman join mailman&#8221;
+mailman-leave:        &#8220;|</span></a>/var/lib/mailman/mail/mailman leave mailman&#8221;
+mailman-owner:        &#8220;<a href="#id32"><span class="problematic" id="id33">|/var/lib/mailman/mail/mailman owner mailman&#8221;
+mailman-request:      &#8220;|</span></a>/var/lib/mailman/mail/mailman request mailman&#8221;
+mailman-subscribe:    &#8220;<a href="#id34"><span class="problematic" id="id35">|/var/lib/mailman/mail/mailman subscribe mailman&#8221;
+mailman-unsubscribe:  &#8220;|</span></a>/var/lib/mailman/mail/mailman unsubscribe mailman&#8221;</p>
+<p>Hit enter to notify mailman owner...</p>
+<p>#</p>
+</div></blockquote>
+<p>We have configured either Postfix or Exim4 to recognize all emails from
+mailman. So, it is not mandatory to make any new entries in
+<tt class="docutils literal"><span class="pre">/etc/aliases</span></tt>. If you have made any changes to the configuration
+files, please ensure that you restart those services before continuing
+to next section.</p>
+<blockquote>
+<div><p><strong>Note</strong></p>
+<p>The Exim4 does not use the above aliases to forward mails to
+Mailman, as it uses a <em>discover</em> approach. To suppress the aliases
+while creating the list, you can add <em>MTA=None</em> line in Mailman
+configuration file, <tt class="docutils literal"><span class="pre">/etc/mailman/mm_cfg.py</span></tt>.</p>
+</div></blockquote>
+</div>
+</div>
+<div class="section" id="administration">
+<h2>Administration<a class="headerlink" href="#administration" title="Permalink to this headline">¶</a></h2>
+<p>We assume you have a default installation. The mailman cgi scripts are
+still in the /usr/lib/cgi-bin/mailman/ directory. Mailman provides a web
+based administration facility. To access this page, point your browser
+to the following url:</p>
+<p><a class="reference external" href="http://hostname/cgi-bin/mailman/admin">http://hostname/cgi-bin/mailman/admin</a></p>
+<p>The default mailing list, <em>mailman</em>, will appear in this screen. If you
+click the mailing list name, it will ask for your authentication
+password. If you enter the correct password, you will be able to change
+administrative settings of this mailing list. You can create a new
+mailing list using the command line utility (<tt class="docutils literal"><span class="pre">/usr/sbin/newlist</span></tt>).
+Alternatively, you can create a new mailing list using the web
+interface.</p>
+</div>
+<div class="section" id="users">
+<h2>Users<a class="headerlink" href="#users" title="Permalink to this headline">¶</a></h2>
+<p>Mailman provides a web based interface for users. To access this page,
+point your browser to the following url:</p>
+<p><a class="reference external" href="http://hostname/cgi-bin/mailman/listinfo">http://hostname/cgi-bin/mailman/listinfo</a></p>
+<p>The default mailing list, <em>mailman</em>, will appear in this screen. If you
+click the mailing list name, it will display the subscription form. You
+can enter your email address, name (optional), and password to
+subscribe. An email invitation will be sent to you. You can follow the
+instructions in the email to subscribe.</p>
+</div>
+<div class="section" id="id19">
+<h2>References<a class="headerlink" href="#id19" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference external" href="http://www.list.org/mailman-install/index.html">GNU Mailman - Installation
+Manual</a></p>
+<p><a class="reference external" href="http://www.exim.org/howto/mailman21.html">HOWTO - Using Exim 4 and Mailman 2.1
+together</a></p>
+<p>Also, see the <a class="reference external" href="https://help.ubuntu.com/community/Mailman">Mailman Ubuntu
+Wiki</a> page.</p>
+</div>
+</div>
+<div class="section" id="mail-filtering">
+<h1>Mail Filtering<a class="headerlink" href="#mail-filtering" title="Permalink to this headline">¶</a></h1>
+<p>One of the largest issues with email today is the problem of Unsolicited
+Bulk Email (UBE). Also known as SPAM, such messages may also carry
+viruses and other forms of malware. According to some reports these
+messages make up the bulk of all email traffic on the Internet.</p>
+<p>This section will cover integrating Amavisd-new, Spamassassin, and
+ClamAV with the Postfix Mail Transport Agent (MTA). Postfix can also
+check email validity by passing it through external content filters.
+These filters can sometimes determine if a message is spam without
+needing to process it with more resource intensive applications. Two
+common filters are opendkim and python-policyd-spf.</p>
+<ul class="simple">
+<li>Amavisd-new is a wrapper program that can call any number of content
+filtering programs for spam detection, antivirus, etc.</li>
+<li>Spamassassin uses a variety of mechanisms to filter email based on
+the message content.</li>
+<li>ClamAV is an open source antivirus application.</li>
+<li>opendkim implements a Sendmail Mail Filter (Milter) for the
+DomainKeys Identified Mail (DKIM) standard.</li>
+<li>python-policyd-spf enables Sender Policy Framework (SPF) checking
+with Postfix.</li>
+</ul>
+<p>This is how the pieces fit together:</p>
+<ul class="simple">
+<li>An email message is accepted by Postfix.</li>
+<li>The message is passed through any external filters opendkim and
+python-policyd-spf in this case.</li>
+<li>Amavisd-new then processes the message.</li>
+<li>ClamAV is used to scan the message. If the message contains a virus
+Postfix will reject the message.</li>
+<li>Clean messages will then be analyzed by Spamassassin to find out if
+the message is spam. Spamassassin will then add X-Header lines
+allowing Amavisd-new to further manipulate the message.</li>
+</ul>
+<p>For example, if a message has a Spam score of over fifty the message
+could be automatically dropped from the queue without the recipient ever
+having to be bothered. Another, way to handle flagged messages is to
+deliver them to the Mail User Agent (MUA) allowing the user to deal with
+the message as they see fit.</p>
+<div class="section" id="id20">
+<h2>Installation<a class="headerlink" href="#id20" title="Permalink to this headline">¶</a></h2>
+<p>See ? for instructions on installing and configuring Postfix.</p>
+<p>To install the rest of the applications enter the following from a
+terminal prompt:</p>
+<p>There are some optional packages that integrate with Spamassassin for
+better spam detection:</p>
+<p>Along with the main filtering applications compression utilities are
+needed to process some email attachments:</p>
+<div class="highlight-python"><pre>**Note**
+
+If some packages are not found, check that the *multiverse*
+repository is enabled in ``/etc/apt/sources.list``
+
+If you make changes to the file, be sure to run
+``sudo apt-get update`` before trying to install again.</pre>
+</div>
+</div>
+<div class="section" id="id21">
+<h2>Configuration<a class="headerlink" href="#id21" title="Permalink to this headline">¶</a></h2>
+<p>Now configure everything to work together and filter email.</p>
+<div class="section" id="clamav">
+<h3>ClamAV<a class="headerlink" href="#clamav" title="Permalink to this headline">¶</a></h3>
+<p>The default behaviour of ClamAV will fit our needs. For more ClamAV
+configuration options, check the configuration files in <tt class="docutils literal"><span class="pre">/etc/clamav</span></tt>.</p>
+<p>Add the <em>clamav</em> user to the <em>amavis</em> group in order for Amavisd-new to
+have the appropriate access to scan files:</p>
+</div>
+<div class="section" id="spamassassin">
+<h3>Spamassassin<a class="headerlink" href="#spamassassin" title="Permalink to this headline">¶</a></h3>
+<p>Spamassassin automatically detects optional components and will use them
+if they are present. This means that there is no need to configure pyzor
+and razor.</p>
+<p>Edit <tt class="docutils literal"><span class="pre">/etc/default/spamassassin</span></tt> to activate the Spamassassin daemon.
+Change <em>ENABLED=0</em> to:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">ENABLED</span><span class="o">=</span><span class="mi">1</span>
+</pre></div>
+</div>
+<p>Now start the daemon:</p>
+</div>
+<div class="section" id="amavisd-new">
+<h3>Amavisd-new<a class="headerlink" href="#amavisd-new" title="Permalink to this headline">¶</a></h3>
+<p>First activate spam and antivirus detection in Amavisd-new by editing
+<tt class="docutils literal"><span class="pre">/etc/amavis/conf.d/15-content_filter_mode</span></tt>:</p>
+<div class="highlight-python"><pre>use strict;
+
+# You can modify this file to re-enable SPAM checking through spamassassin
+# and to re-enable antivirus checking.
+
+#
+# Default antivirus checking mode
+# Uncomment the two lines below to enable it
+#
+
+@bypass_virus_checks_maps = (
+   \%bypass_virus_checks, \@bypass_virus_checks_acl, \$bypass_virus_checks_re);
+
+
+#
+# Default SPAM checking mode
+# Uncomment the two lines below to enable it
+#
+
+@bypass_spam_checks_maps = (
+   \%bypass_spam_checks, \@bypass_spam_checks_acl, \$bypass_spam_checks_re);
+
+1;  # insure a defined return</pre>
+</div>
+<p>Bouncing spam can be a bad idea as the return address is often faked.
+Consider editing <tt class="docutils literal"><span class="pre">/etc/amavis/conf.d/20-debian_defaults</span></tt> to set
+<em>$final_spam_destiny</em> to D_DISCARD rather than D_BOUNCE, as follows:</p>
+<div class="highlight-python"><pre>$final_spam_destiny       = D_DISCARD;</pre>
+</div>
+<p>Additionally, you may want to adjust the following options to flag more
+messages as spam:</p>
+<div class="highlight-python"><pre>$sa_tag_level_deflt = -999; # add spam info headers if at, or above that level
+$sa_tag2_level_deflt = 6.0; # add 'spam detected' headers at that level
+$sa_kill_level_deflt = 21.0; # triggers spam evasive actions
+$sa_dsn_cutoff_level = 4; # spam level beyond which a DSN is not sent</pre>
+</div>
+<p>If the server&#8217;s <em>hostname</em> is different from the domain&#8217;s MX record you
+may need to manually set the <em>$myhostname</em> option. Also, if the server
+receives mail for multiple domains the <em>&#64;local_domains_acl</em> option
+will need to be customized. Edit the <tt class="docutils literal"><span class="pre">/etc/amavis/conf.d/50-user</span></tt>
+file:</p>
+<div class="highlight-python"><pre>$myhostname = 'mail.example.com';
+@local_domains_acl = ( "example.com", "example.org" );</pre>
+</div>
+<p>If you want to cover multiple domains you can use the following in
+the<tt class="docutils literal"><span class="pre">/etc/amavis/conf.d/50-user</span></tt></p>
+<div class="highlight-python"><pre>@local_domains_acl = qw(.);</pre>
+</div>
+<p>After configuration Amavisd-new needs to be restarted:</p>
+<div class="section" id="dkim-whitelist">
+<h4>DKIM Whitelist<a class="headerlink" href="#dkim-whitelist" title="Permalink to this headline">¶</a></h4>
+<p>Amavisd-new can be configured to automatically <em>Whitelist</em> addresses
+from domains with valid Domain Keys. There are some pre-configured
+domains in the <tt class="docutils literal"><span class="pre">/etc/amavis/conf.d/40-policy_banks</span></tt>.</p>
+<p>There are multiple ways to configure the Whitelist for a domain:</p>
+<ul class="simple">
+<li><em>&#8216;example.com&#8217; =&gt; &#8216;WHITELIST&#8217;,</em>: will whitelist any address from the
+&#8220;example.com&#8221; domain.</li>
+<li><em>&#8216;.example.com&#8217; =&gt; &#8216;WHITELIST&#8217;,</em>: will whitelist any address from any
+<em>subdomains</em> of &#8220;example.com&#8221; that have a valid signature.</li>
+<li><em>&#8216;.example.com/&#64;example.com&#8217; =&gt; &#8216;WHITELIST&#8217;,</em>: will whitelist
+subdomains of &#8220;example.com&#8221; that use the signature of <em>example.com</em>
+the parent domain.</li>
+<li><em>&#8216;./&#64;example.com&#8217; =&gt; &#8216;WHITELIST&#8217;,</em>: adds addresses that have a valid
+signature from &#8220;example.com&#8221;. This is usually used for discussion
+groups that sign their messages.</li>
+</ul>
+<p>A domain can also have multiple Whitelist configurations. After editing
+the file, restart amavisd-new:</p>
+<div class="highlight-python"><pre>**Note**
+
+In this context, once a domain has been added to the Whitelist the
+message will not receive any anti-virus or spam filtering. This may
+or may not be the intended behavior you wish for a domain.</pre>
+</div>
+</div>
+</div>
+<div class="section" id="id22">
+<h3>Postfix<a class="headerlink" href="#id22" title="Permalink to this headline">¶</a></h3>
+<p>For Postfix integration, enter the following from a terminal prompt:</p>
+<p>Next edit <tt class="docutils literal"><span class="pre">/etc/postfix/master.cf</span></tt> and add the following to the end of
+the file:</p>
+<div class="highlight-python"><pre>smtp-amavis     unix    -       -       -       -       2       smtp
+        -o smtp_data_done_timeout=1200
+        -o smtp_send_xforward_command=yes
+        -o disable_dns_lookups=yes
+        -o max_use=20
+
+127.0.0.1:10025 inet    n       -       -       -       -       smtpd
+        -o content_filter=
+        -o local_recipient_maps=
+        -o relay_recipient_maps=
+        -o smtpd_restriction_classes=
+        -o smtpd_delay_reject=no
+        -o smtpd_client_restrictions=permit_mynetworks,reject
+        -o smtpd_helo_restrictions=
+        -o smtpd_sender_restrictions=
+        -o smtpd_recipient_restrictions=permit_mynetworks,reject
+        -o smtpd_data_restrictions=reject_unauth_pipelining
+        -o smtpd_end_of_data_restrictions=
+        -o mynetworks=127.0.0.0/8
+        -o smtpd_error_sleep_time=0
+        -o smtpd_soft_error_limit=1001
+        -o smtpd_hard_error_limit=1000
+        -o smtpd_client_connection_count_limit=0
+        -o smtpd_client_connection_rate_limit=0
+        -o receive_override_options=no_header_body_checks,no_unknown_recipient_checks,no_milters</pre>
+</div>
+<p>Also add the following two lines immediately below the <em>&#8220;pickup&#8221;</em>
+transport service:</p>
+<div class="highlight-python"><pre>-o content_filter=
+-o receive_override_options=no_header_body_checks</pre>
+</div>
+<p>This will prevent messages that are generated to report on spam from
+being classified as spam.</p>
+<p>Now restart Postfix:</p>
+<p>Content filtering with spam and virus detection is now enabled.</p>
+</div>
+<div class="section" id="amavisd-new-and-spamassassin">
+<h3>Amavisd-new and Spamassassin<a class="headerlink" href="#amavisd-new-and-spamassassin" title="Permalink to this headline">¶</a></h3>
+<p>When integrating Amavisd-new with Spamassassin, if you choose to disable
+the bayes filtering by editing <tt class="docutils literal"><span class="pre">/etc/spamassassin/local.cf</span></tt> and use
+cron to update the nightly rules, the result can cause a situation where
+a large amount of error messages are sent to the <em>amavis</em> user via the
+amavisd-new cron job.</p>
+<p>There are several ways to handle this situation:</p>
+<ul>
+<li><p class="first">Configure your MDA to filter messages you do not wish to see.</p>
+</li>
+<li><p class="first">Change <tt class="docutils literal"><span class="pre">/usr/sbin/amavisd-new-cronjob</span></tt> to check for <em>use_bayes 0</em>.
+For example, edit <tt class="docutils literal"><span class="pre">/usr/sbin/amavisd-new-cronjob</span></tt> and add the
+following to the top before the <em>test</em> statements:</p>
+<div class="highlight-python"><pre>egrep -q "^[ \t]*use_bayes[ \t]*0" /etc/spamassassin/local.cf &amp;&amp; exit 0</pre>
+</div>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="id23">
+<h2>Testing<a class="headerlink" href="#id23" title="Permalink to this headline">¶</a></h2>
+<p>First, test that the Amavisd-new SMTP is listening:</p>
+<div class="highlight-python"><pre>telnet localhost 10024
+Trying 127.0.0.1...
+Connected to localhost.
+Escape character is '^]'.
+220 [127.0.0.1] ESMTP amavisd-new service ready
+^]</pre>
+</div>
+<p>In the Header of messages that go through the content filter you should
+see:</p>
+<div class="highlight-python"><pre>X-Spam-Level:
+X-Virus-Scanned: Debian amavisd-new at example.com
+X-Spam-Status: No, hits=-2.3 tagged_above=-1000.0 required=5.0 tests=AWL, BAYES_00
+X-Spam-Level:
+
+**Note**
+
+Your output will vary, but the important thing is that there are
+*X-Virus-Scanned* and *X-Spam-Status* entries.</pre>
+</div>
+</div>
+<div class="section" id="id24">
+<h2>Troubleshooting<a class="headerlink" href="#id24" title="Permalink to this headline">¶</a></h2>
+<p>The best way to figure out why something is going wrong is to check the
+log files.</p>
+<ul>
+<li><p class="first">For instructions on Postfix logging see the ? section.</p>
+</li>
+<li><p class="first">Amavisd-new uses Syslog to send messages to <tt class="docutils literal"><span class="pre">/var/log/mail.log</span></tt>.
+The amount of detail can be increased by adding the <em>$log_level</em>
+option to <tt class="docutils literal"><span class="pre">/etc/amavis/conf.d/50-user</span></tt>, and setting the value from
+1 to 5.</p>
+<div class="highlight-python"><pre>$log_level = 2;
+
+**Note**
+
+When the Amavisd-new log output is increased Spamassassin log
+output is also increased.</pre>
+</div>
+</li>
+<li><p class="first">The ClamAV log level can be increased by editing
+<tt class="docutils literal"><span class="pre">/etc/clamav/clamd.conf</span></tt> and setting the following option:</p>
+<div class="highlight-python"><pre>LogVerbose true</pre>
+</div>
+<p>By default ClamAV will send log messages to
+<tt class="docutils literal"><span class="pre">/var/log/clamav/clamav.log</span></tt>.</p>
+<blockquote>
+<div><p><strong>Note</strong></p>
+<p>After changing an applications log settings remember to restart the
+service for the new settings to take affect. Also, once the issue
+you are troubleshooting is resolved it is a good idea to change the
+log settings back to normal.</p>
+</div></blockquote>
+</li>
+</ul>
+</div>
+<div class="section" id="id25">
+<h2>References<a class="headerlink" href="#id25" title="Permalink to this headline">¶</a></h2>
+<p>For more information on filtering mail see the following links:</p>
+<ul class="simple">
+<li><a class="reference external" href="http://www.ijs.si/software/amavisd/amavisd-new-docs.html">Amavisd-new
+Documentation</a></li>
+<li><a class="reference external" href="http://www.clamav.net/doc/latest/html/">ClamAV Documentation</a> and
+<a class="reference external" href="http://wiki.clamav.net/Main/WebHome">ClamAV Wiki</a></li>
+<li><a class="reference external" href="http://wiki.apache.org/spamassassin/">Spamassassin Wiki</a></li>
+<li><a class="reference external" href="http://sourceforge.net/apps/trac/pyzor/">Pyzor Homepage</a></li>
+<li><a class="reference external" href="http://razor.sourceforge.net/">Razor Homepage</a></li>
+<li><a class="reference external" href="http://dkim.org/">DKIM.org</a></li>
+<li><a class="reference external" href="https://help.ubuntu.com/community/PostfixAmavisNew">Postfix Amavis
+New</a></li>
+</ul>
+<p>Also, feel free to ask questions in the <em>#ubuntu-server</em> IRC channel on
+<a class="reference external" href="http://freenode.net">freenode</a>.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/ubuntu_black-orange_hex_su-medium_cropped.png" alt="Logo"/>
+            </a></p>
+<h3><a href="index.html">Table Of Contents</a></h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="introduction.html#support">Support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html#preparing-to-install">Preparing to Install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html#installing-from-cd">Installing from CD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html#upgrading">Upgrading</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html#advanced-installation">Advanced Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html#kernel-crash-dump">Kernel Crash Dump</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html">Package Management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html#introduction">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html#dpkg">dpkg</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html#apt-get">Apt-Get</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html#aptitude">Aptitude</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html#automatic-updates">Automatic Updates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html#configuration">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html#references">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-config.html">Networking</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-config.html#network-configuration">Network Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-config.html#tcp-ip">TCP/IP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-config.html#dynamic-host-configuration-protocol-dhcp">Dynamic Host Configuration Protocol (DHCP)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-config.html#time-synchronisation-with-ntp">Time Synchronisation with NTP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multipath.html">DMM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multipath.html#device-mapper-multipathing">Device Mapper Multipathing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multipath.html#multipath-devices">Multipath Devices</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multipath.html#setting-up-dmm-overview">Setting up DMM Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multipath.html#the-dmm-configuration-file">The DMM Configuration File</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multipath.html#dmm-administration-and-troubleshooting">DMM Administration and Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="remote-administration.html">Remote Administration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="remote-administration.html#openssh-server">OpenSSH Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="remote-administration.html#puppet">Puppet</a></li>
+<li class="toctree-l1"><a class="reference internal" href="remote-administration.html#zentyal">Zentyal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-auth.html">Network Authentication</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-auth.html#openldap-server">OpenLDAP Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-auth.html#samba-and-ldap">Samba and LDAP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-auth.html#kerberos">Kerberos</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-auth.html#kerberos-and-ldap">Kerberos and LDAP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dns.html">Domain Name Service (DNS)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dns.html#installation">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dns.html#configuration">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dns.html#troubleshooting">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dns.html#references">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html">Security</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html#user-management">User Management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html#console-security">Console Security</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html#firewall">Firewall</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html#apparmor">AppArmor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html#certificates">Certificates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html#ecryptfs">eCryptfs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="monitoring.html">Monitoring</a></li>
+<li class="toctree-l1"><a class="reference internal" href="monitoring.html#overview">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="monitoring.html#nagios">Nagios</a></li>
+<li class="toctree-l1"><a class="reference internal" href="monitoring.html#munin">Munin</a></li>
+<li class="toctree-l1"><a class="reference internal" href="web-servers.html">Web Servers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="web-servers.html#httpd-apache2-web-server">HTTPD - Apache2 Web Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="web-servers.html#php5-scripting-language">PHP5 - Scripting Language</a></li>
+<li class="toctree-l1"><a class="reference internal" href="web-servers.html#squid-proxy-server">Squid - Proxy Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="web-servers.html#ruby-on-rails">Ruby on Rails</a></li>
+<li class="toctree-l1"><a class="reference internal" href="web-servers.html#apache-tomcat">Apache Tomcat</a></li>
+<li class="toctree-l1"><a class="reference internal" href="databases.html">Databases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="databases.html#mysql">MySQL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="databases.html#postgresql">PostgreSQL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lamp-applications.html">LAMP Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lamp-applications.html#overview">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lamp-applications.html#moin-moin">Moin Moin</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lamp-applications.html#mediawiki">MediaWiki</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lamp-applications.html#phpmyadmin">phpMyAdmin</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lamp-applications.html#wordpress">WordPress</a></li>
+<li class="toctree-l1"><a class="reference internal" href="file-server.html">File Servers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="file-server.html#ftp-server">FTP Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="file-server.html#network-file-system-nfs">Network File System (NFS)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="file-server.html#iscsi-initiator">iSCSI Initiator</a></li>
+<li class="toctree-l1"><a class="reference internal" href="file-server.html#cups-print-server">CUPS - Print Server</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">Email Services</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#postfix">Postfix</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="#exim4">Exim4</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="#dovecot-server">Dovecot Server</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="#mailman">Mailman</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="#mail-filtering">Mail Filtering</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="chat.html">Chat Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chat.html#overview">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chat.html#irc-server">IRC Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chat.html#jabber-instant-messaging-server">Jabber Instant Messaging Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vcs.html">Version Control System</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vcs.html#bazaar">Bazaar</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vcs.html#git">Git</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vcs.html#subversion">Subversion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vcs.html#references">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samba.html">Samba</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samba.html#introduction">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samba.html#file-server">File Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samba.html#print-server">Print Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samba.html#securing-file-and-print-server">Securing File and Print Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samba.html#as-a-domain-controller">As a Domain Controller</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samba.html#active-directory-integration">Active Directory Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backups.html">Backups</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backups.html#shell-scripts">Shell Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backups.html#archive-rotation">Archive Rotation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backups.html#bacula">Bacula</a></li>
+<li class="toctree-l1"><a class="reference internal" href="virtualization.html">Virtualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="virtualization.html#libvirt">libvirt</a></li>
+<li class="toctree-l1"><a class="reference internal" href="virtualization.html#cloud-images-and-vmbuilder">Cloud images and vmbuilder</a></li>
+<li class="toctree-l1"><a class="reference internal" href="virtualization.html#ubuntu-cloud">Ubuntu Cloud</a></li>
+<li class="toctree-l1"><a class="reference internal" href="virtualization.html#lxc">LXC</a></li>
+<li class="toctree-l1"><a class="reference internal" href="clustering.html">Clustering</a></li>
+<li class="toctree-l1"><a class="reference internal" href="clustering.html#drbd">DRBD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vpn.html">VPN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vpn.html#openvpn">OpenVPN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="other-apps.html">Other Useful Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="other-apps.html#pam-motd">pam_motd</a></li>
+<li class="toctree-l1"><a class="reference internal" href="other-apps.html#etckeeper">etckeeper</a></li>
+<li class="toctree-l1"><a class="reference internal" href="other-apps.html#byobu">Byobu</a></li>
+<li class="toctree-l1"><a class="reference internal" href="other-apps.html#references">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reporting-bugs.html">Appendix</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reporting-bugs.html#reporting-bugs-in-ubuntu-server-edition">Reporting Bugs in Ubuntu Server Edition</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="file-server.html"
+                        title="previous chapter">File Servers</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="chat.html"
+                        title="next chapter">Chat Applications</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/mail.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="chat.html" title="Chat Applications"
+             >next</a></li>
+        <li class="right" >
+          <a href="file-server.html" title="File Servers"
+             >previous</a> |</li>
+        <li><a href="index.html">Ubuntu Server Guide - 14.04 LTS</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Ubuntu Documentation Contributors.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

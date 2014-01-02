@@ -1,0 +1,1901 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Network Authentication &mdash; Ubuntu Server Guide - 14.04 LTS</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '14.04',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Ubuntu Server Guide - 14.04 LTS" href="index.html" />
+    <link rel="next" title="Domain Name Service (DNS)" href="dns.html" />
+    <link rel="prev" title="Remote Administration" href="remote-administration.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="dns.html" title="Domain Name Service (DNS)"
+             accesskey="N">next</a></li>
+        <li class="right" >
+          <a href="remote-administration.html" title="Remote Administration"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Ubuntu Server Guide - 14.04 LTS</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="network-authentication">
+<h1>Network Authentication<a class="headerlink" href="#network-authentication" title="Permalink to this headline">¶</a></h1>
+<p>This section applies LDAP to network authentication and authorization.</p>
+</div>
+<div class="section" id="openldap-server">
+<h1>OpenLDAP Server<a class="headerlink" href="#openldap-server" title="Permalink to this headline">¶</a></h1>
+<p>The Lightweight Directory Access Protocol, or LDAP, is a protocol for
+querying and modifying a X.500-based directory service running over
+TCP/IP. The current LDAP version is LDAPv3, as defined in
+<a class="reference external" href="http://tools.ietf.org/html/rfc4510">RFC4510</a>, and the LDAP
+implementation used in Ubuntu is OpenLDAP, currently at version 2.4.25
+(Oneiric).</p>
+<p>So this protocol accesses LDAP directories. Here are some key concepts
+and terms:</p>
+<ul>
+<li><p class="first">A LDAP directory is a tree of data <em>entries</em> that is hierarchical in
+nature and is called the Directory Information Tree (DIT).</p>
+</li>
+<li><p class="first">An entry consists of a set of <em>attributes</em>.</p>
+</li>
+<li><p class="first">An attribute has a <em>type</em> (a name/description) and one or more
+<em>values</em>.</p>
+</li>
+<li><p class="first">Every attribute must be defined in at least one <em>objectClass</em>.</p>
+</li>
+<li><p class="first">Attributes and objectclasses are defined in <em>schemas</em> (an objectclass
+is actually considered as a special kind of attribute).</p>
+</li>
+<li><p class="first">Each entry has a unique identifier: it&#8217;s <em>Distinguished Name</em> (DN or
+dn). This consists of it&#8217;s <em>Relative Distinguished Name</em> (RDN)
+followed by the parent entry&#8217;s DN.</p>
+</li>
+<li><p class="first">The entry&#8217;s DN is not an attribute. It is not considered part of the
+entry itself.</p>
+<blockquote>
+<div><p><strong>Note</strong></p>
+<p>The terms <em>object</em>, <em>container</em>, and <em>node</em> have certain
+connotations but they all essentially mean the same thing as
+<em>entry</em>, the technically correct term.</p>
+</div></blockquote>
+</li>
+</ul>
+<p>For example, below we have a single entry consisting of 11 attributes.
+It&#8217;s DN is &#8220;cn=John Doe,dc=example,dc=com&#8221;; it&#8217;s RDN is &#8220;cn=John Doe&#8221;;
+and it&#8217;s parent DN is &#8220;dc=example,dc=com&#8221;.</p>
+<div class="highlight-python"><pre>dn: cn=John Doe,dc=example,dc=com
+cn: John Doe
+givenName: John
+sn: Doe
+telephoneNumber: +1 888 555 6789
+telephoneNumber: +1 888 555 1232
+mail: john@example.com
+manager: cn=Larry Smith,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: person
+objectClass: top</pre>
+</div>
+<p>The above entry is in <em>LDIF</em> format (LDAP Data Interchange Format). Any
+information that you feed into your DIT must also be in such a format.
+It is defined in <a class="reference external" href="http://tools.ietf.org/html/rfc2849">RFC2849</a>.</p>
+<p>Although this guide will describe how to use it for central
+authentication, LDAP is good for anything that involves a large number
+of access requests to a mostly-read, attribute-based (name:value)
+backend. Examples include an address book, a list of email addresses,
+and a mail server&#8217;s configuration.</p>
+<div class="section" id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
+<p>Install the OpenLDAP server daemon and the traditional LDAP management
+utilities. These are found in packages slapd and ldap-utils
+respectively.</p>
+<p>The installation of slapd will create a working configuration. In
+particular, it will create a database instance that you can use to store
+your data. However, the suffix (or base DN) of this instance will be
+determined from the domain name of the localhost. If you want something
+different, edit <tt class="docutils literal"><span class="pre">/etc/hosts</span></tt> and replace the domain name with one that
+will give you the suffix you desire. For instance, if you want a suffix
+of <em>dc=example,dc=com</em> then your file would have a line similar to this:</p>
+<div class="highlight-python"><pre>127.0.1.1       hostname.example.com    hostname</pre>
+</div>
+<p>You can revert the change after package installation.</p>
+<blockquote>
+<div><p><strong>Note</strong></p>
+<p>This guide will use a database suffix of <em>dc=example,dc=com</em>.</p>
+</div></blockquote>
+<p>Proceed with the install:</p>
+<p>Since Ubuntu 8.10 slapd is designed to be configured within slapd itself
+by dedicating a separate DIT for that purpose. This allows one to
+dynamically configure slapd without the need to restart the service.
+This configuration database consists of a collection of text-based LDIF
+files located under <tt class="docutils literal"><span class="pre">/etc/ldap/slapd.d</span></tt>. This way of working is known
+by several names: the slapd-config method, the RTC method (Real Time
+Configuration), or the cn=config method. You can still use the
+traditional flat-file method (slapd.conf) but it&#8217;s not recommended; the
+functionality will be eventually phased out.</p>
+<blockquote>
+<div><p><strong>Note</strong></p>
+<p>Ubuntu now uses the <em>slapd-config</em> method for slapd configuration
+and this guide reflects that.</p>
+</div></blockquote>
+<p>During the install you were prompted to define administrative
+credentials. These are LDAP-based credentials for the <em>rootDN</em> of your
+database instance. By default, this user&#8217;s DN is
+<em>cn=admin,dc=example,dc=com</em>. Also by default, there is no
+administrative account created for the slapd-config database and you
+will therefore need to authenticate externally to LDAP in order to
+access it. We will see how to do this later on.</p>
+<p>Some classical schemas (cosine, nis, inetorgperson) come built-in with
+slapd nowadays. There is also an included &#8220;core&#8221; schema, a pre-requisite
+for any schema to work.</p>
+</div>
+<div class="section" id="post-install-inspection">
+<h2>Post-install Inspection<a class="headerlink" href="#post-install-inspection" title="Permalink to this headline">¶</a></h2>
+<p>The installation process set up 2 DITs. One for slapd-config and one for
+your own data (dc=example,dc=com). Let&#8217;s take a look.</p>
+<ul>
+<li><p class="first">This is what the slapd-config database/DIT looks like. Recall that
+this database is LDIF-based and lives under <tt class="docutils literal"><span class="pre">/etc/ldap/slapd.d</span></tt>:</p>
+<div class="highlight-python"><pre>**Note**
+
+Do not edit the slapd-config database directly. Make changes via
+the LDAP protocol (utilities).</pre>
+</div>
+</li>
+<li><p class="first">This is what the slapd-config DIT looks like via the LDAP protocol:</p>
+<p>Explanation of entries:</p>
+<ul class="simple">
+<li><em>cn=config</em>: global settings</li>
+<li><em>cn=module{0},cn=config</em>: a dynamically loaded module</li>
+<li><em>cn=schema,cn=config</em>: contains hard-coded system-level schema</li>
+<li><em>cn={0}core,cn=schema,cn=config</em>: the hard-coded core schema</li>
+<li><em>cn={1}cosine,cn=schema,cn=config</em>: the cosine schema</li>
+<li><em>cn={2}nis,cn=schema,cn=config</em>: the nis schema</li>
+<li><em>cn={3}inetorgperson,cn=schema,cn=config</em>: the inetorgperson
+schema</li>
+<li><em>olcBackend={0}hdb,cn=config</em>: the &#8216;hdb&#8217; backend storage type</li>
+<li><em>olcDatabase={-1}frontend,cn=config</em>: frontend database, default
+settings for other databases</li>
+<li><em>olcDatabase={0}config,cn=config</em>: slapd configuration database
+(cn=config)</li>
+<li><em>olcDatabase={1}hdb,cn=config</em>: your database instance
+(dc=examle,dc=com)</li>
+</ul>
+</li>
+<li><p class="first">This is what the dc=example,dc=com DIT looks like:</p>
+<p>Explanation of entries:</p>
+<ul class="simple">
+<li><em>dc=example,dc=com</em>: base of the DIT</li>
+<li><em>cn=admin,dc=example,dc=com</em>: administrator (rootDN) for this DIT
+(set up during package install)</li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="modifying-populating-your-database">
+<h2>Modifying/Populating your Database<a class="headerlink" href="#modifying-populating-your-database" title="Permalink to this headline">¶</a></h2>
+<p>Let&#8217;s introduce some content to our database. We will add the following:</p>
+<ul class="simple">
+<li>a node called <em>People</em> (to store users)</li>
+<li>a node called <em>Groups</em> (to store groups)</li>
+<li>a group called <em>miners</em></li>
+<li>a user called <em>john</em></li>
+</ul>
+<p>Create the following LDIF file and call it <tt class="docutils literal"><span class="pre">add_content.ldif</span></tt>:</p>
+<div class="highlight-python"><pre>dn: ou=People,dc=example,dc=com
+objectClass: organizationalUnit
+ou: People
+
+dn: ou=Groups,dc=example,dc=com
+objectClass: organizationalUnit
+ou: Groups
+
+dn: cn=miners,ou=Groups,dc=example,dc=com
+objectClass: posixGroup
+cn: miners
+gidNumber: 5000
+
+dn: uid=john,ou=People,dc=example,dc=com
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+uid: john
+sn: Doe
+givenName: John
+cn: John Doe
+displayName: John Doe
+uidNumber: 10000
+gidNumber: 5000
+userPassword: johnldap
+gecos: John Doe
+loginShell: /bin/bash
+homeDirectory: /home/john
+
+**Note**
+
+It's important that uid and gid values in your directory do not
+collide with local values. Use high number ranges, such as starting
+at 5000. By setting the uid and gid values in ldap high, you also
+allow for easier control of what can be done with a local user vs a
+ldap one. More on that later.</pre>
+</div>
+<p>Add the content:</p>
+<p>We can check that the information has been correctly added with the
+ldapsearch utility:</p>
+<p>Explanation of switches:</p>
+<ul class="simple">
+<li><em>-x:</em> &#8220;simple&#8221; binding; will not use the default SASL method</li>
+<li><em>-LLL:</em> disable printing extraneous information</li>
+<li><em>uid=john:</em> a &#8220;filter&#8221; to find the john user</li>
+<li><em>cn gidNumber:</em> requests certain attributes to be displayed (the
+default is to show all attributes)</li>
+</ul>
+</div>
+<div class="section" id="modifying-the-slapd-configuration-database">
+<h2>Modifying the slapd Configuration Database<a class="headerlink" href="#modifying-the-slapd-configuration-database" title="Permalink to this headline">¶</a></h2>
+<p>The slapd-config DIT can also be queried and modified. Here are a few
+examples.</p>
+<ul>
+<li><p class="first">Use ldapmodify to add an &#8220;Index&#8221; (DbIndex attribute) to your
+{1}hdb,cn=config database (dc=example,dc=com). Create a file, call it
+<tt class="docutils literal"><span class="pre">uid_index.ldif</span></tt>, with the following contents:</p>
+<div class="highlight-python"><pre>dn: olcDatabase={1}hdb,cn=config
+add: olcDbIndex
+olcDbIndex: uid eq,pres,sub</pre>
+</div>
+<p>Then issue the command:</p>
+<p>You can confirm the change in this way:</p>
+</li>
+<li><p class="first">Let&#8217;s add a schema. It will first need to be converted to LDIF
+format. You can find unconverted schemas in addition to converted
+ones in the <tt class="docutils literal"><span class="pre">/etc/ldap/schema</span></tt> directory.</p>
+<blockquote>
+<div><p><strong>Note</strong></p>
+<ul class="simple">
+<li>It is not trivial to remove a schema from the slapd-config
+database. Practice adding schemas on a test system.</li>
+<li>Before adding any schema, you should check which schemas are
+already installed (shown is a default, out-of-the-box output):</li>
+</ul>
+</div></blockquote>
+<p>In the following example we&#8217;ll add the CORBA schema.</p>
+<p>Create the conversion configuration file <tt class="docutils literal"><span class="pre">schema_convert.conf</span></tt>
+containing the following lines:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">include</span> <span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">ldap</span><span class="o">/</span><span class="n">schema</span><span class="o">/</span><span class="n">core</span><span class="o">.</span><span class="n">schema</span>
+<span class="n">include</span> <span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">ldap</span><span class="o">/</span><span class="n">schema</span><span class="o">/</span><span class="n">collective</span><span class="o">.</span><span class="n">schema</span>
+<span class="n">include</span> <span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">ldap</span><span class="o">/</span><span class="n">schema</span><span class="o">/</span><span class="n">corba</span><span class="o">.</span><span class="n">schema</span>
+<span class="n">include</span> <span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">ldap</span><span class="o">/</span><span class="n">schema</span><span class="o">/</span><span class="n">cosine</span><span class="o">.</span><span class="n">schema</span>
+<span class="n">include</span> <span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">ldap</span><span class="o">/</span><span class="n">schema</span><span class="o">/</span><span class="n">duaconf</span><span class="o">.</span><span class="n">schema</span>
+<span class="n">include</span> <span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">ldap</span><span class="o">/</span><span class="n">schema</span><span class="o">/</span><span class="n">dyngroup</span><span class="o">.</span><span class="n">schema</span>
+<span class="n">include</span> <span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">ldap</span><span class="o">/</span><span class="n">schema</span><span class="o">/</span><span class="n">inetorgperson</span><span class="o">.</span><span class="n">schema</span>
+<span class="n">include</span> <span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">ldap</span><span class="o">/</span><span class="n">schema</span><span class="o">/</span><span class="n">java</span><span class="o">.</span><span class="n">schema</span>
+<span class="n">include</span> <span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">ldap</span><span class="o">/</span><span class="n">schema</span><span class="o">/</span><span class="n">misc</span><span class="o">.</span><span class="n">schema</span>
+<span class="n">include</span> <span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">ldap</span><span class="o">/</span><span class="n">schema</span><span class="o">/</span><span class="n">nis</span><span class="o">.</span><span class="n">schema</span>
+<span class="n">include</span> <span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">ldap</span><span class="o">/</span><span class="n">schema</span><span class="o">/</span><span class="n">openldap</span><span class="o">.</span><span class="n">schema</span>
+<span class="n">include</span> <span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">ldap</span><span class="o">/</span><span class="n">schema</span><span class="o">/</span><span class="n">ppolicy</span><span class="o">.</span><span class="n">schema</span>
+<span class="n">include</span> <span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">ldap</span><span class="o">/</span><span class="n">schema</span><span class="o">/</span><span class="n">ldapns</span><span class="o">.</span><span class="n">schema</span>
+<span class="n">include</span> <span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">ldap</span><span class="o">/</span><span class="n">schema</span><span class="o">/</span><span class="n">pmi</span><span class="o">.</span><span class="n">schema</span>
+</pre></div>
+</div>
+<p>Create the output directory <tt class="docutils literal"><span class="pre">ldif_output</span></tt>.</p>
+<p>Determine the index of the schema:</p>
+<div class="highlight-python"><pre>**Note**
+
+When slapd ingests objects with the same parent DN it will create
+an *index* for that object. An index is contained within braces:
+{X}.</pre>
+</div>
+<p>Use slapcat to perform the conversion:</p>
+<p>The converted schema is now in <tt class="docutils literal"><span class="pre">cn=corba.ldif</span></tt></p>
+<p>Edit <tt class="docutils literal"><span class="pre">cn=corba.ldif</span></tt> to arrive at the following attributes:</p>
+<div class="highlight-python"><pre>dn: cn=corba,cn=schema,cn=config
+...
+cn: corba</pre>
+</div>
+<p>Also remove the following lines from the bottom:</p>
+<div class="highlight-python"><pre>structuralObjectClass: olcSchemaConfig
+entryUUID: 52109a02-66ab-1030-8be2-bbf166230478
+creatorsName: cn=config
+createTimestamp: 20110829165435Z
+entryCSN: 20110829165435.935248Z#000000#000#000000
+modifiersName: cn=config
+modifyTimestamp: 20110829165435Z</pre>
+</div>
+<p>Your attribute values will vary.</p>
+<p>Finally, use ldapadd to add the new schema to the slapd-config DIT:</p>
+<p>Confirm currently loaded schemas:</p>
+<div class="highlight-python"><pre>**Note**
+
+For external applications and clients to authenticate using LDAP
+they will each need to be specifically configured to do so. Refer to
+the appropriate client-side documentation for details.</pre>
+</div>
+</li>
+</ul>
+</div>
+<div class="section" id="logging">
+<h2>Logging<a class="headerlink" href="#logging" title="Permalink to this headline">¶</a></h2>
+<p>Activity logging for slapd is indispensible when implementing an
+OpenLDAP-based solution yet it must be manually enabled after software
+installation. Otherwise, only rudimentary messages will appear in the
+logs. Logging, like any other slapd configuration, is enabled via the
+slapd-config database.</p>
+<p>OpenLDAP comes with multiple logging subsystems (levels) with each one
+containing the lower one (additive). A good level to try is <em>stats</em>. The
+<a class="reference external" href="http://manpages.ubuntu.com/manpages/en/man5/slapd-config.5.html">slapd-config</a>
+man page has more to say on the different subsystems.</p>
+<p>Create the file <tt class="docutils literal"><span class="pre">logging.ldif</span></tt> with the following contents:</p>
+<div class="highlight-python"><pre>dn: cn=config
+changetype: modify
+add: olcLogLevel
+olcLogLevel: stats</pre>
+</div>
+<p>Implement the change:</p>
+<p>This will produce a significant amount of logging and you will want to
+throttle back to a less verbose level once your system is in production.
+While in this verbose mode your host&#8217;s syslog engine (rsyslog) may have
+a hard time keeping up and may drop messages:</p>
+<div class="highlight-python"><pre>rsyslogd-2177: imuxsock lost 228 messages from pid 2547 due to rate-limiting</pre>
+</div>
+<p>You may consider a change to rsyslog&#8217;s configuration. In
+<tt class="docutils literal"><span class="pre">/etc/rsyslog.conf</span></tt>, put:</p>
+<div class="highlight-python"><pre># Disable rate limiting
+# (default is 200 messages in 5 seconds; below we make the 5 become 0)
+$SystemLogRateLimitInterval 0</pre>
+</div>
+<p>And then restart the rsyslog daemon:</p>
+</div>
+<div class="section" id="replication">
+<h2>Replication<a class="headerlink" href="#replication" title="Permalink to this headline">¶</a></h2>
+<p>The LDAP service becomes increasingly important as more networked
+systems begin to depend on it. In such an environment, it is standard
+practice to build redundancy (high availability) into LDAP to prevent
+havoc should the LDAP server become unresponsive. This is done through
+<em>LDAP replication</em>.</p>
+<p>Replication is achieved via the <em>Syncrepl</em> engine. This allows changes
+to be synchronized using a <em>Consumer</em> - <em>Provider</em> model. The specific
+kind of replication we will implement in this guide is a combination of
+the following modes: <em>refreshAndPersist</em> and <em>delta-syncrepl</em>. This has
+the Provider push changed entries to the Consumer as soon as they&#8217;re
+made but, in addition, only actual changes will be sent, not entire
+entries.</p>
+<div class="section" id="provider-configuration">
+<h3>Provider Configuration<a class="headerlink" href="#provider-configuration" title="Permalink to this headline">¶</a></h3>
+<p>Begin by configuring the <em>Provider</em>.</p>
+<p>Create an LDIF file with the following contents and name it
+<tt class="docutils literal"><span class="pre">provider_sync.ldif</span></tt>:</p>
+<div class="highlight-python"><pre># Add indexes to the frontend db.
+dn: olcDatabase={1}hdb,cn=config
+changetype: modify
+add: olcDbIndex
+olcDbIndex: entryCSN eq
+-
+add: olcDbIndex
+olcDbIndex: entryUUID eq
+
+#Load the syncprov and accesslog modules.
+dn: cn=module{0},cn=config
+changetype: modify
+add: olcModuleLoad
+olcModuleLoad: syncprov
+-
+add: olcModuleLoad
+olcModuleLoad: accesslog
+
+# Accesslog database definitions
+dn: olcDatabase={2}hdb,cn=config
+objectClass: olcDatabaseConfig
+objectClass: olcHdbConfig
+olcDatabase: {2}hdb
+olcDbDirectory: /var/lib/ldap/accesslog
+olcSuffix: cn=accesslog
+olcRootDN: cn=admin,dc=example,dc=com
+olcDbIndex: default eq
+olcDbIndex: entryCSN,objectClass,reqEnd,reqResult,reqStart
+
+# Accesslog db syncprov.
+dn: olcOverlay=syncprov,olcDatabase={2}hdb,cn=config
+changetype: add
+objectClass: olcOverlayConfig
+objectClass: olcSyncProvConfig
+olcOverlay: syncprov
+olcSpNoPresent: TRUE
+olcSpReloadHint: TRUE
+
+# syncrepl Provider for primary db
+dn: olcOverlay=syncprov,olcDatabase={1}hdb,cn=config
+changetype: add
+objectClass: olcOverlayConfig
+objectClass: olcSyncProvConfig
+olcOverlay: syncprov
+olcSpNoPresent: TRUE
+
+# accesslog overlay definitions for primary db
+dn: olcOverlay=accesslog,olcDatabase={1}hdb,cn=config
+objectClass: olcOverlayConfig
+objectClass: olcAccessLogConfig
+olcOverlay: accesslog
+olcAccessLogDB: cn=accesslog
+olcAccessLogOps: writes
+olcAccessLogSuccess: TRUE
+# scan the accesslog DB every day, and purge entries older than 7 days
+olcAccessLogPurge: 07+00:00 01+00:00</pre>
+</div>
+<p>Change the rootDN in the LDIF file to match the one you have for your
+directory.</p>
+<p>The apparmor profile for slapd will need to be adjusted for the
+accesslog database location. Edit
+<tt class="docutils literal"><span class="pre">/etc/apparmor.d/local/usr.sbin.slapd</span></tt> by adding the following:</p>
+<div class="highlight-python"><pre>/var/lib/ldap/accesslog/ r,
+/var/lib/ldap/accesslog/** rwk,</pre>
+</div>
+<p>Create a directory, set up a databse config file, and reload the
+apparmor profile:</p>
+<p>Add the new content and, due to the apparmor change, restart the daemon:</p>
+<p>The Provider is now configured.</p>
+</div>
+<div class="section" id="consumer-configuration">
+<h3>Consumer Configuration<a class="headerlink" href="#consumer-configuration" title="Permalink to this headline">¶</a></h3>
+<p>And now configure the <em>Consumer</em>.</p>
+<p>Install the software by going through ?. Make sure the slapd-config
+databse is identical to the Provider&#8217;s. In particular, make sure schemas
+and the databse suffix are the same.</p>
+<p>Create an LDIF file with the following contents and name it
+<tt class="docutils literal"><span class="pre">consumer_sync.ldif</span></tt>:</p>
+<div class="highlight-python"><pre>dn: cn=module{0},cn=config
+changetype: modify
+add: olcModuleLoad
+olcModuleLoad: syncprov
+
+dn: olcDatabase={1}hdb,cn=config
+changetype: modify
+add: olcDbIndex
+olcDbIndex: entryUUID eq
+-
+add: olcSyncRepl
+olcSyncRepl: rid=0 provider=ldap://ldap01.example.com bindmethod=simple binddn="cn=admin,dc=example,dc=com"
+ credentials=secret searchbase="dc=example,dc=com" logbase="cn=accesslog"
+ logfilter="(&amp;(objectClass=auditWriteObject)(reqResult=0))" schemachecking=on
+ type=refreshAndPersist retry="60 +" syncdata=accesslog
+-
+add: olcUpdateRef
+olcUpdateRef: ldap://ldap01.example.com</pre>
+</div>
+<p>Ensure the following attributes have the correct values:</p>
+<ul class="simple">
+<li><em>provider</em> (Provider server&#8217;s hostname &#8211; ldap01.example.com in this
+example &#8211; or IP address)</li>
+<li><em>binddn</em> (the admin DN you&#8217;re using)</li>
+<li><em>credentials</em> (the admin DN password you&#8217;re using)</li>
+<li><em>searchbase</em> (the database suffix you&#8217;re using)</li>
+<li><em>olcUpdateRef</em> (Provider server&#8217;s hostname or IP address)</li>
+<li><em>rid</em> (Replica ID, an unique 3-digit that identifies the replica.
+Each consumer should have at least one rid)</li>
+</ul>
+<p>Add the new content:</p>
+<p>You&#8217;re done. The two databases (suffix: dc=example,dc=com) should now be
+synchronizing.</p>
+</div>
+<div class="section" id="testing">
+<h3>Testing<a class="headerlink" href="#testing" title="Permalink to this headline">¶</a></h3>
+<p>Once replication starts, you can monitor it by running</p>
+<p>on both the provider and the consumer. Once the output
+(<tt class="docutils literal"><span class="pre">20120201193408.178454Z#000000#000#000000</span></tt> in the above example) for
+both machines match, you have replication. Every time a change is done
+in the provider, this value will change and so should the one in the
+consumer(s).</p>
+<p>If your connection is slow and/or your ldap database large, it might
+take a while for the consumer&#8217;s <em>contextCSN</em> match the provider&#8217;s. But,
+you will know it is progressing since the consumer&#8217;s <em>contextCSN</em> will
+be steadly increasing.</p>
+<p>If the consumer&#8217;s <em>contextCSN</em> is missing or does not match the
+provider, you should stop and figure out the issue before continuing.
+Try checking the slapd (syslog) and the auth log files in the provider
+to see if the consumer&#8217;s authentication requests were successful or its
+requests to retrieve data (they look like a lot of ldapsearch
+statements) return no errors.</p>
+<p>To test if it worked simply query, on the Consumer, the DNs in the
+database:</p>
+<p>You should see the user &#8216;john&#8217; and the group &#8216;miners&#8217; as well as the
+nodes &#8216;People&#8217; and &#8216;Groups&#8217;.</p>
+</div>
+</div>
+<div class="section" id="access-control">
+<h2>Access Control<a class="headerlink" href="#access-control" title="Permalink to this headline">¶</a></h2>
+<p>The management of what type of access (read, write, etc) users should be
+granted to resources is known as <em>access control</em>. The configuration
+directives involved are called <em>access control lists</em> or ACL.</p>
+<p>When we installed the slapd package various ACL were set up
+automatically. We will look at a few important consequences of those
+defaults and, in so doing, we&#8217;ll get an idea of how ACLs work and how
+they&#8217;re configured.</p>
+<p>To get the effective ACL for an LDAP query we need to look at the ACL
+entries of the database being queried as well as those of the special
+frontend database instance. The ACLs belonging to the latter act as
+defaults in case those of the former do not match. The frontend database
+is the second to be consulted and the ACL to be applied is the first to
+match (&#8220;first match wins&#8221;) among these 2 ACL sources. The following
+commands will give, respectively, the ACLs of the hdb database
+(&#8220;dc=example,dc=com&#8221;) and those of the frontend database:</p>
+<div class="highlight-python"><pre>**Note**
+
+The rootDN always has full rights to it's database. Including it in
+an ACL does provide an explicit configuration but it also causes
+slapd to incur a performance penalty.</pre>
+</div>
+<p>The very first ACL is crucial:</p>
+<div class="highlight-python"><pre>olcAccess: {0}to attrs=userPassword,shadowLastChange by self write by anonymous
+              auth by dn="cn=admin,dc=example,dc=com" write by * none</pre>
+</div>
+<p>This can be represented differently for easier digestion:</p>
+<div class="highlight-python"><pre>to attrs=userPassword
+    by self write
+    by anonymous auth
+    by dn="cn=admin,dc=example,dc=com" write
+    by * none
+
+to attrs=shadowLastChange
+    by self write
+    by anonymous auth
+    by dn="cn=admin,dc=example,dc=com" write
+    by * none</pre>
+</div>
+<p>This compound ACL (there are 2) enforces the following:</p>
+<ul class="simple">
+<li>Anonymous &#8216;auth&#8217; access is provided to the <em>userPassword</em> attribute
+for the initial connection to occur. Perhaps counter-intuitively, &#8216;by
+anonymous auth&#8217; is needed even when anonymous access to the DIT is
+unwanted. Once the remote end is connected, howerver, authentication
+can occur (see next point).</li>
+<li>Authentication can happen because all users have &#8216;read&#8217; (due to &#8216;by
+self write&#8217;) access to the <em>userPassword</em> attribute.</li>
+<li>The <em>userPassword</em> attribute is otherwise unaccessible by all other
+users, with the exception of the rootDN, who has complete access to
+it.</li>
+<li>In order for users to change their own password, using <tt class="docutils literal"><span class="pre">passwd</span></tt> or
+other utilities, the <em>shadowLastChange</em> attribute needs to be
+accessible once a user has authenticated.</li>
+</ul>
+<p>This DIT can be searched anonymously because of &#8216;by * read&#8217; in this
+ACL:</p>
+<div class="highlight-python"><pre>to *
+    by self write
+    by dn="cn=admin,dc=example,dc=com" write
+    by * read</pre>
+</div>
+<p>If this is unwanted then you need to change the ACLs. To force
+authentication during a bind request you can alternatively (or in
+combination with the modified ACL) use the &#8216;olcRequire: authc&#8217;
+directive.</p>
+<p>As previously mentioned, there is no administrative account created for
+the slapd-config database. There is, however, a SASL identity that is
+granted full access to it. It represents the localhost&#8217;s superuser
+(root/sudo). Here it is:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">dn</span><span class="o">.</span><span class="n">exact</span><span class="o">=</span><span class="n">gidNumber</span><span class="o">=</span><span class="mi">0</span><span class="o">+</span><span class="n">uidNumber</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">cn</span><span class="o">=</span><span class="n">peercred</span><span class="p">,</span><span class="n">cn</span><span class="o">=</span><span class="n">external</span><span class="p">,</span><span class="n">cn</span><span class="o">=</span><span class="n">auth</span>
+</pre></div>
+</div>
+<p>The following command will display the ACLs of the slapd-config
+database:</p>
+<p>Since this is a SASL identity we need to use a SASL <em>mechanism</em> when
+invoking the LDAP utility in question and we have seen it plenty of
+times in this guide. It is the EXTERNAL mechanism. See the previous
+command for an example. Note that:</p>
+<p>You must use <em>sudo</em> to become the root identity in order for the ACL to
+match.</p>
+<p>The EXTERNAL mechanism works via <em>IPC</em> (UNIX domain sockets). This means
+you must use the <em>ldapi</em> URI format.</p>
+<p>A succinct way to get all the ACLs is like this:</p>
+<p>There is much to say on the topic of access control. See the man page
+for
+<a class="reference external" href="http://manpages.ubuntu.com/manpages/en/man5/slapd.access.5.html">slapd.access</a>.</p>
+</div>
+<div class="section" id="tls">
+<h2>TLS<a class="headerlink" href="#tls" title="Permalink to this headline">¶</a></h2>
+<p>When authenticating to an OpenLDAP server it is best to do so using an
+encrypted session. This can be accomplished using Transport Layer
+Security (TLS).</p>
+<p>Here, we will be our own <em>Certificate Authority</em> and then create and
+sign our LDAP server certificate as that CA. Since slapd is compiled
+using the gnutls library, we will use the certtool utility to complete
+these tasks.</p>
+<p>Install the gnutls-bin and ssl-cert packages:</p>
+<p>Create a private key for the Certificate Authority:</p>
+<p>Create the template/file <tt class="docutils literal"><span class="pre">/etc/ssl/ca.info</span></tt> to define the CA:</p>
+<div class="highlight-python"><pre>cn = Example Company
+ca
+cert_signing_key</pre>
+</div>
+<p>Create the self-signed CA certificate:</p>
+<p>Make a private key for the server:</p>
+<div class="highlight-python"><pre>**Note**
+
+Replace *ldap01* in the filename with your server's hostname. Naming
+the certificate and key for the host and service that will be using
+them will help keep things clear.</pre>
+</div>
+<p>Create the <tt class="docutils literal"><span class="pre">/etc/ssl/ldap01.info</span></tt> info file containing:</p>
+<div class="highlight-python"><pre>organization = Example Company
+cn = ldap01.example.com
+tls_www_server
+encryption_key
+signing_key
+expiration_days = 3650</pre>
+</div>
+<p>The above certificate is good for 10 years. Adjust accordingly.</p>
+<p>Create the server&#8217;s certificate:</p>
+<p>Create the file <tt class="docutils literal"><span class="pre">certinfo.ldif</span></tt> with the following contents (adjust
+accordingly, our example assumes we created certs using
+<a class="reference external" href="https://www.cacert.org">https://www.cacert.org</a>):</p>
+<div class="highlight-python"><pre>dn: cn=config
+add: olcTLSCACertificateFile
+olcTLSCACertificateFile: /etc/ssl/certs/cacert.pem
+-
+add: olcTLSCertificateFile
+olcTLSCertificateFile: /etc/ssl/certs/ldap01_slapd_cert.pem
+-
+add: olcTLSCertificateKeyFile
+olcTLSCertificateKeyFile: /etc/ssl/private/ldap01_slapd_key.pem</pre>
+</div>
+<p>Use the ldapmodify command to tell slapd about our TLS work via the
+slapd-config database:</p>
+<p>Contratry to popular belief, you do not need <em>ldaps://</em> in
+<tt class="docutils literal"><span class="pre">/etc/default/slapd</span></tt> in order to use encryption. You should have just:</p>
+<div class="highlight-python"><pre>SLAPD_SERVICES="ldap:/// ldapi:///"
+
+**Note**
+
+LDAP over TLS/SSL (ldaps://) is deprecated in favour of *StartTLS*.
+The latter refers to an existing LDAP session (listening on TCP port
+389) becoming protected by TLS/SSL whereas LDAPS, like HTTPS, is a
+distinct encrypted-from-the-start protocol that operates over TCP
+port 636.</pre>
+</div>
+<p>Tighten up ownership and permissions:</p>
+<p>Restart OpenLDAP:</p>
+<p>Check your host&#8217;s logs (/var/log/syslog) to see if the server has
+started properly.</p>
+</div>
+<div class="section" id="replication-and-tls">
+<h2>Replication and TLS<a class="headerlink" href="#replication-and-tls" title="Permalink to this headline">¶</a></h2>
+<p>If you have set up replication between servers, it is common practice to
+encrypt (StartTLS) the replication traffic to prevent evesdropping. This
+is distinct from using encryption with authentication as we did above.
+In this section we will build on that TLS-authentication work.</p>
+<p>The assumption here is that you have set up replication between Provider
+and Consumer according to ? and have configured TLS for authentication
+on the Provider by following ?.</p>
+<p>As previously stated, the objective (for us) with replication is high
+availablity for the LDAP service. Since we have TLS for authentication
+on the Provider we will require the same on the Consumer. In addition to
+this, however, we want to encrypt replication traffic. What remains to
+be done is to create a key and certificate for the Consumer and then
+configure accordingly. We will generate the key/certificate on the
+Provider, to avoid having to create another CA certificate, and then
+transfer the necessary material over to the Consumer.</p>
+<p>On the Provider,</p>
+<p>Create a holding directory (which will be used for the eventual
+transfer) and then the Consumer&#8217;s private key:</p>
+<p>Create an info file, <tt class="docutils literal"><span class="pre">ldap02.info</span></tt>, for the Consumer server, adjusting
+it&#8217;s values accordingly:</p>
+<div class="highlight-python"><pre>organization = Example Company
+cn = ldap02.example.com
+tls_www_server
+encryption_key
+signing_key
+expiration_days = 3650</pre>
+</div>
+<p>Create the Consumer&#8217;s certificate:</p>
+<p>Get a copy of the CA certificate:</p>
+<p>We&#8217;re done. Now transfer the <tt class="docutils literal"><span class="pre">ldap02-ssl</span></tt> directory to the Consumer.
+Here we use scp (adjust accordingly):</p>
+<p>On the Consumer,</p>
+<p>Configure TLS authentication:</p>
+<p>Create the file <tt class="docutils literal"><span class="pre">/etc/ssl/certinfo.ldif</span></tt> with the following contents
+(adjust accordingly):</p>
+<div class="highlight-python"><pre>dn: cn=config
+add: olcTLSCACertificateFile
+olcTLSCACertificateFile: /etc/ssl/certs/cacert.pem
+-
+add: olcTLSCertificateFile
+olcTLSCertificateFile: /etc/ssl/certs/ldap02_slapd_cert.pem
+-
+add: olcTLSCertificateKeyFile
+olcTLSCertificateKeyFile: /etc/ssl/private/ldap02_slapd_key.pem</pre>
+</div>
+<p>Configure the slapd-config database:</p>
+<p>Configure <tt class="docutils literal"><span class="pre">/etc/default/slapd</span></tt> as on the Provider (SLAPD_SERVICES).</p>
+<p>On the Consumer,</p>
+<p>Configure TLS for Consumer-side replication. Modify the existing
+<em>olcSyncrepl</em> attribute by tacking on some TLS options. In so doing, we
+will see, for the first time, how to change an attribute&#8217;s value(s).</p>
+<p>Create the file <tt class="docutils literal"><span class="pre">consumer_sync_tls.ldif</span></tt> with the following contents:</p>
+<div class="highlight-python"><pre>dn: olcDatabase={1}hdb,cn=config
+replace: olcSyncRepl
+olcSyncRepl: rid=0 provider=ldap://ldap01.example.com bindmethod=simple
+ binddn="cn=admin,dc=example,dc=com" credentials=secret searchbase="dc=example,dc=com"
+ logbase="cn=accesslog" logfilter="(&amp;(objectClass=auditWriteObject)(reqResult=0))"
+ schemachecking=on type=refreshAndPersist retry="60 +" syncdata=accesslog
+ starttls=critical tls_reqcert=demand</pre>
+</div>
+<p>The extra options specify, respectively, that the consumer must use
+StartTLS and that the CA certificate is required to verify the
+Provider&#8217;s identity. Also note the LDIF syntax for changing the values
+of an attribute (&#8216;replace&#8217;).</p>
+<p>Implement these changes:</p>
+<p>And restart slapd:</p>
+<p>On the Provider,</p>
+<p>Check to see that a TLS session has been established. In
+<tt class="docutils literal"><span class="pre">/var/log/syslog</span></tt>, providing you have &#8216;conns&#8217;-level logging set up,
+you should see messages similar to:</p>
+<div class="highlight-python"><pre>slapd[3620]: conn=1047 fd=20 ACCEPT from IP=10.153.107.229:57922 (IP=0.0.0.0:389)
+slapd[3620]: conn=1047 op=0 EXT oid=1.3.6.1.4.1.1466.20037
+slapd[3620]: conn=1047 op=0 STARTTLS
+slapd[3620]: conn=1047 op=0 RESULT oid= err=0 text=
+slapd[3620]: conn=1047 fd=20 TLS established tls_ssf=128 ssf=128
+slapd[3620]: conn=1047 op=1 BIND dn="cn=admin,dc=example,dc=com" method=128
+slapd[3620]: conn=1047 op=1 BIND dn="cn=admin,dc=example,dc=com" mech=SIMPLE ssf=0
+slapd[3620]: conn=1047 op=1 RESULT tag=97 err=0 text</pre>
+</div>
+</div>
+<div class="section" id="ldap-authentication">
+<h2>LDAP Authentication<a class="headerlink" href="#ldap-authentication" title="Permalink to this headline">¶</a></h2>
+<p>Once you have a working LDAP server, you will need to install libraries
+on the client that will know how and when to contact it. On Ubuntu, this
+has been traditionally accomplished by installing the libnss-ldap
+package. This package will bring in other tools that will assist you in
+the configuration step. Install this package now:</p>
+<p>You will be prompted for details of your LDAP server. If you make a
+mistake you can try again using:</p>
+<p>The results of the dialog can be seen in <tt class="docutils literal"><span class="pre">/etc/ldap.conf</span></tt>. If your
+server requires options not covered in the menu edit this file
+accordingly.</p>
+<p>Now configure the LDAP profile for NSS:</p>
+<p>Configure the system to use LDAP for authentication:</p>
+<p>From the menu, choose LDAP and any other authentication mechanisms you
+need.</p>
+<p>You should now be able to log in using LDAP-based credentials.</p>
+<p>LDAP clients will need to refer to multiple servers if replication is in
+use. In <tt class="docutils literal"><span class="pre">/etc/ldap.conf</span></tt> you would have something like:</p>
+<div class="highlight-python"><pre>uri ldap://ldap01.example.com ldap://ldap02.example.com</pre>
+</div>
+<p>The request will time out and the Consumer (ldap02) will attempt to be
+reached if the Provider (ldap01) becomes unresponsive.</p>
+<p>If you are going to use LDAP to store Samba users you will need to
+configure the Samba server to authenticate using LDAP. See ? for
+details.</p>
+<blockquote>
+<div><p><strong>Note</strong></p>
+<p>An alternative to the libnss-ldap package is the libnss-ldapd
+package. This, however, will bring in the nscd package which is
+problably not wanted. Simply remove it afterwards.</p>
+</div></blockquote>
+</div>
+<div class="section" id="user-and-group-management">
+<h2>User and Group Management<a class="headerlink" href="#user-and-group-management" title="Permalink to this headline">¶</a></h2>
+<p>The ldap-utils package comes with enough utilities to manage the
+directory but the long string of options needed can make them a burden
+to use. The ldapscripts package contains wrapper scripts to these
+utilities that some people find easier to use.</p>
+<p>Install the package:</p>
+<p>Then edit the file <tt class="docutils literal"><span class="pre">/etc/ldapscripts/ldapscripts.conf</span></tt> to arrive at
+something similar to the following:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">SERVER</span><span class="o">=</span><span class="n">localhost</span>
+<span class="n">BINDDN</span><span class="o">=</span><span class="s">&#39;cn=admin,dc=example,dc=com&#39;</span>
+<span class="n">BINDPWDFILE</span><span class="o">=</span><span class="s">&quot;/etc/ldapscripts/ldapscripts.passwd&quot;</span>
+<span class="n">SUFFIX</span><span class="o">=</span><span class="s">&#39;dc=example,dc=com&#39;</span>
+<span class="n">GSUFFIX</span><span class="o">=</span><span class="s">&#39;ou=Groups&#39;</span>
+<span class="n">USUFFIX</span><span class="o">=</span><span class="s">&#39;ou=People&#39;</span>
+<span class="n">MSUFFIX</span><span class="o">=</span><span class="s">&#39;ou=Computers&#39;</span>
+<span class="n">GIDSTART</span><span class="o">=</span><span class="mi">10000</span>
+<span class="n">UIDSTART</span><span class="o">=</span><span class="mi">10000</span>
+<span class="n">MIDSTART</span><span class="o">=</span><span class="mi">10000</span>
+</pre></div>
+</div>
+<p>Now, create the <tt class="docutils literal"><span class="pre">ldapscripts.passwd</span></tt> file to allow rootDN access to
+the directory:</p>
+<div class="highlight-python"><pre>**Note**
+
+Replace “secret” with the actual password for your database's rootDN
+user.</pre>
+</div>
+<p>The scripts are now ready to help manage your directory. Here are some
+examples of how to use them:</p>
+<ul>
+<li><p class="first">Create a new user:</p>
+<p>This will create a user with uid <em>george</em> and set the user&#8217;s primary
+group (gid) to <em>example</em></p>
+</li>
+<li><p class="first">Change a user&#8217;s password:</p>
+</li>
+<li><p class="first">Delete a user:</p>
+</li>
+<li><p class="first">Add a group:</p>
+</li>
+<li><p class="first">Delete a group:</p>
+</li>
+<li><p class="first">Add a user to a group:</p>
+<p>You should now see a <em>memberUid</em> attribute for the <em>qa</em> group with a
+value of <em>george</em>.</p>
+</li>
+<li><p class="first">Remove a user from a group:</p>
+<p>The <em>memberUid</em> attribute should now be removed from the <em>qa</em> group.</p>
+</li>
+<li><p class="first">The ldapmodifyuser script allows you to add, remove, or replace a
+user&#8217;s attributes. The script uses the same syntax as the ldapmodify
+utility. For example:</p>
+<p>The user&#8217;s <em>gecos</em> should now be “George Carlin”.</p>
+</li>
+<li><p class="first">A nice feature of ldapscripts is the template system. Templates allow
+you to customize the attributes of user, group, and machine objects.
+For example, to enable the <em>user</em> template edit
+<tt class="docutils literal"><span class="pre">/etc/ldapscripts/ldapscripts.conf</span></tt> changing:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">UTEMPLATE</span><span class="o">=</span><span class="s">&quot;/etc/ldapscripts/ldapadduser.template&quot;</span>
+</pre></div>
+</div>
+<p>There are <em>sample</em> templates in the <tt class="docutils literal"><span class="pre">/etc/ldapscripts</span></tt> directory.
+Copy or rename the <tt class="docutils literal"><span class="pre">ldapadduser.template.sample</span></tt> file to
+<tt class="docutils literal"><span class="pre">/etc/ldapscripts/ldapadduser.template</span></tt>:</p>
+<p>Edit the new template to add the desired attributes. The following
+will create new users with an objectClass of inetOrgPerson:</p>
+<div class="highlight-python"><pre>dn: uid=&lt;user&gt;,&lt;usuffix&gt;,&lt;suffix&gt;
+objectClass: inetOrgPerson
+objectClass: posixAccount
+cn: &lt;user&gt;
+sn: &lt;ask&gt;
+uid: &lt;user&gt;
+uidNumber: &lt;uid&gt;
+gidNumber: &lt;gid&gt;
+homeDirectory: &lt;home&gt;
+loginShell: &lt;shell&gt;
+gecos: &lt;user&gt;
+description: User account
+title: Employee</pre>
+</div>
+<p>Notice the <em>&lt;ask&gt;</em> option used for the <em>sn</em> attribute. This will make
+ldapadduser prompt you for it&#8217;s value.</p>
+</li>
+</ul>
+<p>There are utilities in the package that were not covered here. Here is a
+complete list:</p>
+</div>
+<div class="section" id="backup-and-restore">
+<h2>Backup and Restore<a class="headerlink" href="#backup-and-restore" title="Permalink to this headline">¶</a></h2>
+<p>Now we have ldap running just the way we want, it is time to ensure we
+can save all of our work and restore it as needed.</p>
+<p>What we need is a way to backup the ldap database(s), specifically the
+backend (cn=config) and frontend (dc=example,dc=com). If we are going to
+backup those databases into, say, <tt class="docutils literal"><span class="pre">/export/backup</span></tt>, we could use
+slapcat as shown in the following script, called
+<tt class="docutils literal"><span class="pre">/usr/local/bin/ldapbackup</span></tt>:</p>
+<div class="highlight-python"><pre>#!/bin/bash
+
+BACKUP_PATH=/export/backup
+SLAPCAT=/usr/sbin/slapcat
+
+nice ${SLAPCAT} -n 0 &gt; ${BACKUP_PATH}/config.ldif
+nice ${SLAPCAT} -n 1 &gt; ${BACKUP_PATH}/example.com.ldif
+nice ${SLAPCAT} -n 2 &gt; ${BACKUP_PATH}/access.ldif
+chmod 640 ${BACKUP_PATH}/*.ldif
+
+**Note**
+
+These files are uncompressed text files containing everything in
+your ldap databases including the tree layout, usernames, and every
+password. So, you might want to consider making ``/export/backup``
+an encrypted partition and even having the script encrypt those
+files as it creates them. Ideally you should do both, but that
+depends on your security requirements.</pre>
+</div>
+<p>Then, it is just a matter of having a cron script to run this program as
+often as we feel comfortable with. For many, once a day suffices. For
+others, more often is required. Here is an example of a cron script
+called <tt class="docutils literal"><span class="pre">/etc/cron.d/ldapbackup</span></tt> that is run every night at 22:45h:</p>
+<div class="highlight-python"><pre>MAILTO=backup-emails@domain.com
+45 22 * * *  root    /usr/local/bin/ldapbackup</pre>
+</div>
+<p>Now the files are created, they should be copied to a backup server.</p>
+<p>Assuming we did a fresh reinstall of ldap, the restore process could be
+something like this:</p>
+</div>
+<div class="section" id="resources">
+<h2>Resources<a class="headerlink" href="#resources" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>The primary resource is the upstream documentation:
+<a class="reference external" href="http://www.openldap.org/">www.openldap.org</a></li>
+<li>There are many man pages that come with the slapd package. Here are
+some important ones, especially considering the material presented in
+this guide:</li>
+<li>Other man pages:</li>
+<li>Zytrax&#8217;s <a class="reference external" href="http://www.zytrax.com/books/ldap/">LDAP for Rocket
+Scientists</a>; a less pedantic
+but comprehensive treatment of LDAP</li>
+<li>A Ubuntu community <a class="reference external" href="https://help.ubuntu.com/community/OpenLDAPServer">OpenLDAP
+wiki</a> page has a
+collection of notes</li>
+<li>O&#8217;Reilly&#8217;s <a class="reference external" href="http://www.oreilly.com/catalog/ldapsa/">LDAP System
+Administration</a> (textbook;
+2003)</li>
+<li>Packt&#8217;s <a class="reference external" href="http://www.packtpub.com/OpenLDAP-Developers-Server-Open-Source-Linux/book">Mastering
+OpenLDAP</a>
+(textbook; 2007)</li>
+</ul>
+</div>
+</div>
+<div class="section" id="samba-and-ldap">
+<h1>Samba and LDAP<a class="headerlink" href="#samba-and-ldap" title="Permalink to this headline">¶</a></h1>
+<p>This section covers the integration of Samba with LDAP. The Samba
+server&#8217;s role will be that of a &#8220;standalone&#8221; server and the LDAP
+directory will provide the authentication layer in addition to
+containing the user, group, and machine account information that Samba
+requires in order to function (in any of it&#8217;s 3 possible roles). The
+pre-requisite is an OpenLDAP server configured with a directory that can
+accept authentication requests. See ? for details on fulfilling this
+requirement. Once this section is completed, you will need to decide
+what specifically you want Samba to do for you and then configure it
+accordingly.</p>
+<div class="section" id="software-installation">
+<h2>Software Installation<a class="headerlink" href="#software-installation" title="Permalink to this headline">¶</a></h2>
+<p>There are three packages needed when integrating Samba with LDAP: samba,
+samba-doc, and smbldap-tools packages.</p>
+<p>Strictly speaking, the smbldap-tools package isn&#8217;t needed, but unless
+you have some other way to manage the various Samba entities (users,
+groups, computers) in an LDAP context then you should install it.</p>
+<p>Install these packages now:</p>
+</div>
+<div class="section" id="ldap-configuration">
+<h2>LDAP Configuration<a class="headerlink" href="#ldap-configuration" title="Permalink to this headline">¶</a></h2>
+<p>We will now configure the LDAP server so that it can accomodate Samba
+data. We will perform three tasks in this section:</p>
+<p>Import a schema</p>
+<p>Index some entries</p>
+<p>Add objects</p>
+<div class="section" id="samba-schema">
+<h3>Samba schema<a class="headerlink" href="#samba-schema" title="Permalink to this headline">¶</a></h3>
+<p>In order for OpenLDAP to be used as a backend for Samba, logically, the
+DIT will need to use attributes that can properly describe Samba data.
+Such attributes can be obtained by introducing a Samba LDAP schema.
+Let&#8217;s do this now.</p>
+<blockquote>
+<div><p><strong>Note</strong></p>
+<p>For more information on schemas and their installation see ?.</p>
+</div></blockquote>
+<p>The schema is found in the now-installed samba-doc package. It needs to
+be unzipped and copied to the <tt class="docutils literal"><span class="pre">/etc/ldap/schema</span></tt> directory:</p>
+<p>Have the configuration file <tt class="docutils literal"><span class="pre">schema_convert.conf</span></tt> that contains the
+following lines:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">include</span> <span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">ldap</span><span class="o">/</span><span class="n">schema</span><span class="o">/</span><span class="n">core</span><span class="o">.</span><span class="n">schema</span>
+<span class="n">include</span> <span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">ldap</span><span class="o">/</span><span class="n">schema</span><span class="o">/</span><span class="n">collective</span><span class="o">.</span><span class="n">schema</span>
+<span class="n">include</span> <span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">ldap</span><span class="o">/</span><span class="n">schema</span><span class="o">/</span><span class="n">corba</span><span class="o">.</span><span class="n">schema</span>
+<span class="n">include</span> <span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">ldap</span><span class="o">/</span><span class="n">schema</span><span class="o">/</span><span class="n">cosine</span><span class="o">.</span><span class="n">schema</span>
+<span class="n">include</span> <span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">ldap</span><span class="o">/</span><span class="n">schema</span><span class="o">/</span><span class="n">duaconf</span><span class="o">.</span><span class="n">schema</span>
+<span class="n">include</span> <span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">ldap</span><span class="o">/</span><span class="n">schema</span><span class="o">/</span><span class="n">dyngroup</span><span class="o">.</span><span class="n">schema</span>
+<span class="n">include</span> <span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">ldap</span><span class="o">/</span><span class="n">schema</span><span class="o">/</span><span class="n">inetorgperson</span><span class="o">.</span><span class="n">schema</span>
+<span class="n">include</span> <span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">ldap</span><span class="o">/</span><span class="n">schema</span><span class="o">/</span><span class="n">java</span><span class="o">.</span><span class="n">schema</span>
+<span class="n">include</span> <span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">ldap</span><span class="o">/</span><span class="n">schema</span><span class="o">/</span><span class="n">misc</span><span class="o">.</span><span class="n">schema</span>
+<span class="n">include</span> <span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">ldap</span><span class="o">/</span><span class="n">schema</span><span class="o">/</span><span class="n">nis</span><span class="o">.</span><span class="n">schema</span>
+<span class="n">include</span> <span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">ldap</span><span class="o">/</span><span class="n">schema</span><span class="o">/</span><span class="n">openldap</span><span class="o">.</span><span class="n">schema</span>
+<span class="n">include</span> <span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">ldap</span><span class="o">/</span><span class="n">schema</span><span class="o">/</span><span class="n">ppolicy</span><span class="o">.</span><span class="n">schema</span>
+<span class="n">include</span> <span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">ldap</span><span class="o">/</span><span class="n">schema</span><span class="o">/</span><span class="n">ldapns</span><span class="o">.</span><span class="n">schema</span>
+<span class="n">include</span> <span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">ldap</span><span class="o">/</span><span class="n">schema</span><span class="o">/</span><span class="n">pmi</span><span class="o">.</span><span class="n">schema</span>
+<span class="n">include</span> <span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">ldap</span><span class="o">/</span><span class="n">schema</span><span class="o">/</span><span class="n">samba</span><span class="o">.</span><span class="n">schema</span>
+</pre></div>
+</div>
+<p>Have the directory <tt class="docutils literal"><span class="pre">ldif_output</span></tt> hold output.</p>
+<p>Determine the index of the schema:</p>
+<p>Convert the schema to LDIF format:</p>
+<p>Edit the generated <tt class="docutils literal"><span class="pre">cn=samba.ldif</span></tt> file by removing index information
+to arrive at:</p>
+<div class="highlight-python"><pre>dn: cn=samba,cn=schema,cn=config
+...
+cn: samba</pre>
+</div>
+<p>Remove the bottom lines:</p>
+<div class="highlight-python"><pre>structuralObjectClass: olcSchemaConfig
+entryUUID: b53b75ca-083f-102d-9fff-2f64fd123c95
+creatorsName: cn=config
+createTimestamp: 20080827045234Z
+entryCSN: 20080827045234.341425Z#000000#000#000000
+modifiersName: cn=config
+modifyTimestamp: 20080827045234Z</pre>
+</div>
+<p>Your attribute values will vary.</p>
+<p>Add the new schema:</p>
+<p>To query and view this new schema:</p>
+</div>
+<div class="section" id="samba-indices">
+<h3>Samba indices<a class="headerlink" href="#samba-indices" title="Permalink to this headline">¶</a></h3>
+<p>Now that slapd knows about the Samba attributes, we can set up some
+indices based on them. Indexing entries is a way to improve performance
+when a client performs a filtered search on the DIT.</p>
+<p>Create the file <tt class="docutils literal"><span class="pre">samba_indices.ldif</span></tt> with the following contents:</p>
+<div class="highlight-python"><pre>dn: olcDatabase={1}hdb,cn=config
+changetype: modify
+add: olcDbIndex
+olcDbIndex: uidNumber eq
+olcDbIndex: gidNumber eq
+olcDbIndex: loginShell eq
+olcDbIndex: uid eq,pres,sub
+olcDbIndex: memberUid eq,pres,sub
+olcDbIndex: uniqueMember eq,pres
+olcDbIndex: sambaSID eq
+olcDbIndex: sambaPrimaryGroupSID eq
+olcDbIndex: sambaGroupType eq
+olcDbIndex: sambaSIDList eq
+olcDbIndex: sambaDomainName eq
+olcDbIndex: default sub</pre>
+</div>
+<p>Using the ldapmodify utility load the new indices:</p>
+<p>If all went well you should see the new indices using ldapsearch:</p>
+</div>
+<div class="section" id="adding-samba-ldap-objects">
+<h3>Adding Samba LDAP objects<a class="headerlink" href="#adding-samba-ldap-objects" title="Permalink to this headline">¶</a></h3>
+<p>Next, configure the smbldap-tools package to match your environment. The
+package is supposed to come with a configuration helper script
+(smbldap-config.pl, formerly configure.pl) that will ask questions about
+the needed options but there is a
+<a class="reference external" href="https://bugs.launchpad.net/serverguide/+bug/997172">bug</a> whereby it
+is not installed (but found in the source code; &#8216;apt-get source
+smbldap-tools&#8217;).</p>
+<p>To manually configure the package, you need to create and edit the files
+<tt class="docutils literal"><span class="pre">/etc/smbldap-tools/smbldap.conf</span></tt> and
+<tt class="docutils literal"><span class="pre">/etc/smbldap-tools/smbldap_bind.conf</span></tt>.</p>
+<p>The smbldap-populate script will then add the LDAP objects required for
+Samba. It is a good idea to first make a backup of your DIT using
+slapcat:</p>
+<p>Once you have a backup proceed to populate your directory:</p>
+<p>You can create a LDIF file containing the new Samba objects by executing
+<tt class="docutils literal"><span class="pre">sudo</span> <span class="pre">smbldap-populate</span> <span class="pre">-e</span> <span class="pre">samba.ldif</span></tt>. This allows you to look over
+the changes making sure everything is correct. If it is, rerun the
+script without the &#8216;-e&#8217; switch. Alternatively, you can take the LDIF
+file and import it&#8217;s data per usual.</p>
+<p>Your LDAP directory now has the necessary information to authenticate
+Samba users.</p>
+</div>
+</div>
+<div class="section" id="samba-configuration">
+<h2>Samba Configuration<a class="headerlink" href="#samba-configuration" title="Permalink to this headline">¶</a></h2>
+<p>There are multiple ways to configure Samba. For details on some common
+configurations see ?. To configure Samba to use LDAP, edit it&#8217;s
+configuration file <tt class="docutils literal"><span class="pre">/etc/samba/smb.conf</span></tt> commenting out the default
+<em>passdb backend</em> parameter and adding some ldap-related ones:</p>
+<div class="highlight-python"><pre>#   passdb backend = tdbsam
+
+# LDAP Settings
+   passdb backend = ldapsam:ldap://hostname
+   ldap suffix = dc=example,dc=com
+   ldap user suffix = ou=People
+   ldap group suffix = ou=Groups
+   ldap machine suffix = ou=Computers
+   ldap idmap suffix = ou=Idmap
+   ldap admin dn = cn=admin,dc=example,dc=com
+   ldap ssl = start tls
+   ldap passwd sync = yes
+...
+   add machine script = sudo /usr/sbin/smbldap-useradd -t 0 -w "%u"</pre>
+</div>
+<p>Change the values to match your environment.</p>
+<p>Restart samba to enable the new settings:</p>
+<p>Now inform Samba about the rootDN user&#8217;s password (the one set during
+the installation of the slapd package):</p>
+<p>If you have existing LDAP users that you want to include in your new
+LDAP-backed Samba they will, of course, also need to be given some of
+the extra attributes. The smbpasswd utility can do this as well (your
+host will need to be able to see (enumerate) those users via NSS;
+install and configure either libnss-ldapd or libnss-ldap):</p>
+<p>You will prompted to enter a password. It will be considered as the new
+password for that user. Making it the same as before is reasonable.</p>
+<p>To manage user, group, and machine accounts use the utilities provided
+by the smbldap-tools package. Here are some examples:</p>
+<ul>
+<li><p class="first">To add a new user:</p>
+<p>The <em>-a</em> option adds the Samba attributes, and the <em>-P</em> option calls
+the smbldap-passwd utility after the user is created allowing you to
+enter a password for the user.</p>
+</li>
+<li><p class="first">To remove a user:</p>
+<p>In the above command, use the <em>-r</em> option to remove the user&#8217;s home
+directory.</p>
+</li>
+<li><p class="first">To add a group:</p>
+<p>As for smbldap-useradd, the <em>-a</em> adds the Samba attributes.</p>
+</li>
+<li><p class="first">To make an existing user a member of a group:</p>
+<p>The <em>-m</em> option can add more than one user at a time by listing them
+in comma-separated format.</p>
+</li>
+<li><p class="first">To remove a user from a group:</p>
+</li>
+<li><p class="first">To add a Samba machine account:</p>
+<p>Replace <em>username</em> with the name of the workstation. The <em>-t 0</em>
+option creates the machine account without a delay, while the <em>-w</em>
+option specifies the user as a machine account. Also, note the <em>add
+machine script</em> parameter in <tt class="docutils literal"><span class="pre">/etc/samba/smb.conf</span></tt> was changed to
+use smbldap-useradd.</p>
+</li>
+</ul>
+<p>There are utilities in the smbldap-tools package that were not covered
+here. Here is a complete list:</p>
+</div>
+<div class="section" id="id1">
+<h2>Resources<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>For more information on installing and configuring Samba see ? of
+this Ubuntu Server Guide.</li>
+<li>There are multiple places where LDAP and Samba is documented in the
+upstream <a class="reference external" href="http://samba.org/samba/docs/man/Samba-HOWTO-Collection/">Samba HOWTO
+Collection</a>.</li>
+<li>Regarding the above, see specifically the <a class="reference external" href="http://samba.org/samba/docs/man/Samba-HOWTO-Collection/passdb.html">passdb
+section</a>.</li>
+<li>Although dated (2007), the <a class="reference external" href="http://download.gna.org/smbldap-tools/docs/samba-ldap-howto/">Linux Samba-OpenLDAP
+HOWTO</a>
+contains valuable notes.</li>
+<li>The main page of the <a class="reference external" href="https://help.ubuntu.com/community/Samba#samba-ldap">Samba Ubuntu community
+documentation</a>
+has a plethora of links to articles that may prove useful.</li>
+</ul>
+</div>
+</div>
+<div class="section" id="kerberos">
+<h1>Kerberos<a class="headerlink" href="#kerberos" title="Permalink to this headline">¶</a></h1>
+<p>Kerberos is a network authentication system based on the principal of a
+trusted third party. The other two parties being the user and the
+service the user wishes to authenticate to. Not all services and
+applications can use Kerberos, but for those that can, it brings the
+network environment one step closer to being Single Sign On (SSO).</p>
+<p>This section covers installation and configuration of a Kerberos server,
+and some example client configurations.</p>
+<div class="section" id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<p>If you are new to Kerberos there are a few terms that are good to
+understand before setting up a Kerberos server. Most of the terms will
+relate to things you may be familiar with in other environments:</p>
+<ul class="simple">
+<li><em>Principal:</em> any users, computers, and services provided by servers
+need to be defined as Kerberos Principals.</li>
+<li><em>Instances:</em> are used for service principals and special
+administrative principals.</li>
+<li><em>Realms:</em> the unique realm of control provided by the Kerberos
+installation. Think of it as the domain or group your hosts and users
+belong to. Convention dictates the realm should be in uppercase. By
+default, ubuntu will use the DNS domain converted to uppercase
+(EXAMPLE.COM) as the realm.</li>
+<li><em>Key Distribution Center:</em> (KDC) consist of three parts, a database
+of all principals, the authentication server, and the ticket granting
+server. For each realm there must be at least one KDC.</li>
+<li><em>Ticket Granting Ticket:</em> issued by the Authentication Server (AS),
+the Ticket Granting Ticket (TGT) is encrypted in the user&#8217;s password
+which is known only to the user and the KDC.</li>
+<li><em>Ticket Granting Server:</em> (TGS) issues service tickets to clients
+upon request.</li>
+<li><em>Tickets:</em> confirm the identity of the two principals. One principal
+being a user and the other a service requested by the user. Tickets
+establish an encryption key used for secure communication during the
+authenticated session.</li>
+<li><em>Keytab Files:</em> are files extracted from the KDC principal database
+and contain the encryption key for a service or host.</li>
+</ul>
+<p>To put the pieces together, a Realm has at least one KDC, preferably
+more for redundancy, which contains a database of Principals. When a
+user principal logs into a workstation that is configured for Kerberos
+authentication, the KDC issues a Ticket Granting Ticket (TGT). If the
+user supplied credentials match, the user is authenticated and can then
+request tickets for Kerberized services from the Ticket Granting Server
+(TGS). The service tickets allow the user to authenticate to the service
+without entering another username and password.</p>
+</div>
+<div class="section" id="kerberos-server">
+<h2>Kerberos Server<a class="headerlink" href="#kerberos-server" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="id2">
+<h3>Installation<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<p>For this discussion, we will create a MIT Kerberos domain with the
+following features (edit them to fit your needs):</p>
+<ul>
+<li><p class="first"><em>Realm:</em> EXAMPLE.COM</p>
+</li>
+<li><p class="first"><em>Primary KDC:</em> kdc01.example.com (192.168.0.1)</p>
+</li>
+<li><p class="first"><em>Secondary KDC:</em> kdc02.example.com (192.168.0.2)</p>
+</li>
+<li><p class="first"><em>User principal:</em> steve</p>
+</li>
+<li><p class="first"><em>Admin principal:</em> steve/admin</p>
+<blockquote>
+<div><p><strong>Note</strong></p>
+<p>It is <em>strongly</em> recommended that your network-authenticated users
+have their uid in a different range (say, starting at 5000) than
+that of your local users.</p>
+</div></blockquote>
+</li>
+</ul>
+<p>Before installing the Kerberos server a properly configured DNS server
+is needed for your domain. Since the Kerberos Realm by convention
+matches the domain name, this section uses the <em>EXAMPLE.COM</em> domain
+configured in ? of the DNS documentation.</p>
+<p>Also, Kerberos is a time sensitive protocol. So if the local system time
+between a client machine and the server differs by more than five
+minutes (by default), the workstation will not be able to authenticate.
+To correct the problem all hosts should have their time synchronized
+using the same <em>Network Time Protocol (NTP)</em> server. For details on
+setting up NTP see ?.</p>
+<p>The first step in creating a Kerberos Realm is to install the krb5-kdc
+and krb5-admin-server packages. From a terminal enter:</p>
+<p>You will be asked at the end of the install to supply the hostname for
+the Kerberos and Admin servers, which may or may not be the same server,
+for the realm.</p>
+<blockquote>
+<div><p><strong>Note</strong></p>
+<p>By default the realm is created from the KDC&#8217;s domain name.</p>
+</div></blockquote>
+<p>Next, create the new realm with the kdb5_newrealm utility:</p>
+</div>
+<div class="section" id="configuration">
+<h3>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h3>
+<p>The questions asked during installation are used to configure the
+<tt class="docutils literal"><span class="pre">/etc/krb5.conf</span></tt> file. If you need to adjust the Key Distribution
+Center (KDC) settings simply edit the file and restart the krb5-kdc
+daemon. If you need to reconfigure Kerberos from scratch, perhaps to
+change the realm name, you can do so by typing</p>
+<p>Once the KDC is properly running, an admin user &#8211; the <em>admin principal</em>
+&#8211; is needed. It is recommended to use a different username from your
+everyday username. Using the kadmin.local utility in a terminal prompt
+enter:</p>
+<p>In the above example <em>steve</em> is the <em>Principal</em>, <em>/admin</em> is an
+<em>Instance</em>, and <em>&#64;EXAMPLE.COM</em> signifies the realm. The <em>&#8220;every day&#8221;</em>
+Principal, a.k.a. the <em>user principal</em>, would be <em>steve&#64;EXAMPLE.COM</em>,
+and should have only normal user rights.</p>
+<blockquote>
+<div><p><strong>Note</strong></p>
+<p>Replace <em>EXAMPLE.COM</em> and <em>steve</em> with your Realm and admin
+username.</p>
+</div></blockquote>
+<p>Next, the new admin user needs to have the appropriate Access Control
+List (ACL) permissions. The permissions are configured in the
+<tt class="docutils literal"><span class="pre">/etc/krb5kdc/kadm5.acl</span></tt> file:</p>
+<div class="highlight-python"><pre>steve/admin@EXAMPLE.COM        *</pre>
+</div>
+<p>This entry grants <em>steve/admin</em> the ability to perform any operation on
+all principals in the realm. You can configure principals with more
+restrictive privileges, which is convenient if you need an admin
+principal that junior staff can use in Kerberos clients. Please see the
+<em>kadm5.acl</em> man page for details.</p>
+<p>Now restart the krb5-admin-server for the new ACL to take affect:</p>
+<p>The new user principal can be tested using the kinit utility:</p>
+<p>After entering the password, use the klist utility to view information
+about the Ticket Granting Ticket (TGT):</p>
+<p>Where the cache filename <tt class="docutils literal"><span class="pre">krb5cc_1000</span></tt> is composed of the prefix
+<tt class="docutils literal"><span class="pre">krb5cc_</span></tt> and the user id (uid), which in this case is <tt class="docutils literal"><span class="pre">1000</span></tt>. You
+may need to add an entry into the <tt class="docutils literal"><span class="pre">/etc/hosts</span></tt> for the KDC so the
+client can find the KDC. For example:</p>
+<div class="highlight-python"><pre>192.168.0.1   kdc01.example.com       kdc01</pre>
+</div>
+<p>Replacing <em>192.168.0.1</em> with the IP address of your KDC. This usually
+happens when you have a Kerberos realm encompassing different networks
+separated by routers.</p>
+<p>The best way to allow clients to automatically determine the KDC for the
+Realm is using DNS SRV records. Add the following to
+<tt class="docutils literal"><span class="pre">/etc/named/db.example.com</span></tt>:</p>
+<div class="highlight-python"><pre>_kerberos._udp.EXAMPLE.COM.     IN SRV 1  0 88  kdc01.example.com.
+_kerberos._tcp.EXAMPLE.COM.     IN SRV 1  0 88  kdc01.example.com.
+_kerberos._udp.EXAMPLE.COM.     IN SRV 10 0 88  kdc02.example.com.
+_kerberos._tcp.EXAMPLE.COM.     IN SRV 10 0 88  kdc02.example.com.
+_kerberos-adm._tcp.EXAMPLE.COM. IN SRV 1  0 749 kdc01.example.com.
+_kpasswd._udp.EXAMPLE.COM.      IN SRV 1  0 464 kdc01.example.com.
+
+**Note**
+
+Replace *EXAMPLE.COM*, *kdc01*, and *kdc02* with your domain name,
+primary KDC, and secondary KDC.</pre>
+</div>
+<p>See ? for detailed instructions on setting up DNS.</p>
+<p>Your new Kerberos Realm is now ready to authenticate clients.</p>
+</div>
+</div>
+<div class="section" id="secondary-kdc">
+<h2>Secondary KDC<a class="headerlink" href="#secondary-kdc" title="Permalink to this headline">¶</a></h2>
+<p>Once you have one Key Distribution Center (KDC) on your network, it is
+good practice to have a Secondary KDC in case the primary becomes
+unavailable. Also, if you have Kerberos clients that are in different
+networks (possibly separated by routers using NAT), it is wise to place
+a secondary KDC in each of those networks.</p>
+<p>First, install the packages, and when asked for the Kerberos and Admin
+server names enter the name of the Primary KDC:</p>
+<p>Once you have the packages installed, create the Secondary KDC&#8217;s host
+principal. From a terminal prompt, enter:</p>
+<div class="highlight-python"><pre>**Note**
+
+After, issuing any kadmin commands you will be prompted for your
+*username/admin@EXAMPLE.COM* principal password.</pre>
+</div>
+<p>Extract the <em>keytab</em> file:</p>
+<p>There should now be a <tt class="docutils literal"><span class="pre">keytab.kdc02</span></tt> in the current directory, move
+the file to <tt class="docutils literal"><span class="pre">/etc/krb5.keytab</span></tt>:</p>
+<div class="highlight-python"><pre>**Note**
+
+If the path to the ``keytab.kdc02`` file is different adjust
+accordingly.</pre>
+</div>
+<p>Also, you can list the principals in a Keytab file, which can be useful
+when troubleshooting, using the klist utility:</p>
+<p>The -k option indicates the file is a keytab file.</p>
+<p>Next, there needs to be a <tt class="docutils literal"><span class="pre">kpropd.acl</span></tt> file on each KDC that lists all
+KDCs for the Realm. For example, on both primary and secondary KDC,
+create <tt class="docutils literal"><span class="pre">/etc/krb5kdc/kpropd.acl</span></tt>:</p>
+<div class="highlight-python"><pre>host/kdc01.example.com@EXAMPLE.COM
+host/kdc02.example.com@EXAMPLE.COM</pre>
+</div>
+<p>Create an empty database on the <em>Secondary KDC</em>:</p>
+<p>Now start the kpropd daemon, which listens for connections from the
+kprop utility. kprop is used to transfer dump files:</p>
+<p>From a terminal on the <em>Primary KDC</em>, create a dump file of the
+principal database:</p>
+<p>Extract the Primary KDC&#8217;s <em>keytab</em> file and copy it to
+<tt class="docutils literal"><span class="pre">/etc/krb5.keytab</span></tt>:</p>
+<div class="highlight-python"><pre>**Note**
+
+Make sure there is a *host* for *kdc01.example.com* before
+extracting the Keytab.</pre>
+</div>
+<p>Using the kprop utility push the database to the Secondary KDC:</p>
+<div class="highlight-python"><pre>**Note**
+
+There should be a *SUCCEEDED* message if the propagation worked. If
+there is an error message check ``/var/log/syslog`` on the secondary
+KDC for more information.</pre>
+</div>
+<p>You may also want to create a cron job to periodically update the
+database on the Secondary KDC. For example, the following will push the
+database every hour (note the long line has been split to fit the format
+of this document):</p>
+<div class="highlight-python"><pre># m h  dom mon dow   command
+0 * * * * /usr/sbin/kdb5_util dump /var/lib/krb5kdc/dump &amp;&amp;
+/usr/sbin/kprop -r EXAMPLE.COM -f /var/lib/krb5kdc/dump kdc02.example.com</pre>
+</div>
+<p>Back on the <em>Secondary KDC</em>, create a <em>stash</em> file to hold the Kerberos
+master key:</p>
+<p>Finally, start the krb5-kdc daemon on the Secondary KDC:</p>
+<p>The <em>Secondary KDC</em> should now be able to issue tickets for the Realm.
+You can test this by stopping the krb5-kdc daemon on the Primary KDC,
+then by using kinit to request a ticket. If all goes well you should
+receive a ticket from the Secondary KDC. Otherwise, check
+<tt class="docutils literal"><span class="pre">/var/log/syslog</span></tt> and <tt class="docutils literal"><span class="pre">/var/log/auth.log</span></tt> in the Secondary KDC.</p>
+</div>
+<div class="section" id="kerberos-linux-client">
+<h2>Kerberos Linux Client<a class="headerlink" href="#kerberos-linux-client" title="Permalink to this headline">¶</a></h2>
+<p>This section covers configuring a Linux system as a Kerberos client.
+This will allow access to any kerberized services once a user has
+successfully logged into the system.</p>
+<div class="section" id="id3">
+<h3>Installation<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<p>In order to authenticate to a Kerberos Realm, the krb5-user and
+libpam-krb5 packages are needed, along with a few others that are not
+strictly necessary but make life easier. To install the packages enter
+the following in a terminal prompt:</p>
+<p>The auth-client-config package allows simple configuration of PAM for
+authentication from multiple sources, and the libpam-ccreds will cache
+authentication credentials allowing you to login in case the Key
+Distribution Center (KDC) is unavailable. This package is also useful
+for laptops that may authenticate using Kerberos while on the corporate
+network, but will need to be accessed off the network as well.</p>
+</div>
+<div class="section" id="id4">
+<h3>Configuration<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+<p>To configure the client in a terminal enter:</p>
+<p>You will then be prompted to enter the name of the Kerberos Realm. Also,
+if you don&#8217;t have DNS configured with Kerberos <em>SRV</em> records, the menu
+will prompt you for the hostname of the Key Distribution Center (KDC)
+and Realm Administration server.</p>
+<p>The dpkg-reconfigure adds entries to the <tt class="docutils literal"><span class="pre">/etc/krb5.conf</span></tt> file for
+your Realm. You should have entries similar to the following:</p>
+<div class="highlight-python"><pre>[libdefaults]
+        default_realm = EXAMPLE.COM
+...
+[realms]
+        EXAMPLE.COM = {
+                kdc = 192.168.0.1
+                admin_server = 192.168.0.1
+        }
+
+**Note**
+
+If you set the uid of each of your network-authenticated users to
+start at 5000, as suggested in ?, you can then tell pam to only try
+to authenticate using Kerberos users with uid &gt; 5000:
+
+::
+
+This will avoid being asked for the (non-existent) Kerberos password
+of a locally authenticated user when changing its password using
+``passwd``.</pre>
+</div>
+<p>You can test the configuration by requesting a ticket using the kinit
+utility. For example:</p>
+<p>When a ticket has been granted, the details can be viewed using klist:</p>
+<p>Next, use the auth-client-config to configure the libpam-krb5 module to
+request a ticket during login:</p>
+<p>You will should now receive a ticket upon successful login
+authentication.</p>
+</div>
+</div>
+<div class="section" id="id5">
+<h2>Resources<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>For more information on MIT&#8217;s version of Kerberos, see the <a class="reference external" href="http://web.mit.edu/Kerberos/">MIT
+Kerberos</a> site.</li>
+<li>The <a class="reference external" href="https://help.ubuntu.com/community/Kerberos">Ubuntu Wiki
+Kerberos</a> page has
+more details.</li>
+<li>O&#8217;Reilly&#8217;s <a class="reference external" href="http://oreilly.com/catalog/9780596004033/">Kerberos: The Definitive
+Guide</a> is a great
+reference when setting up Kerberos.</li>
+<li>Also, feel free to stop by the <em>#ubuntu-server</em> and <em>#kerberos</em> IRC
+channels on <a class="reference external" href="http://freenode.net/">Freenode</a> if you have Kerberos
+questions.</li>
+</ul>
+</div>
+</div>
+<div class="section" id="kerberos-and-ldap">
+<h1>Kerberos and LDAP<a class="headerlink" href="#kerberos-and-ldap" title="Permalink to this headline">¶</a></h1>
+<p>Most people will not use Kerberos by itself; once an user is
+authenticated (Kerberos), we need to figure out what this user can do
+(authorization). And that would be the job of programs such as LDAP.</p>
+<p>Replicating a Kerberos principal database between two servers can be
+complicated, and adds an additional user database to your network.
+Fortunately, MIT Kerberos can be configured to use an LDAP directory as
+a principal database. This section covers configuring a primary and
+secondary kerberos server to use OpenLDAP for the principal database.</p>
+<blockquote>
+<div><p><strong>Note</strong></p>
+<p>The examples presented here assume MIT Kerberos and OpenLDAP.</p>
+</div></blockquote>
+<div class="section" id="configuring-openldap">
+<h2>Configuring OpenLDAP<a class="headerlink" href="#configuring-openldap" title="Permalink to this headline">¶</a></h2>
+<p>First, the necessary <em>schema</em> needs to be loaded on an OpenLDAP server
+that has network connectivity to the Primary and Secondary KDCs. The
+rest of this section assumes that you also have LDAP replication
+configured between at least two servers. For information on setting up
+OpenLDAP see ?.</p>
+<p>It is also required to configure OpenLDAP for TLS and SSL connections,
+so that traffic between the KDC and LDAP server is encrypted. See ? for
+details.</p>
+<blockquote>
+<div><p><strong>Note</strong></p>
+<p><tt class="docutils literal"><span class="pre">cn=admin,cn=config</span></tt> is a user we created with rights to edit the
+ldap database. Many times it is the RootDN. Change its value to
+reflect your setup.</p>
+</div></blockquote>
+<ul>
+<li><p class="first">To load the schema into LDAP, on the LDAP server install the
+krb5-kdc-ldap package. From a terminal enter:</p>
+</li>
+<li><p class="first">Next, extract the <tt class="docutils literal"><span class="pre">kerberos.schema.gz</span></tt> file:</p>
+</li>
+<li><p class="first">The <em>kerberos</em> schema needs to be added to the <em>cn=config</em> tree. The
+procedure to add a new schema to slapd is also detailed in ?.</p>
+<p>First, create a configuration file named <tt class="docutils literal"><span class="pre">schema_convert.conf</span></tt>, or
+a similar descriptive name, containing the following lines:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">include</span> <span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">ldap</span><span class="o">/</span><span class="n">schema</span><span class="o">/</span><span class="n">core</span><span class="o">.</span><span class="n">schema</span>
+<span class="n">include</span> <span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">ldap</span><span class="o">/</span><span class="n">schema</span><span class="o">/</span><span class="n">collective</span><span class="o">.</span><span class="n">schema</span>
+<span class="n">include</span> <span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">ldap</span><span class="o">/</span><span class="n">schema</span><span class="o">/</span><span class="n">corba</span><span class="o">.</span><span class="n">schema</span>
+<span class="n">include</span> <span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">ldap</span><span class="o">/</span><span class="n">schema</span><span class="o">/</span><span class="n">cosine</span><span class="o">.</span><span class="n">schema</span>
+<span class="n">include</span> <span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">ldap</span><span class="o">/</span><span class="n">schema</span><span class="o">/</span><span class="n">duaconf</span><span class="o">.</span><span class="n">schema</span>
+<span class="n">include</span> <span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">ldap</span><span class="o">/</span><span class="n">schema</span><span class="o">/</span><span class="n">dyngroup</span><span class="o">.</span><span class="n">schema</span>
+<span class="n">include</span> <span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">ldap</span><span class="o">/</span><span class="n">schema</span><span class="o">/</span><span class="n">inetorgperson</span><span class="o">.</span><span class="n">schema</span>
+<span class="n">include</span> <span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">ldap</span><span class="o">/</span><span class="n">schema</span><span class="o">/</span><span class="n">java</span><span class="o">.</span><span class="n">schema</span>
+<span class="n">include</span> <span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">ldap</span><span class="o">/</span><span class="n">schema</span><span class="o">/</span><span class="n">misc</span><span class="o">.</span><span class="n">schema</span>
+<span class="n">include</span> <span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">ldap</span><span class="o">/</span><span class="n">schema</span><span class="o">/</span><span class="n">nis</span><span class="o">.</span><span class="n">schema</span>
+<span class="n">include</span> <span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">ldap</span><span class="o">/</span><span class="n">schema</span><span class="o">/</span><span class="n">openldap</span><span class="o">.</span><span class="n">schema</span>
+<span class="n">include</span> <span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">ldap</span><span class="o">/</span><span class="n">schema</span><span class="o">/</span><span class="n">ppolicy</span><span class="o">.</span><span class="n">schema</span>
+<span class="n">include</span> <span class="o">/</span><span class="n">etc</span><span class="o">/</span><span class="n">ldap</span><span class="o">/</span><span class="n">schema</span><span class="o">/</span><span class="n">kerberos</span><span class="o">.</span><span class="n">schema</span>
+</pre></div>
+</div>
+<p>Create a temporary directory to hold the LDIF files:</p>
+<p>Now use slapcat to convert the schema files:</p>
+<p>Change the above file and path names to match your own if they are
+different.</p>
+<p>Edit the generated <tt class="docutils literal"><span class="pre">/tmp/cn\=kerberos.ldif</span></tt> file, changing the
+following attributes:</p>
+<div class="highlight-python"><pre>dn: cn=kerberos,cn=schema,cn=config
+...
+cn: kerberos</pre>
+</div>
+<p>And remove the following lines from the end of the file:</p>
+<div class="highlight-python"><pre>structuralObjectClass: olcSchemaConfig
+entryUUID: 18ccd010-746b-102d-9fbe-3760cca765dc
+creatorsName: cn=config
+createTimestamp: 20090111203515Z
+entryCSN: 20090111203515.326445Z#000000#000#000000
+modifiersName: cn=config
+modifyTimestamp: 20090111203515Z</pre>
+</div>
+<p>The attribute values will vary, just be sure the attributes are
+removed.</p>
+<p>Load the new schema with ldapadd:</p>
+<p>Add an index for the <em>krb5principalname</em> attribute:</p>
+<p>Finally, update the Access Control Lists (ACL):</p>
+</li>
+</ul>
+<p>That&#8217;s it, your LDAP directory is now ready to serve as a Kerberos
+principal database.</p>
+</div>
+<div class="section" id="primary-kdc-configuration">
+<h2>Primary KDC Configuration<a class="headerlink" href="#primary-kdc-configuration" title="Permalink to this headline">¶</a></h2>
+<p>With OpenLDAP configured it is time to configure the KDC.</p>
+<ul>
+<li><p class="first">First, install the necessary packages, from a terminal enter:</p>
+</li>
+<li><p class="first">Now edit <tt class="docutils literal"><span class="pre">/etc/krb5.conf</span></tt> adding the following options to under the
+appropriate sections:</p>
+<div class="highlight-python"><pre>[libdefaults]
+        default_realm = EXAMPLE.COM
+
+...
+
+[realms]
+        EXAMPLE.COM = {
+                kdc = kdc01.example.com
+                kdc = kdc02.example.com
+                admin_server = kdc01.example.com
+                admin_server = kdc02.example.com
+                default_domain = example.com
+                database_module = openldap_ldapconf
+        }
+
+...
+
+[domain_realm]
+        .example.com = EXAMPLE.COM
+
+
+...
+
+[dbdefaults]
+        ldap_kerberos_container_dn = dc=example,dc=com
+
+[dbmodules]
+        openldap_ldapconf = {
+                db_library = kldap
+                ldap_kdc_dn = "cn=admin,dc=example,dc=com"
+
+                # this object needs to have read rights on
+                # the realm container, principal container and realm sub-trees
+                ldap_kadmind_dn = "cn=admin,dc=example,dc=com"
+
+                # this object needs to have read and write rights on
+                # the realm container, principal container and realm sub-trees
+                ldap_service_password_file = /etc/krb5kdc/service.keyfile
+                ldap_servers = ldaps://ldap01.example.com ldaps://ldap02.example.com
+                ldap_conns_per_server = 5
+        }
+
+**Note**
+
+Change *example.com*, *dc=example,dc=com*,
+*cn=admin,dc=example,dc=com*, and *ldap01.example.com* to the
+appropriate domain, LDAP object, and LDAP server for your
+network.</pre>
+</div>
+</li>
+<li><p class="first">Next, use the kdb5_ldap_util utility to create the realm:</p>
+</li>
+<li><p class="first">Create a stash of the password used to bind to the LDAP server. This
+password is used by the <em>ldap_kdc_dn</em> and <em>ldap_kadmin_dn</em>
+options in <tt class="docutils literal"><span class="pre">/etc/krb5.conf</span></tt>:</p>
+</li>
+<li><p class="first">Copy the CA certificate from the LDAP server:</p>
+<p>And edit <tt class="docutils literal"><span class="pre">/etc/ldap/ldap.conf</span></tt> to use the certificate:</p>
+<div class="highlight-python"><pre>TLS_CACERT /etc/ssl/certs/cacert.pem
+
+**Note**
+
+The certificate will also need to be copied to the Secondary KDC,
+to allow the connection to the LDAP servers using LDAPS.</pre>
+</div>
+</li>
+</ul>
+<p>You can now add Kerberos principals to the LDAP database, and they will
+be copied to any other LDAP servers configured for replication. To add a
+principal using the kadmin.local utility enter:</p>
+<p>There should now be krbPrincipalName, krbPrincipalKey, krbLastPwdChange,
+and krbExtraData attributes added to the
+<em>uid=steve,ou=people,dc=example,dc=com</em> user object. Use the kinit and
+klist utilities to test that the user is indeed issued a ticket.</p>
+<blockquote>
+<div><p><strong>Note</strong></p>
+<p>If the user object is already created the <em>-x dn=&#8221;...&#8221;</em> option is
+needed to add the Kerberos attributes. Otherwise a new <em>principal</em>
+object will be created in the realm subtree.</p>
+</div></blockquote>
+</div>
+<div class="section" id="secondary-kdc-configuration">
+<h2>Secondary KDC Configuration<a class="headerlink" href="#secondary-kdc-configuration" title="Permalink to this headline">¶</a></h2>
+<p>Configuring a Secondary KDC using the LDAP backend is similar to
+configuring one using the normal Kerberos database.</p>
+<p>First, install the necessary packages. In a terminal enter:</p>
+<p>Next, edit <tt class="docutils literal"><span class="pre">/etc/krb5.conf</span></tt> to use the LDAP backend:</p>
+<div class="highlight-python"><pre>[libdefaults]
+        default_realm = EXAMPLE.COM
+
+...
+
+[realms]
+        EXAMPLE.COM = {
+                kdc = kdc01.example.com
+                kdc = kdc02.example.com
+                admin_server = kdc01.example.com
+                admin_server = kdc02.example.com
+                default_domain = example.com
+                database_module = openldap_ldapconf
+        }
+
+...
+
+[domain_realm]
+        .example.com = EXAMPLE.COM
+
+...
+
+[dbdefaults]
+        ldap_kerberos_container_dn = dc=example,dc=com
+
+[dbmodules]
+        openldap_ldapconf = {
+                db_library = kldap
+                ldap_kdc_dn = "cn=admin,dc=example,dc=com"
+
+                # this object needs to have read rights on
+                # the realm container, principal container and realm sub-trees
+                ldap_kadmind_dn = "cn=admin,dc=example,dc=com"
+
+                # this object needs to have read and write rights on
+                # the realm container, principal container and realm sub-trees
+                ldap_service_password_file = /etc/krb5kdc/service.keyfile
+                ldap_servers = ldaps://ldap01.example.com ldaps://ldap02.example.com
+                ldap_conns_per_server = 5
+        }</pre>
+</div>
+<p>Create the stash for the LDAP bind password:</p>
+<p>Now, on the <em>Primary KDC</em> copy the <tt class="docutils literal"><span class="pre">/etc/krb5kdc/.k5.EXAMPLE.COM</span></tt>
+<em>Master Key</em> stash to the Secondary KDC. Be sure to copy the file over
+an encrypted connection such as scp, or on physical media.</p>
+<div class="highlight-python"><pre>**Note**
+
+Again, replace *EXAMPLE.COM* with your actual realm.</pre>
+</div>
+<p>Back on the <em>Secondary KDC</em>, (re)start the ldap server only,</p>
+<p>Finally, start the krb5-kdc daemon:</p>
+<p>Verify the two ldap servers (and kerberos by extension) are in sync.</p>
+<p>You now have redundant KDCs on your network, and with redundant LDAP
+servers you should be able to continue to authenticate users if one LDAP
+server, one Kerberos server, or one LDAP and one Kerberos server become
+unavailable.</p>
+</div>
+<div class="section" id="id6">
+<h2>Resources<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>The <a class="reference external" href="http://web.mit.edu/Kerberos/krb5-1.6/krb5-1.6.3/doc/krb5-admin.html#Configuring-Kerberos-with-OpenLDAP-back_002dend">Kerberos Admin
+Guide</a>
+has some additional details.</li>
+<li>For more information on kdb5_ldap_util see <a class="reference external" href="http://web.mit.edu/Kerberos/krb5-1.6/krb5-1.6.3/doc/krb5-admin.html#Global-Operations-on-the-Kerberos-LDAP-Database">Section
+5.6</a>
+and the <a class="reference external" href="http://manpages.ubuntu.com/manpages/&amp;distro-short-codename;/en/man8/kdb5_ldap_util.8.html">kdb5_ldap_util man
+page</a>.</li>
+<li>Another useful link is the <a class="reference external" href="http://manpages.ubuntu.com/manpages/&amp;distro-short-codename;/en/man5/krb5.conf.5.html">krb5.conf man
+page</a>.</li>
+<li>Also, see the <a class="reference external" href="https://help.ubuntu.com/community/Kerberos#kerberos-ldap">Kerberos and
+LDAP</a>
+Ubuntu wiki page.</li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/ubuntu_black-orange_hex_su-medium_cropped.png" alt="Logo"/>
+            </a></p>
+<h3><a href="index.html">Table Of Contents</a></h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="introduction.html#support">Support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html#preparing-to-install">Preparing to Install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html#installing-from-cd">Installing from CD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html#upgrading">Upgrading</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html#advanced-installation">Advanced Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html#kernel-crash-dump">Kernel Crash Dump</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html">Package Management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html#introduction">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html#dpkg">dpkg</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html#apt-get">Apt-Get</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html#aptitude">Aptitude</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html#automatic-updates">Automatic Updates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html#configuration">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="package-management.html#references">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-config.html">Networking</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-config.html#network-configuration">Network Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-config.html#tcp-ip">TCP/IP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-config.html#dynamic-host-configuration-protocol-dhcp">Dynamic Host Configuration Protocol (DHCP)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="network-config.html#time-synchronisation-with-ntp">Time Synchronisation with NTP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multipath.html">DMM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multipath.html#device-mapper-multipathing">Device Mapper Multipathing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multipath.html#multipath-devices">Multipath Devices</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multipath.html#setting-up-dmm-overview">Setting up DMM Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multipath.html#the-dmm-configuration-file">The DMM Configuration File</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multipath.html#dmm-administration-and-troubleshooting">DMM Administration and Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="remote-administration.html">Remote Administration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="remote-administration.html#openssh-server">OpenSSH Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="remote-administration.html#puppet">Puppet</a></li>
+<li class="toctree-l1"><a class="reference internal" href="remote-administration.html#zentyal">Zentyal</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">Network Authentication</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#openldap-server">OpenLDAP Server</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="#samba-and-ldap">Samba and LDAP</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="#kerberos">Kerberos</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="#kerberos-and-ldap">Kerberos and LDAP</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="dns.html">Domain Name Service (DNS)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dns.html#installation">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dns.html#configuration">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dns.html#troubleshooting">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dns.html#references">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html">Security</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html#user-management">User Management</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html#console-security">Console Security</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html#firewall">Firewall</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html#apparmor">AppArmor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html#certificates">Certificates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="security.html#ecryptfs">eCryptfs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="monitoring.html">Monitoring</a></li>
+<li class="toctree-l1"><a class="reference internal" href="monitoring.html#overview">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="monitoring.html#nagios">Nagios</a></li>
+<li class="toctree-l1"><a class="reference internal" href="monitoring.html#munin">Munin</a></li>
+<li class="toctree-l1"><a class="reference internal" href="web-servers.html">Web Servers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="web-servers.html#httpd-apache2-web-server">HTTPD - Apache2 Web Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="web-servers.html#php5-scripting-language">PHP5 - Scripting Language</a></li>
+<li class="toctree-l1"><a class="reference internal" href="web-servers.html#squid-proxy-server">Squid - Proxy Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="web-servers.html#ruby-on-rails">Ruby on Rails</a></li>
+<li class="toctree-l1"><a class="reference internal" href="web-servers.html#apache-tomcat">Apache Tomcat</a></li>
+<li class="toctree-l1"><a class="reference internal" href="databases.html">Databases</a></li>
+<li class="toctree-l1"><a class="reference internal" href="databases.html#mysql">MySQL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="databases.html#postgresql">PostgreSQL</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lamp-applications.html">LAMP Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lamp-applications.html#overview">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lamp-applications.html#moin-moin">Moin Moin</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lamp-applications.html#mediawiki">MediaWiki</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lamp-applications.html#phpmyadmin">phpMyAdmin</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lamp-applications.html#wordpress">WordPress</a></li>
+<li class="toctree-l1"><a class="reference internal" href="file-server.html">File Servers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="file-server.html#ftp-server">FTP Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="file-server.html#network-file-system-nfs">Network File System (NFS)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="file-server.html#iscsi-initiator">iSCSI Initiator</a></li>
+<li class="toctree-l1"><a class="reference internal" href="file-server.html#cups-print-server">CUPS - Print Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mail.html">Email Services</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mail.html#postfix">Postfix</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mail.html#exim4">Exim4</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mail.html#dovecot-server">Dovecot Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mail.html#mailman">Mailman</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mail.html#mail-filtering">Mail Filtering</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chat.html">Chat Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chat.html#overview">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chat.html#irc-server">IRC Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="chat.html#jabber-instant-messaging-server">Jabber Instant Messaging Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vcs.html">Version Control System</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vcs.html#bazaar">Bazaar</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vcs.html#git">Git</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vcs.html#subversion">Subversion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vcs.html#references">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samba.html">Samba</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samba.html#introduction">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samba.html#file-server">File Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samba.html#print-server">Print Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samba.html#securing-file-and-print-server">Securing File and Print Server</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samba.html#as-a-domain-controller">As a Domain Controller</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samba.html#active-directory-integration">Active Directory Integration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backups.html">Backups</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backups.html#shell-scripts">Shell Scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backups.html#archive-rotation">Archive Rotation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="backups.html#bacula">Bacula</a></li>
+<li class="toctree-l1"><a class="reference internal" href="virtualization.html">Virtualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="virtualization.html#libvirt">libvirt</a></li>
+<li class="toctree-l1"><a class="reference internal" href="virtualization.html#cloud-images-and-vmbuilder">Cloud images and vmbuilder</a></li>
+<li class="toctree-l1"><a class="reference internal" href="virtualization.html#ubuntu-cloud">Ubuntu Cloud</a></li>
+<li class="toctree-l1"><a class="reference internal" href="virtualization.html#lxc">LXC</a></li>
+<li class="toctree-l1"><a class="reference internal" href="clustering.html">Clustering</a></li>
+<li class="toctree-l1"><a class="reference internal" href="clustering.html#drbd">DRBD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vpn.html">VPN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vpn.html#openvpn">OpenVPN</a></li>
+<li class="toctree-l1"><a class="reference internal" href="other-apps.html">Other Useful Applications</a></li>
+<li class="toctree-l1"><a class="reference internal" href="other-apps.html#pam-motd">pam_motd</a></li>
+<li class="toctree-l1"><a class="reference internal" href="other-apps.html#etckeeper">etckeeper</a></li>
+<li class="toctree-l1"><a class="reference internal" href="other-apps.html#byobu">Byobu</a></li>
+<li class="toctree-l1"><a class="reference internal" href="other-apps.html#references">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reporting-bugs.html">Appendix</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reporting-bugs.html#reporting-bugs-in-ubuntu-server-edition">Reporting Bugs in Ubuntu Server Edition</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="remote-administration.html"
+                        title="previous chapter">Remote Administration</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="dns.html"
+                        title="next chapter">Domain Name Service (DNS)</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/network-auth.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="dns.html" title="Domain Name Service (DNS)"
+             >next</a></li>
+        <li class="right" >
+          <a href="remote-administration.html" title="Remote Administration"
+             >previous</a> |</li>
+        <li><a href="index.html">Ubuntu Server Guide - 14.04 LTS</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Ubuntu Documentation Contributors.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>
